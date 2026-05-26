@@ -6,8 +6,8 @@ function initRequestForm() {
     }
 
     initSelectableCards();
-    initManualStepTracking();
     initStepNavigation();
+    initManualStepTracking();
 }
 
 function setActiveStep(stepIndex) {
@@ -48,71 +48,26 @@ function initSelectableCards() {
             input.checked = true;
             card.classList.add('is-selected');
 
-            if (groupName === 'service') {
-                setActiveStep(0);
+            const section = card.closest('[data-step]');
+
+            if (section) {
+                setActiveStep(Number(section.dataset.step));
             }
-
-            if (groupName === 'request_type') {
-                setActiveStep(1);
-            }
-        });
-    });
-}
-
-function initManualStepTracking() {
-    const technicalFields = document.querySelectorAll(
-        'input[type="text"], .checkbox-field input'
-    );
-
-    technicalFields.forEach((field) => {
-        field.addEventListener('focus', () => {
-            setActiveStep(2);
-        });
-
-        field.addEventListener('click', () => {
-            setActiveStep(2);
-        });
-    });
-
-    const descriptionFields = document.querySelectorAll(
-        'textarea, .upload-box'
-    );
-
-    descriptionFields.forEach((field) => {
-        field.addEventListener('focus', () => {
-            setActiveStep(3);
-        });
-
-        field.addEventListener('click', () => {
-            setActiveStep(3);
-        });
-    });
-
-    const summaryBoxes = document.querySelectorAll(
-        '.estimate-box, .summary-box'
-    );
-
-    summaryBoxes.forEach((box) => {
-        box.addEventListener('click', () => {
-            setActiveStep(4);
         });
     });
 }
 
 function initStepNavigation() {
     const steps = Array.from(document.querySelectorAll('.request-step'));
-    const sections = Array.from(document.querySelectorAll('.form-section'));
-    const summaryBox = document.querySelector('.summary-box');
-
-    if (summaryBox) {
-        sections.push(summaryBox);
-    }
+    const sections = Array.from(document.querySelectorAll('[data-step]'));
 
     steps.forEach((step, index) => {
         step.addEventListener('click', () => {
-            setActiveStep(index);
+            const targetSection = sections.find((section) => {
+                return Number(section.dataset.step) === index;
+            });
 
-            const targetSection = sections[index];
+            setActiveStep(index);
 
             if (!targetSection) {
                 return;
@@ -121,6 +76,24 @@ function initStepNavigation() {
             targetSection.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',
+            });
+        });
+    });
+}
+
+function initManualStepTracking() {
+    const sections = document.querySelectorAll('[data-step]');
+
+    sections.forEach((section) => {
+        const stepIndex = Number(section.dataset.step);
+
+        section.addEventListener('click', () => {
+            setActiveStep(stepIndex);
+        });
+
+        section.querySelectorAll('input, textarea').forEach((field) => {
+            field.addEventListener('focus', () => {
+                setActiveStep(stepIndex);
             });
         });
     });

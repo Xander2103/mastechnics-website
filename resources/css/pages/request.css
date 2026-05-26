@@ -249,6 +249,46 @@ textarea {
 }
 
 /* ================================
+   Form Error messages
+================================ */
+.form-success {
+    margin-bottom: 24px;
+    padding: 18px 20px;
+    border: 1px solid rgba(22, 163, 74, 0.28);
+    border-radius: 18px;
+    background: #ecfdf3;
+    color: #166534;
+    font-weight: 900;
+}
+
+.form-error-list {
+    margin-bottom: 24px;
+    padding: 18px 20px;
+    border: 1px solid rgba(220, 38, 38, 0.28);
+    border-radius: 18px;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.form-error-list strong {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.form-error-list ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+/* ================================
+   Request scroll offset
+================================ */
+
+.request-form-card [data-step] {
+    scroll-margin-top: 120px;
+}
+
+/* ================================
    Responsive
 ================================ */
 

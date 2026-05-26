@@ -201,6 +201,33 @@
                                                     <p class="field-error-text">{{ $message }}</p>
                                                 @enderror
                                             </label>
+                                        @elseif ($field['type'] === 'select')
+                                            <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
+                                                <span>
+                                                    {{ $getLabel($field) }}
+
+                                                    @if ($isRequiredField($field))
+                                                        <span class="required-star">*</span>
+                                                    @endif
+                                                </span>
+
+                                                <select name="{{ $field['name'] }}">
+                                                    <option value="">
+                                                        {{ $locale === 'fr' ? 'Choisissez une option' : ($locale === 'en' ? 'Choose an option' : 'Kies een optie') }}
+                                                    </option>
+
+                                                    @foreach ($field['options'] ?? [] as $option)
+                                                        <option value="{{ $option['value'] }}"
+                                                            {{ old($field['name']) === $option['value'] ? 'selected' : '' }}>
+                                                            {{ $getLabel($option) }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+
+                                                @error($field['name'])
+                                                    <p class="field-error-text">{{ $message }}</p>
+                                                @enderror
+                                            </label>
                                         @else
                                             <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
                                                 <span>

@@ -1,4 +1,5 @@
 <?php
+
 return [
     'steps' => [
         [
@@ -22,11 +23,87 @@ return [
         ],
 
         [
+            'code' => 'customer_context',
+            'labels' => [
+                'nl' => '3. Klant en urgentie',
+                'fr' => '3. Client et urgence',
+                'en' => '3. Customer and urgency',
+            ],
+            'type' => 'fields',
+            'fields' => [
+                [
+                    'name' => 'customer_type',
+                    'type' => 'select',
+                    'required' => true,
+                    'labels' => [
+                        'nl' => 'Klanttype',
+                        'fr' => 'Type de client',
+                        'en' => 'Customer type',
+                    ],
+                    'options' => [
+                        [
+                            'value' => 'residential',
+                            'labels' => [
+                                'nl' => 'Particulier',
+                                'fr' => 'Particulier',
+                                'en' => 'Residential',
+                            ],
+                        ],
+                        [
+                            'value' => 'business',
+                            'labels' => [
+                                'nl' => 'Bedrijf',
+                                'fr' => 'Entreprise',
+                                'en' => 'Business',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'urgency',
+                    'type' => 'select',
+                    'required' => true,
+                    'labels' => [
+                        'nl' => 'Urgentie',
+                        'fr' => 'Urgence',
+                        'en' => 'Urgency',
+                    ],
+                    'options' => [
+                        [
+                            'value' => 'urgent',
+                            'labels' => [
+                                'nl' => 'Dringend',
+                                'fr' => 'Urgent',
+                                'en' => 'Urgent',
+                            ],
+                        ],
+                        [
+                            'value' => 'within_days',
+                            'labels' => [
+                                'nl' => 'Binnen enkele dagen',
+                                'fr' => 'Dans quelques jours',
+                                'en' => 'Within a few days',
+                            ],
+                        ],
+                        [
+                            'value' => 'not_urgent',
+                            'labels' => [
+                                'nl' => 'Niet dringend',
+                                'fr' => 'Pas urgent',
+                                'en' => 'Not urgent',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+
+        [
             'code' => 'description',
             'labels' => [
-                'nl' => '3. Probleem of project',
-                'fr' => '3. Problème ou projet',
-                'en' => '3. Issue or project',
+                'nl' => '4. Probleem of project',
+                'fr' => '4. Problème ou projet',
+                'en' => '4. Issue or project',
             ],
             'type' => 'fields',
             'fields' => [
@@ -53,9 +130,9 @@ return [
                     'en' => 'Add photos',
                 ],
                 'text' => [
-                    'nl' => 'Foto-upload komt later. Voor nu kan de klant het probleem beschrijven.',
-                    'fr' => 'L’upload de photos sera ajouté plus tard. Pour l’instant, le client peut décrire le problème.',
-                    'en' => 'Photo upload will be added later. For now, the customer can describe the issue.',
+                    'nl' => 'Voeg indien mogelijk foto’s toe van het toestel, typeplaatje, foutcode of probleemzone.',
+                    'fr' => 'Ajoutez si possible des photos de l’appareil, de la plaque signalétique, du code erreur ou de la zone du problème.',
+                    'en' => 'If possible, add photos of the unit, nameplate, error code or problem area.',
                 ],
             ],
         ],
@@ -63,9 +140,9 @@ return [
         [
             'code' => 'technical_details',
             'labels' => [
-                'nl' => '4. Technische gegevens',
-                'fr' => '4. Informations techniques',
-                'en' => '4. Technical details',
+                'nl' => '5. Technische gegevens',
+                'fr' => '5. Informations techniques',
+                'en' => '5. Technical details',
             ],
             'type' => 'fields',
             'fields' => [
@@ -119,9 +196,81 @@ return [
                     'type' => 'checkbox',
                     'required' => false,
                     'labels' => [
-                        'nl' => 'Ik weet dit niet',
-                        'fr' => 'Je ne sais pas',
-                        'en' => 'I don’t know',
+                        'nl' => 'Ik weet merk/model niet',
+                        'fr' => 'Je ne connais pas la marque/le modèle',
+                        'en' => 'I don’t know the brand/model',
+                    ],
+                ],
+            ],
+        ],
+
+        [
+            'code' => 'location_availability',
+            'labels' => [
+                'nl' => '6. Locatie en beschikbaarheid',
+                'fr' => '6. Lieu et disponibilité',
+                'en' => '6. Location and availability',
+            ],
+            'type' => 'fields',
+            'fields' => [
+                [
+                    'name' => 'street',
+                    'type' => 'text',
+                    'required' => true,
+                    'labels' => [
+                        'nl' => 'Straat en nummer',
+                        'fr' => 'Rue et numéro',
+                        'en' => 'Street and number',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Voorbeeldstraat 12',
+                        'fr' => 'Rue exemple 12',
+                        'en' => 'Example street 12',
+                    ],
+                ],
+                [
+                    'name' => 'postal_code',
+                    'type' => 'text',
+                    'required' => true,
+                    'labels' => [
+                        'nl' => 'Postcode',
+                        'fr' => 'Code postal',
+                        'en' => 'Postal code',
+                    ],
+                    'placeholder' => [
+                        'nl' => '1000',
+                        'fr' => '1000',
+                        'en' => '1000',
+                    ],
+                ],
+                [
+                    'name' => 'city',
+                    'type' => 'text',
+                    'required' => true,
+                    'labels' => [
+                        'nl' => 'Gemeente',
+                        'fr' => 'Commune',
+                        'en' => 'City',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Brussel',
+                        'fr' => 'Bruxelles',
+                        'en' => 'Brussels',
+                    ],
+                ],
+                [
+                    'name' => 'availability',
+                    'type' => 'textarea',
+                    'required' => false,
+                    'labels' => [
+                        'nl' => 'Beschikbaarheid of voorkeurmoment',
+                        'fr' => 'Disponibilité ou moment préféré',
+                        'en' => 'Availability or preferred moment',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijvoorbeeld: liefst in de voormiddag, niet op woensdag...',
+                        'fr' => 'Par exemple : de préférence le matin, pas le mercredi...',
+                        'en' => 'For example: preferably in the morning, not on Wednesday...',
                     ],
                 ],
             ],
@@ -130,9 +279,9 @@ return [
         [
             'code' => 'contact_details',
             'labels' => [
-                'nl' => '5. Contactgegevens',
-                'fr' => '5. Coordonnées',
-                'en' => '5. Contact details',
+                'nl' => '7. Contactgegevens',
+                'fr' => '7. Coordonnées',
+                'en' => '7. Contact details',
             ],
             'type' => 'fields',
             'fields' => [
@@ -172,9 +321,9 @@ return [
         [
             'code' => 'summary',
             'labels' => [
-                'nl' => '6. Samenvatting',
-                'fr' => '6. Résumé',
-                'en' => '6. Summary',
+                'nl' => '8. Samenvatting',
+                'fr' => '8. Résumé',
+                'en' => '8. Summary',
             ],
             'type' => 'summary',
         ],

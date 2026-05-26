@@ -175,6 +175,19 @@ class CustomerRequestController extends Controller
 
             return $rules;
         }
+        if ($type === 'select') {
+            $rules[] = 'string';
+
+            $allowedValues = collect($field['options'] ?? [])
+                ->pluck('value')
+                ->toArray();
+
+            if (!empty($allowedValues)) {
+                $rules[] = Rule::in($allowedValues);
+            }
+
+            return $rules;
+        }
 
         if ($type === 'email') {
             $rules[] = 'email';

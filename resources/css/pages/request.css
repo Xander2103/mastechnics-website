@@ -173,7 +173,8 @@
 }
 
 input,
-textarea {
+textarea,
+select {
     width: 100%;
     border: 1px solid var(--color-border);
     border-radius: 14px;
@@ -184,7 +185,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
     outline: none;
     border-color: rgba(15, 102, 194, 0.55);
     box-shadow: 0 0 0 4px rgba(15, 102, 194, 0.1);
@@ -393,7 +395,8 @@ textarea {
 }
 
 .field-has-error input,
-.field-has-error textarea {
+.field-has-error textarea,
+.field-has-error select {
     border-color: #ef4444;
     background: #fff7f7;
 }

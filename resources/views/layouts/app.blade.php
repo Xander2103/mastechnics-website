@@ -73,66 +73,44 @@
 </head>
 
 <body>
-    <header class="site-header">
-        <div class="container">
-            <nav class="navbar">
-                <a class="brand" href="{{ route('pages.home', ['locale' => $currentLocale]) }}">
-                    {{ $siteName }}
+  <header class="site-header">
+    <div class="container header-container">
+        <a class="site-logo" href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}">
+            {{ config('site.name') }}
+        </a>
+
+        <button class="mobile-menu-toggle" type="button" aria-label="Menu openen">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div class="header-menu">
+            <nav class="site-nav">
+                <a href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}#diensten">
+                    {{ ($locale ?? 'nl') === 'fr' ? 'Services' : (($locale ?? 'nl') === 'en' ? 'Services' : 'Diensten') }}
                 </a>
 
-                <div class="nav-links">
-                    @if (isset($page) && $page->type === 'home')
-                        <a href="#diensten">
-                            {{ $nav['services'] }}
-                        </a>
-                    @else
-                        <a href="{{ route('pages.home', ['locale' => $currentLocale]) }}#diensten">
-                            {{ $nav['services'] }}
-                        </a>
-                    @endif
+                <a href="{{ route('pages.show', ['locale' => $locale ?? 'nl', 'slug' => ($locale ?? 'nl') === 'fr' ? 'contact' : 'contact']) }}">
+                    Contact
+                </a>
 
-                    <a
-                        href="{{ route('pages.show', [
-                            'locale' => $currentLocale,
-                            'slug' => $contactSlug,
-                        ]) }}">
-                        {{ $nav['contact'] }}
-                    </a>
-
-                    <a href="{{ route('pages.show', [
-                        'locale' => $currentLocale,
-                        'slug' => $requestSlug,
-                    ]) }}"
-                        class="nav-cta">
-                        {{ $nav['request'] }}
-                    </a>
-
-                    @isset($page)
-                        <div class="language-switcher">
-                            @foreach ($page->translations as $languageVersion)
-                                @if ($page->type === 'home')
-                                    <a
-                                        href="{{ route('pages.home', [
-                                            'locale' => $languageVersion->locale,
-                                        ]) }}">
-                                        {{ strtoupper($languageVersion->locale) }}
-                                    </a>
-                                @else
-                                    <a
-                                        href="{{ route('pages.show', [
-                                            'locale' => $languageVersion->locale,
-                                            'slug' => $languageVersion->slug,
-                                        ]) }}">
-                                        {{ strtoupper($languageVersion->locale) }}
-                                    </a>
-                                @endif
-                            @endforeach
-                        </div>
-                    @endisset
-                </div>
+                <a class="button button-primary" href="{{ route('pages.show', [
+                    'locale' => $locale ?? 'nl',
+                    'slug' => ($locale ?? 'nl') === 'fr' ? 'demande' : (($locale ?? 'nl') === 'en' ? 'request' : 'aanvraag'),
+                ]) }}">
+                    {{ ($locale ?? 'nl') === 'fr' ? 'Démarrer' : (($locale ?? 'nl') === 'en' ? 'Start request' : 'Start aanvraag') }}
+                </a>
             </nav>
+
+            <div class="language-switcher">
+                <a href="{{ route('pages.home', ['locale' => 'en']) }}">EN</a>
+                <a href="{{ route('pages.home', ['locale' => 'fr']) }}">FR</a>
+                <a href="{{ route('pages.home', ['locale' => 'nl']) }}">NL</a>
+            </div>
         </div>
-    </header>
+    </div>
+</header>
 
     <main>
         @yield('content')

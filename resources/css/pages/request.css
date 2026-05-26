@@ -445,17 +445,233 @@ textarea {
     }
 }
 
+/* ================================
+   Mobile request form polish
+================================ */
+
 @media (max-width: 680px) {
-    .request-hero {
-        padding: 52px 0 38px;
+    .request-page-wrapper .request-hero {
+        display: none !important;
     }
 
-    .request-form-card {
-        padding: 24px;
-        border-radius: 24px;
+    .request-page-wrapper .section {
+        padding-top: 18px;
+    }
+
+    .request-layout {
+        display: block;
     }
 
     .request-steps {
-        grid-template-columns: 1fr;
+        display: none !important;
+    }
+
+    .request-form-card {
+        padding: 18px;
+        overflow: hidden;
+        border-radius: 22px;
+    }
+
+    .form-section {
+        padding-bottom: 30px;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .form-section h2 {
+        margin-bottom: 18px;
+        font-size: 1.35rem;
+        line-height: 1.2;
+    }
+
+    /* Service/type cards */
+    .option-grid,
+    .option-grid-four {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px;
+    }
+
+    .option-card {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        min-width: 0;
+        min-height: 76px;
+        padding: 14px 12px;
+        border-radius: 18px;
+    }
+
+    .option-card span {
+        min-width: 0;
+        max-width: 100%;
+        font-size: 0.9rem;
+        line-height: 1.2;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .option-card input {
+        flex: 0 0 auto;
+        width: 18px;
+        height: 18px;
+        margin: 0;
+    }
+
+    /* Normal fields */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px;
+    }
+
+    .form-grid label {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea {
+        width: 100%;
+        min-width: 0;
+        font-size: 0.95rem;
+    }
+
+    /* Textareas full width */
+    .form-grid label:has(textarea) {
+        grid-column: 1 / -1;
+    }
+
+    textarea {
+        min-height: 140px;
+    }
+
+    /* Step 3: customer type + urgency under each other */
+    .form-section[data-step="2"] .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-section[data-step="2"] .form-grid label {
+        grid-column: 1 / -1;
+    }
+
+    /* Step 5: technical details */
+    .form-section[data-step="4"] .checkbox-field {
+        grid-column: 1 / -1;
+    }
+
+    /* Step 6: location
+       street full width,
+       postal code + city next to each other,
+       availability full width */
+    .form-section[data-step="5"] .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .form-section[data-step="5"] .form-grid label:nth-child(1),
+    .form-section[data-step="5"] .form-grid label:nth-child(4) {
+        grid-column: 1 / -1;
+    }
+
+    /* Step 7: contact
+       name + phone next to each other,
+       email full width underneath */
+    .form-section[data-step="6"] .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .form-section[data-step="6"] .form-grid label:nth-child(1) {
+        order: 1;
+    }
+
+    .form-section[data-step="6"] .form-grid label:nth-child(2) {
+        order: 3;
+        grid-column: 1 / -1;
+    }
+
+    .form-section[data-step="6"] .form-grid label:nth-child(3) {
+        order: 2;
+    }
+
+    /* Checkbox field */
+    .checkbox-field {
+        display: grid !important;
+        grid-template-columns: 22px 1fr;
+        gap: 12px;
+        align-items: start;
+        padding: 14px 16px;
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        background: #f8fbff;
+    }
+
+    .checkbox-field input {
+        width: 18px;
+        height: 18px;
+        margin: 2px 0 0;
+    }
+
+    .checkbox-field span {
+        min-width: 0;
+        font-size: 0.95rem;
+        font-weight: 900;
+        line-height: 1.35;
+    }
+
+    /* Upload box */
+    .upload-box {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .upload-file-control {
+        width: 100%;
+    }
+
+    .upload-file-control span {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .selected-attachment-item {
+        align-items: center;
+    }
+
+    .request-summary-box,
+    .summary-card {
+        border-radius: 18px;
+    }
+
+    /* Submit */
+    .button-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .button-row .button,
+    .request-form-card .button {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+/* Alleen extreem smalle schermen naar 1 kolom */
+@media (max-width: 330px) {
+    .option-grid,
+    .option-grid-four,
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-section[data-step="5"] .form-grid,
+    .form-section[data-step="6"] .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-section[data-step="5"] .form-grid label,
+    .form-section[data-step="6"] .form-grid label {
+        grid-column: 1 / -1;
     }
 }

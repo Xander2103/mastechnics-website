@@ -3,7 +3,7 @@
 ================================ */
 
 .contact-hero {
-    padding: 72px 0 52px;
+    padding: 20px 0 20px;
     background:
         radial-gradient(circle at top right, rgba(15, 102, 194, 0.18), transparent 34%),
         linear-gradient(135deg, #ffffff 0%, #edf5ff 100%);
@@ -115,6 +115,48 @@
     gap: 8px;
     color: var(--color-primary-dark);
     font-weight: 800;
+}
+
+/* ================================
+   Contact page hero
+================================ */
+
+.service-hero {
+    padding: 48px 0 44px;
+}
+
+.contact-hero h1,
+.service-hero h1 {
+    max-width: 760px;
+    margin-bottom: 18px;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    line-height: 1.05;
+}
+
+.contact-hero p,
+.service-hero p {
+    max-width: 760px;
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+/* Mobile */
+@media (max-width: 680px) {
+    .contact-hero,
+    .service-hero {
+        padding: 34px 0 32px;
+    }
+
+    .contact-hero h1,
+    .service-hero h1 {
+        font-size: 2.15rem;
+        line-height: 1.08;
+    }
+
+    .contact-hero p,
+    .service-hero p {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 900px) {

@@ -16,7 +16,8 @@
     color: #081d31;
 }
 
-.request-intro {
+.request-intro,
+.service-intro {
     max-width: 900px;
     margin-bottom: 0;
     font-size: 1.12rem;
@@ -42,6 +43,7 @@
 }
 
 .request-step {
+    cursor: pointer;
     padding: 15px 16px;
     border: 1px solid var(--color-border);
     border-radius: 16px;
@@ -69,7 +71,7 @@
     box-shadow: var(--shadow-soft);
 }
 
-.form-section+.form-section {
+.form-section + .form-section {
     margin-top: 38px;
     padding-top: 34px;
     border-top: 1px solid var(--color-border);
@@ -91,6 +93,7 @@
     gap: 14px;
 }
 
+.option-grid-four,
 .option-grid-small {
     grid-template-columns: repeat(4, 1fr);
 }
@@ -100,15 +103,18 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
     min-height: 74px;
-    padding: 16px;
+    padding: 16px 44px 16px 16px;
     border: 1px solid var(--color-border);
     border-radius: 18px;
     background: #f8fbff;
     color: var(--color-primary-dark);
     font-weight: 800;
-    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .option-card::after {
@@ -135,6 +141,13 @@
     pointer-events: none;
 }
 
+.option-card span {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    line-height: 1.25;
+}
+
 .option-card:hover,
 .option-card.is-selected {
     transform: translateY(-2px);
@@ -147,6 +160,7 @@
    Fields
 ================================ */
 
+.form-grid,
 .field-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -154,6 +168,7 @@
     align-items: start;
 }
 
+.form-grid label,
 .field-grid label,
 .form-section label {
     display: grid;
@@ -194,6 +209,7 @@ select:focus {
 
 textarea {
     resize: vertical;
+    min-height: 150px;
 }
 
 .checkbox-field {
@@ -208,7 +224,7 @@ textarea {
 }
 
 /* ================================
-   Upload / estimate / summary
+   Upload attachments
 ================================ */
 
 .upload-box {
@@ -228,22 +244,10 @@ textarea {
     margin: 6px 0 0;
 }
 
-.upload-box input[type="file"] {
-    margin-top: 16px;
-    border: 1px solid var(--color-border);
-    border-radius: 14px;
-    padding: 12px;
-    background: var(--color-white);
-}
-
 .upload-box.field-has-error {
     border-color: #ef4444;
     background: #fff7f7;
 }
-
-/* ================================
-   Upload attachments
-================================ */
 
 .upload-file-control {
     display: inline-flex !important;
@@ -317,6 +321,12 @@ textarea {
     background: #fecaca;
 }
 
+/* ================================
+   Summary / estimate
+================================ */
+
+.request-summary-box,
+.summary-card,
 .estimate-box,
 .summary-box {
     margin-top: 26px;
@@ -324,6 +334,7 @@ textarea {
     border-radius: 22px;
 }
 
+.request-summary-box,
 .estimate-box {
     background:
         radial-gradient(circle at top right, rgba(255, 255, 255, 0.16), transparent 32%),
@@ -331,21 +342,27 @@ textarea {
     color: var(--color-white);
 }
 
+.request-summary-box h2,
+.request-summary-box p,
 .estimate-box h3,
 .estimate-box p {
     color: var(--color-white);
 }
 
+.request-summary-box p,
 .estimate-box p,
+.summary-card p,
 .summary-box p {
     margin-bottom: 0;
 }
 
+.summary-card,
 .summary-box {
     border: 1px solid var(--color-border);
     background: #f8fbff;
 }
 
+.summary-card h3,
 .summary-box h3 {
     color: var(--color-primary-dark);
 }
@@ -362,6 +379,10 @@ textarea {
     background: #ecfdf3;
     color: #166534;
     font-weight: 900;
+}
+
+.form-success p {
+    margin: 8px 0 0;
 }
 
 .form-error-list {
@@ -421,7 +442,7 @@ textarea {
 }
 
 /* ================================
-   Responsive
+   Tablet
 ================================ */
 
 @media (max-width: 1000px) {
@@ -434,19 +455,17 @@ textarea {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .request-step {
-        cursor: pointer;
-    }
-
     .option-grid,
+    .option-grid-four,
     .option-grid-small,
+    .form-grid,
     .field-grid {
         grid-template-columns: 1fr;
     }
 }
 
 /* ================================
-   Mobile request form polish
+   Mobile
 ================================ */
 
 @media (max-width: 680px) {
@@ -472,9 +491,15 @@ textarea {
         border-radius: 22px;
     }
 
+    .form-section + .form-section {
+        margin-top: 0;
+        padding-top: 4px;
+        border-top: 0;
+    }
+
     .form-section {
         padding-bottom: 30px;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 0;
     }
 
     .form-section h2 {
@@ -483,64 +508,57 @@ textarea {
         line-height: 1.2;
     }
 
-    /* Service/type cards */
     .option-grid,
-    .option-grid-four {
+    .option-grid-four,
+    .option-grid-small {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 12px;
     }
 
     .option-card {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 8px;
-        align-items: center;
-        min-width: 0;
         min-height: 76px;
-        padding: 14px 12px;
+        padding: 14px 36px 14px 12px;
         border-radius: 18px;
     }
 
+    .option-card::after {
+        top: 14px;
+        right: 12px;
+    }
+
     .option-card span {
-        min-width: 0;
-        max-width: 100%;
         font-size: 0.9rem;
         line-height: 1.2;
-        white-space: normal;
-        overflow-wrap: anywhere;
-        word-break: normal;
+        hyphens: auto;
     }
 
-    .option-card input {
-        flex: 0 0 auto;
-        width: 18px;
-        height: 18px;
-        margin: 0;
-    }
-
-    /* Normal fields */
-    .form-grid {
+    .form-grid,
+    .field-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         gap: 14px;
     }
 
-    .form-grid label {
+    .form-grid label,
+    .field-grid label {
         min-width: 0;
         width: 100%;
     }
 
     .form-grid input,
     .form-grid select,
-    .form-grid textarea {
+    .form-grid textarea,
+    .field-grid input,
+    .field-grid select,
+    .field-grid textarea {
         width: 100%;
         min-width: 0;
         font-size: 0.95rem;
     }
 
-    /* Textareas full width */
-    .form-grid label:has(textarea) {
+    .form-grid label:has(textarea),
+    .field-grid label:has(textarea) {
         grid-column: 1 / -1;
     }
 
@@ -548,59 +566,63 @@ textarea {
         min-height: 140px;
     }
 
-    /* Step 3: customer type + urgency under each other */
-    .form-section[data-step="2"] .form-grid {
+    /* Step 3: customer type + urgency onder elkaar */
+    .form-section[data-step="2"] .form-grid,
+    .form-section[data-step="2"] .field-grid {
         grid-template-columns: 1fr !important;
     }
 
-    .form-section[data-step="2"] .form-grid label {
+    .form-section[data-step="2"] .form-grid label,
+    .form-section[data-step="2"] .field-grid label {
         grid-column: 1 / -1;
     }
 
-    /* Step 5: technical details */
+    /* Step 5: checkbox volle breedte */
     .form-section[data-step="4"] .checkbox-field {
         grid-column: 1 / -1;
     }
 
-    /* Step 6: location
-       street full width,
-       postal code + city next to each other,
-       availability full width */
-    .form-section[data-step="5"] .form-grid {
+    /* Step 6: locatie */
+    .form-section[data-step="5"] .form-grid,
+    .form-section[data-step="5"] .field-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
     .form-section[data-step="5"] .form-grid label:nth-child(1),
-    .form-section[data-step="5"] .form-grid label:nth-child(4) {
+    .form-section[data-step="5"] .form-grid label:nth-child(4),
+    .form-section[data-step="5"] .field-grid label:nth-child(1),
+    .form-section[data-step="5"] .field-grid label:nth-child(4) {
         grid-column: 1 / -1;
     }
 
-    /* Step 7: contact
-       name + phone next to each other,
-       email full width underneath */
-    .form-section[data-step="6"] .form-grid {
+    /* Step 7: contact */
+    .form-section[data-step="6"] .form-grid,
+    .form-section[data-step="6"] .field-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
-    .form-section[data-step="6"] .form-grid label:nth-child(1) {
+    .form-section[data-step="6"] .form-grid label:nth-child(1),
+    .form-section[data-step="6"] .field-grid label:nth-child(1) {
         order: 1;
     }
 
-    .form-section[data-step="6"] .form-grid label:nth-child(2) {
+    .form-section[data-step="6"] .form-grid label:nth-child(2),
+    .form-section[data-step="6"] .field-grid label:nth-child(2) {
         order: 3;
         grid-column: 1 / -1;
     }
 
-    .form-section[data-step="6"] .form-grid label:nth-child(3) {
+    .form-section[data-step="6"] .form-grid label:nth-child(3),
+    .form-section[data-step="6"] .field-grid label:nth-child(3) {
         order: 2;
     }
 
-    /* Checkbox field */
     .checkbox-field {
         display: grid !important;
         grid-template-columns: 22px 1fr;
         gap: 12px;
         align-items: start;
+        min-height: auto;
         padding: 14px 16px;
         border: 1px solid var(--color-border);
         border-radius: 16px;
@@ -620,7 +642,6 @@ textarea {
         line-height: 1.35;
     }
 
-    /* Upload box */
     .upload-box {
         padding: 16px;
         border-radius: 18px;
@@ -640,11 +661,12 @@ textarea {
     }
 
     .request-summary-box,
-    .summary-card {
+    .summary-card,
+    .estimate-box,
+    .summary-box {
         border-radius: 18px;
     }
 
-    /* Submit */
     .button-row {
         flex-direction: column;
         align-items: stretch;
@@ -661,17 +683,23 @@ textarea {
 @media (max-width: 330px) {
     .option-grid,
     .option-grid-four,
-    .form-grid {
+    .option-grid-small,
+    .form-grid,
+    .field-grid {
         grid-template-columns: 1fr !important;
     }
 
     .form-section[data-step="5"] .form-grid,
-    .form-section[data-step="6"] .form-grid {
+    .form-section[data-step="5"] .field-grid,
+    .form-section[data-step="6"] .form-grid,
+    .form-section[data-step="6"] .field-grid {
         grid-template-columns: 1fr !important;
     }
 
     .form-section[data-step="5"] .form-grid label,
-    .form-section[data-step="6"] .form-grid label {
+    .form-section[data-step="5"] .field-grid label,
+    .form-section[data-step="6"] .form-grid label,
+    .form-section[data-step="6"] .field-grid label {
         grid-column: 1 / -1;
     }
 }

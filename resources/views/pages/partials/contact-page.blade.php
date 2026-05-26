@@ -75,7 +75,7 @@
 
 <section class="contact-hero">
     <div class="container">
-        <span class="eyebrow">{{ $text['badge'] }}</span>
+      
 
         <h1>{{ $translation->title }}</h1>
 

@@ -1,5 +1,13 @@
 @php
     $siteName = config('site.name');
+    $configuredServices = config('services');
+
+    $services = collect($configuredServices)
+        ->filter(fn ($service) => $service['is_active'] ?? false)
+        ->map(function ($service) use ($locale) {
+            return $service['translations'][$locale] ?? $service['translations']['nl'];
+        })
+        ->values();
 
     $labels = [
         'nl' => [
@@ -48,33 +56,6 @@
             'cta_title' => 'Beschrijf je probleem of project meteen duidelijk.',
             'cta_text' => 'Beantwoord enkele gerichte vragen en voeg later foto’s toe. Zo komt je aanvraag gestructureerd binnen en kan er sneller ingeschat worden wat nodig is.',
             'cta_button' => 'Start aanvraag',
-
-            'services' => [
-                [
-                    'title' => 'Verwarming',
-                    'description' => 'Onderhoud, herstelling en installatie van verwarmingssystemen.',
-                ],
-                [
-                    'title' => 'Airco',
-                    'description' => 'Installatie, onderhoud en herstelling van airconditioningsystemen.',
-                ],
-                [
-                    'title' => 'Sanitair',
-                    'description' => 'Professionele hulp bij sanitaire installaties en herstellingen.',
-                ],
-                [
-                    'title' => 'Ventilatie',
-                    'description' => 'Ventilatie-oplossingen voor woningen, appartementen en bedrijven.',
-                ],
-                [
-                    'title' => 'Waterverzachters',
-                    'description' => 'Advies, installatie en onderhoud van waterverzachters.',
-                ],
-                [
-                    'title' => 'Koelcellen',
-                    'description' => 'Koeling en koelcellen voor commerciële en industriële toepassingen.',
-                ],
-            ],
         ],
 
         'fr' => [
@@ -123,33 +104,6 @@
             'cta_title' => 'Décrivez votre problème ou projet de manière structurée.',
             'cta_text' => 'Répondez à quelques questions ciblées et ajoutez des photos si nécessaire. Votre demande arrive ainsi complète et peut être estimée plus rapidement.',
             'cta_button' => 'Démarrer ma demande',
-
-            'services' => [
-                [
-                    'title' => 'Chauffage',
-                    'description' => 'Entretien, réparation et installation de systèmes de chauffage.',
-                ],
-                [
-                    'title' => 'Climatisation',
-                    'description' => 'Installation, entretien et réparation de systèmes de climatisation.',
-                ],
-                [
-                    'title' => 'Plomberie',
-                    'description' => 'Aide professionnelle pour les installations et réparations sanitaires.',
-                ],
-                [
-                    'title' => 'Ventilation',
-                    'description' => 'Solutions de ventilation pour habitations, appartements et entreprises.',
-                ],
-                [
-                    'title' => 'Adoucisseurs d’eau',
-                    'description' => 'Conseil, installation et entretien d’adoucisseurs d’eau.',
-                ],
-                [
-                    'title' => 'Chambres froides',
-                    'description' => 'Réfrigération et chambres froides pour applications commerciales et industrielles.',
-                ],
-            ],
         ],
 
         'en' => [
@@ -198,38 +152,10 @@
             'cta_title' => 'Describe your issue or project in a structured way.',
             'cta_text' => 'Answer a few targeted questions and upload photos if needed. Your request comes in complete and can be estimated faster.',
             'cta_button' => 'Start request',
-
-            'services' => [
-                [
-                    'title' => 'Heating',
-                    'description' => 'Maintenance, repair and installation of heating systems.',
-                ],
-                [
-                    'title' => 'Air conditioning',
-                    'description' => 'Installation, maintenance and repair of air conditioning systems.',
-                ],
-                [
-                    'title' => 'Plumbing',
-                    'description' => 'Professional help with plumbing installations and repairs.',
-                ],
-                [
-                    'title' => 'Ventilation',
-                    'description' => 'Ventilation solutions for homes, apartments and businesses.',
-                ],
-                [
-                    'title' => 'Water softeners',
-                    'description' => 'Advice, installation and maintenance of water softeners.',
-                ],
-                [
-                    'title' => 'Cold rooms',
-                    'description' => 'Refrigeration and cold rooms for commercial and industrial applications.',
-                ],
-            ],
         ],
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
-    $heatingSlug = $locale === 'fr' ? 'chauffage' : ($locale === 'en' ? 'heating' : 'verwarming');
     $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
 @endphp
 
@@ -306,7 +232,7 @@
         </div>
 
         <div class="service-grid">
-            @foreach ($text['services'] as $index => $service)
+            @foreach ($services as $index => $service)
                 <article class="service-card">
                     <h3>{{ $service['title'] }}</h3>
 
@@ -315,7 +241,7 @@
                     @if ($index === 0)
                         <a href="{{ route('pages.show', [
                             'locale' => $locale,
-                            'slug' => $heatingSlug,
+                            'slug' => $service['slug'],
                         ]) }}">
                             {{ $text['more_info'] }}
                         </a>

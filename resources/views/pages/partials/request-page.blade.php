@@ -1,5 +1,13 @@
 @php
     $siteName = config('site.name');
+    $configuredServices = config('services');
+
+    $services = collect($configuredServices)
+        ->filter(fn ($service) => $service['is_active'] ?? false)
+        ->map(function ($service) use ($locale) {
+            return $service['translations'][$locale] ?? $service['translations']['nl'];
+        })
+        ->values();
 
     $labels = [
         'nl' => [
@@ -9,20 +17,14 @@
             'technical_step' => '3. Technische gegevens',
             'description_step' => '4. Probleem of project',
             'summary_step' => '5. Samenvatting',
-            'services' => [
-                'Verwarming',
-                'Airco',
-                'Sanitair',
-                'Ventilatie',
-                'Waterverzachter',
-                'Koelcel / koeling',
-            ],
+
             'request_types' => [
                 'Herstelling',
                 'Onderhoud',
                 'Installatie',
                 'Nieuw project',
             ],
+
             'brand' => 'Merk',
             'model' => 'Model',
             'serial' => 'Serienummer',
@@ -44,20 +46,14 @@
             'technical_step' => '3. Informations techniques',
             'description_step' => '4. Problème ou projet',
             'summary_step' => '5. Résumé',
-            'services' => [
-                'Chauffage',
-                'Climatisation',
-                'Plomberie',
-                'Ventilation',
-                'Adoucisseur d’eau',
-                'Chambre froide / réfrigération',
-            ],
+
             'request_types' => [
                 'Réparation',
                 'Entretien',
                 'Installation',
                 'Nouveau projet',
             ],
+
             'brand' => 'Marque',
             'model' => 'Modèle',
             'serial' => 'Numéro de série',
@@ -79,20 +75,14 @@
             'technical_step' => '3. Technical details',
             'description_step' => '4. Issue or project',
             'summary_step' => '5. Summary',
-            'services' => [
-                'Heating',
-                'Air conditioning',
-                'Plumbing',
-                'Ventilation',
-                'Water softener',
-                'Cold room / refrigeration',
-            ],
+
             'request_types' => [
                 'Repair',
                 'Maintenance',
                 'Installation',
                 'New project',
             ],
+
             'brand' => 'Brand',
             'model' => 'Model',
             'serial' => 'Serial number',
@@ -139,10 +129,15 @@
                     <h2>{{ $text['service_step'] }}</h2>
 
                     <div class="option-grid">
-                        @foreach ($text['services'] as $index => $service)
+                        @foreach ($services as $index => $service)
                             <label class="option-card {{ $index === 0 ? 'is-selected' : '' }}">
-                                <input type="radio" name="service" {{ $index === 0 ? 'checked' : '' }}>
-                                <span>{{ $service }}</span>
+                                <input
+                                    type="radio"
+                                    name="service"
+                                    value="{{ $service['slug'] }}"
+                                    {{ $index === 0 ? 'checked' : '' }}
+                                >
+                                <span>{{ $service['title'] }}</span>
                             </label>
                         @endforeach
                     </div>

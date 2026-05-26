@@ -1,5 +1,36 @@
+@php
+    $currentLocale = $locale ?? 'nl';
+
+    $navLabels = [
+        'nl' => [
+            'home' => 'Home',
+            'services' => 'Diensten',
+            'request' => 'Start aanvraag',
+        ],
+        'fr' => [
+            'home' => 'Accueil',
+            'services' => 'Services',
+            'request' => 'Démarrer ma demande',
+        ],
+        'en' => [
+            'home' => 'Home',
+            'services' => 'Services',
+            'request' => 'Start request',
+        ],
+    ];
+
+    $serviceSlugs = [
+        'nl' => 'verwarming',
+        'fr' => 'chauffage',
+        'en' => 'heating',
+    ];
+
+    $nav = $navLabels[$currentLocale] ?? $navLabels['nl'];
+    $serviceSlug = $serviceSlugs[$currentLocale] ?? $serviceSlugs['nl'];
+@endphp
+
 <!DOCTYPE html>
-<html lang="{{ $locale ?? 'nl' }}">
+<html lang="{{ $currentLocale }}">
 <head>
     <meta charset="UTF-8">
     <meta name="description" content="@yield('meta_description', '')">
@@ -13,23 +44,33 @@
     <header class="site-header">
         <div class="container">
             <nav class="navbar">
-                <a class="brand" href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}">
+                <a class="brand" href="{{ route('pages.home', ['locale' => $currentLocale]) }}">
                     mastechnics
                 </a>
 
                 <div class="nav-links">
-                    <a href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}">Home</a>
+                    <a href="{{ route('pages.home', ['locale' => $currentLocale]) }}">
+                        {{ $nav['home'] }}
+                    </a>
+
                     <a href="{{ route('pages.show', [
-                        'locale' => $locale ?? 'nl',
-                        'slug' => ($locale ?? 'nl') === 'fr' ? 'chauffage' : (($locale ?? 'nl') === 'en' ? 'heating' : 'verwarming'),
-                    ]) }}">Diensten</a>
-                    <a href="#" class="nav-cta">Offerte aanvragen</a>
+                        'locale' => $currentLocale,
+                        'slug' => $serviceSlug,
+                    ]) }}">
+                        {{ $nav['services'] }}
+                    </a>
+
+                    <a href="#" class="nav-cta">
+                        {{ $nav['request'] }}
+                    </a>
 
                     @isset($page)
                         <div class="language-switcher">
                             @foreach ($page->translations as $languageVersion)
                                 @if ($page->type === 'home')
-                                    <a href="{{ route('pages.home', ['locale' => $languageVersion->locale]) }}">
+                                    <a href="{{ route('pages.home', [
+                                        'locale' => $languageVersion->locale,
+                                    ]) }}">
                                         {{ strtoupper($languageVersion->locale) }}
                                     </a>
                                 @else

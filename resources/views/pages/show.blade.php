@@ -8,6 +8,8 @@
         @include('pages.partials.home-page')
     @elseif ($page->type === 'service')
         @include('pages.partials.service-page')
+    @elseif ($page->type === 'request')
+        @include('pages.partials.request-page')
     @else
         @include('pages.partials.default-page')
     @endif

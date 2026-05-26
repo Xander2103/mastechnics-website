@@ -1,24 +1,54 @@
 @php
     $labels = [
         'nl' => [
-            'quote' => 'Offerte aanvragen',
-            'services_button' => 'Bekijk diensten',
-            'intake_label' => 'Slimme intake',
-            'intake_title' => 'Van aanvraag naar duidelijke opvolging.',
-            'intake_points' => [
-                'Technische aanvragen gestructureerd verzamelen',
-                'Geschikt voor residentiële en commerciële diensten',
-                'Voorbereid op formulieren, CRM en automatisatie',
+            'primary_cta' => 'Start aanvraag',
+            'secondary_cta' => 'Bekijk diensten',
+            'hero_badge' => 'Slimme technische aanvraag',
+            'hero_title_prefix' => null,
+
+            'panel_label' => 'Hoe werkt het?',
+            'panel_title' => 'Van probleem naar duidelijke inschatting.',
+            'panel_points' => [
+                'Kies de juiste dienst',
+                'Vul technische info in over je installatie of probleem',
+                'Voeg later foto’s toe indien nodig',
+                'Ontvang sneller een richtprijs of oplossing',
             ],
+
+            'process_label' => 'Slimme intake',
+            'process_title' => 'Geen losse berichten, maar meteen de juiste informatie.',
+            'process_intro' => 'De aanvraagflow wordt opgebouwd om technische aanvragen duidelijker binnen te laten komen. Zo hoeft er minder heen-en-weer gemaild of gebeld te worden.',
+            'process_steps' => [
+                [
+                    'title' => '1. Kies je dienst',
+                    'description' => 'Selecteer bijvoorbeeld verwarming, airco, sanitair, ventilatie of koeling.',
+                ],
+                [
+                    'title' => '2. Vul je situatie in',
+                    'description' => 'Geef aan of het gaat om een storing, onderhoud, installatie of nieuw project.',
+                ],
+                [
+                    'title' => '3. Voeg technische info toe',
+                    'description' => 'Denk aan type toestel, merk, model, serienummer of foto’s van het typeplaatje.',
+                ],
+                [
+                    'title' => '4. Snellere inschatting',
+                    'description' => 'Met volledige info kan er sneller een richtprijs, advies of vervolgstap voorgesteld worden.',
+                ],
+            ],
+
             'services_label' => 'Diensten',
-            'services_title' => 'Technische service voor woningen en bedrijven',
-            'services_intro' => 'Een schaalbare websitebasis voor verwarming, airco, sanitair, ventilatie, waterverzachters en professionele koeling.',
+            'services_title' => 'Technische service voor particulieren en bedrijven',
+            'services_intro' => 'mastechnics focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
             'more_info' => 'Meer info',
+            'start_service_request' => 'Start aanvraag',
             'soon' => 'Binnenkort',
-            'next_step' => 'Volgende stap',
-            'cta_title' => 'Een aanvraag meteen correct laten binnenkomen.',
-            'cta_text' => 'Later bouwen we hier een slim offerteformulier op dat per dienst de juiste technische info vraagt.',
-            'start_request' => 'Start aanvraag',
+
+            'cta_label' => 'Start slim',
+            'cta_title' => 'Beschrijf je probleem of project meteen duidelijk.',
+            'cta_text' => 'Beantwoord enkele gerichte vragen en voeg later foto’s toe. Zo komt je aanvraag gestructureerd binnen en kan er sneller ingeschat worden wat nodig is.',
+            'cta_button' => 'Start aanvraag',
+
             'services' => [
                 [
                     'title' => 'Verwarming',
@@ -46,25 +76,56 @@
                 ],
             ],
         ],
+
         'fr' => [
-            'quote' => 'Demander un devis',
-            'services_button' => 'Voir les services',
-            'intake_label' => 'Prise en charge intelligente',
-            'intake_title' => 'De la demande au suivi clair.',
-            'intake_points' => [
-                'Collecte structurée des demandes techniques',
-                'Adapté aux services résidentiels et commerciaux',
-                'Préparé pour les formulaires, le CRM et l’automatisation',
+            'primary_cta' => 'Démarrer ma demande',
+            'secondary_cta' => 'Voir les services',
+            'hero_badge' => 'Demande technique intelligente',
+            'hero_title_prefix' => null,
+
+            'panel_label' => 'Comment ça fonctionne ?',
+            'panel_title' => 'Du problème à une estimation claire.',
+            'panel_points' => [
+                'Choisissez le bon service',
+                'Ajoutez les informations techniques de votre installation ou problème',
+                'Ajoutez des photos si nécessaire',
+                'Recevez plus rapidement une estimation ou une solution',
             ],
+
+            'process_label' => 'Prise en charge intelligente',
+            'process_title' => 'Pas de messages incomplets, mais les bonnes informations dès le départ.',
+            'process_intro' => 'Le flux de demande est conçu pour recevoir les informations techniques de manière claire. Cela réduit les échanges inutiles par e-mail ou téléphone.',
+            'process_steps' => [
+                [
+                    'title' => '1. Choisissez votre service',
+                    'description' => 'Par exemple chauffage, climatisation, plomberie, ventilation ou réfrigération.',
+                ],
+                [
+                    'title' => '2. Décrivez votre situation',
+                    'description' => 'Indiquez s’il s’agit d’une panne, d’un entretien, d’une installation ou d’un nouveau projet.',
+                ],
+                [
+                    'title' => '3. Ajoutez les infos techniques',
+                    'description' => 'Type d’appareil, marque, modèle, numéro de série ou photo de la plaque signalétique.',
+                ],
+                [
+                    'title' => '4. Estimation plus rapide',
+                    'description' => 'Avec des informations complètes, il est plus facile de proposer une estimation, un conseil ou une prochaine étape.',
+                ],
+            ],
+
             'services_label' => 'Services',
             'services_title' => 'Service technique pour particuliers et entreprises',
-            'services_intro' => 'Une base web évolutive pour le chauffage, la climatisation, la plomberie, la ventilation, les adoucisseurs d’eau et la réfrigération professionnelle.',
+            'services_intro' => 'mastechnics se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
             'more_info' => 'Plus d’infos',
+            'start_service_request' => 'Démarrer la demande',
             'soon' => 'Bientôt',
-            'next_step' => 'Prochaine étape',
-            'cta_title' => 'Recevoir une demande directement avec les bonnes informations.',
-            'cta_text' => 'Nous construirons ensuite un formulaire de devis intelligent qui demande les informations techniques adaptées à chaque service.',
-            'start_request' => 'Démarrer la demande',
+
+            'cta_label' => 'Commencez clairement',
+            'cta_title' => 'Décrivez votre problème ou projet de manière structurée.',
+            'cta_text' => 'Répondez à quelques questions ciblées et ajoutez des photos si nécessaire. Votre demande arrive ainsi complète et peut être estimée plus rapidement.',
+            'cta_button' => 'Démarrer ma demande',
+
             'services' => [
                 [
                     'title' => 'Chauffage',
@@ -92,25 +153,56 @@
                 ],
             ],
         ],
+
         'en' => [
-            'quote' => 'Request a quote',
-            'services_button' => 'View services',
-            'intake_label' => 'Smart intake',
-            'intake_title' => 'From request to clear follow-up.',
-            'intake_points' => [
-                'Collect technical requests in a structured way',
-                'Suitable for residential and commercial services',
-                'Prepared for forms, CRM and automation',
+            'primary_cta' => 'Start request',
+            'secondary_cta' => 'View services',
+            'hero_badge' => 'Smart technical request',
+            'hero_title_prefix' => null,
+
+            'panel_label' => 'How it works',
+            'panel_title' => 'From problem to clear estimate.',
+            'panel_points' => [
+                'Choose the right service',
+                'Add technical information about your installation or issue',
+                'Upload photos if needed',
+                'Receive a faster estimate or solution',
             ],
+
+            'process_label' => 'Smart intake',
+            'process_title' => 'No incomplete messages, but the right information from the start.',
+            'process_intro' => 'The request flow is designed to collect technical information clearly. This reduces unnecessary back-and-forth by email or phone.',
+            'process_steps' => [
+                [
+                    'title' => '1. Choose your service',
+                    'description' => 'For example heating, air conditioning, plumbing, ventilation or refrigeration.',
+                ],
+                [
+                    'title' => '2. Describe your situation',
+                    'description' => 'Indicate whether it is a breakdown, maintenance, installation or new project.',
+                ],
+                [
+                    'title' => '3. Add technical details',
+                    'description' => 'Device type, brand, model, serial number or a photo of the nameplate.',
+                ],
+                [
+                    'title' => '4. Faster estimate',
+                    'description' => 'With complete information, it is easier to provide an estimate, advice or next step.',
+                ],
+            ],
+
             'services_label' => 'Services',
             'services_title' => 'Technical service for homes and businesses',
-            'services_intro' => 'A scalable website foundation for heating, air conditioning, plumbing, ventilation, water softeners and professional refrigeration.',
+            'services_intro' => 'mastechnics focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
             'more_info' => 'More info',
+            'start_service_request' => 'Start request',
             'soon' => 'Coming soon',
-            'next_step' => 'Next step',
-            'cta_title' => 'Make every request come in correctly from the start.',
-            'cta_text' => 'Next, we will build a smart quote form that asks the right technical questions for each service.',
-            'start_request' => 'Start request',
+
+            'cta_label' => 'Start clearly',
+            'cta_title' => 'Describe your issue or project in a structured way.',
+            'cta_text' => 'Answer a few targeted questions and upload photos if needed. Your request comes in complete and can be estimated faster.',
+            'cta_button' => 'Start request',
+
             'services' => [
                 [
                     'title' => 'Heating',
@@ -141,7 +233,6 @@
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
-
     $heatingSlug = $locale === 'fr' ? 'chauffage' : ($locale === 'en' ? 'heating' : 'verwarming');
 @endphp
 
@@ -149,7 +240,7 @@
     <div class="container">
         <div class="home-hero-grid">
             <div class="home-hero-content">
-                <span class="eyebrow">mastechnics</span>
+                <span class="eyebrow">{{ $text['hero_badge'] }}</span>
 
                 <h1>{{ $translation->title }}</h1>
 
@@ -158,26 +249,26 @@
                 @endif
 
                 <div class="button-row">
-                    <a class="button button-primary" href="#">
-                        {{ $text['quote'] }}
+                    <a class="button button-primary button-large" href="#">
+                        {{ $text['primary_cta'] }}
                     </a>
 
                     <a class="button button-secondary" href="{{ route('pages.show', [
                         'locale' => $locale,
                         'slug' => $heatingSlug,
                     ]) }}">
-                        {{ $text['services_button'] }}
+                        {{ $text['secondary_cta'] }}
                     </a>
                 </div>
             </div>
 
             <aside class="hero-panel">
-                <p class="panel-label">{{ $text['intake_label'] }}</p>
+                <p class="panel-label">{{ $text['panel_label'] }}</p>
 
-                <h2>{{ $text['intake_title'] }}</h2>
+                <h2>{{ $text['panel_title'] }}</h2>
 
                 <ul>
-                    @foreach ($text['intake_points'] as $point)
+                    @foreach ($text['panel_points'] as $point)
                         <li>{{ $point }}</li>
                     @endforeach
                 </ul>
@@ -187,6 +278,27 @@
 </section>
 
 <section class="section section-white">
+    <div class="container">
+        <div class="section-header">
+            <span class="eyebrow">{{ $text['process_label'] }}</span>
+
+            <h2>{{ $text['process_title'] }}</h2>
+
+            <p>{{ $text['process_intro'] }}</p>
+        </div>
+
+        <div class="process-grid">
+            @foreach ($text['process_steps'] as $step)
+                <article class="process-card">
+                    <h3>{{ $step['title'] }}</h3>
+                    <p>{{ $step['description'] }}</p>
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<section class="section">
     <div class="container">
         <div class="section-header">
             <span class="eyebrow">{{ $text['services_label'] }}</span>
@@ -221,19 +333,19 @@
     </div>
 </section>
 
-<section class="section">
+<section class="section section-white">
     <div class="container">
         <div class="home-cta">
             <div>
-                <span class="eyebrow eyebrow-dark">{{ $text['next_step'] }}</span>
+                <span class="eyebrow eyebrow-dark">{{ $text['cta_label'] }}</span>
 
                 <h2>{{ $text['cta_title'] }}</h2>
 
                 <p>{{ $text['cta_text'] }}</p>
             </div>
 
-            <a class="button button-light" href="#">
-                {{ $text['start_request'] }}
+            <a class="button button-light button-large" href="#">
+                {{ $text['cta_button'] }}
             </a>
         </div>
     </div>

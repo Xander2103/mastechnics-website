@@ -144,6 +144,35 @@
                             </div>
                         </dl>
                     </div>
+
+                    <div class="admin-detail-card">
+                        <h2>Bijlagen</h2>
+
+                        @if ($customerRequest->attachments->isEmpty())
+                            <p>Geen bijlagen toegevoegd.</p>
+                        @else
+                            <div class="admin-attachments-grid">
+                                @foreach ($customerRequest->attachments as $attachment)
+                                    <a
+                                        class="admin-attachment-card"
+                                        href="{{ asset('storage/' . $attachment->path) }}"
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
+                                        @if (str_starts_with($attachment->mime_type ?? '', 'image/'))
+                                            <img src="{{ asset('storage/' . $attachment->path) }}" alt="{{ $attachment->original_name }}">
+                                        @else
+                                            <div class="admin-attachment-file">
+                                                Bestand
+                                            </div>
+                                        @endif
+
+                                        <span>{{ $attachment->original_name }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
 

@@ -12,7 +12,7 @@ class CustomerRequestController extends Controller
     public function store(Request $request, string $locale): RedirectResponse
     {
         $services = collect(config('services'))
-            ->filter(fn(array $service): bool => $service['is_active'] ?? false)
+            ->filter(fn (array $service): bool => $service['is_active'] ?? false)
             ->map(function (array $service) use ($locale): array {
                 return $service['translations'][$locale] ?? $service['translations']['nl'];
             })
@@ -39,6 +39,16 @@ class CustomerRequestController extends Controller
                 'required',
                 'string',
                 Rule::in($requestTypeValues),
+            ],
+            'attachments' => [
+                'nullable',
+                'array',
+                'max:8',
+            ],
+            'attachments.*' => [
+                'file',
+                'mimes:jpg,jpeg,png,webp,pdf',
+                'max:5120',
             ],
         ];
 
@@ -69,7 +79,7 @@ class CustomerRequestController extends Controller
             $answers[$fieldName] = $validatedData[$fieldName] ?? null;
         }
 
-        CustomerRequest::create([
+        $customerRequest = CustomerRequest::create([
             'locale' => $locale,
             'service_slug' => $validatedData['service_slug'],
             'request_type' => $validatedData['request_type'],
@@ -99,6 +109,19 @@ class CustomerRequestController extends Controller
                 'answers' => $answers,
             ],
         ]);
+
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $uploadedFile) {
+                $path = $uploadedFile->store('customer-requests', 'public');
+
+                $customerRequest->attachments()->create([
+                    'original_name' => $uploadedFile->getClientOriginalName(),
+                    'path' => $path,
+                    'mime_type' => $uploadedFile->getMimeType(),
+                    'size' => $uploadedFile->getSize(),
+                ]);
+            }
+        }
 
         return back()->with('success', 'request_created');
     }
@@ -133,19 +156,19 @@ class CustomerRequestController extends Controller
 
         $type = $field['type'] ?? 'text';
 
-        if ($type === 'email') {
-            $rules[] = 'email';
-            $rules[] = 'max:255';
-
-            return $rules;
-        }
-
         if (in_array($field['name'], ['brand', 'device_model'], true)) {
             $rules = ['nullable', 'string', 'max:255'];
 
             if (!request()->boolean('unknown_device_details')) {
                 $rules[0] = 'required';
             }
+
+            return $rules;
+        }
+
+        if ($type === 'email') {
+            $rules[] = 'email';
+            $rules[] = 'max:255';
 
             return $rules;
         }

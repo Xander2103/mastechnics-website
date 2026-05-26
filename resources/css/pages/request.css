@@ -226,6 +226,95 @@ textarea {
     margin: 6px 0 0;
 }
 
+.upload-box input[type="file"] {
+    margin-top: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 12px;
+    background: var(--color-white);
+}
+
+.upload-box.field-has-error {
+    border-color: #ef4444;
+    background: #fff7f7;
+}
+
+/* ================================
+   Upload attachments
+================================ */
+
+.upload-file-control {
+    display: inline-flex !important;
+    width: fit-content;
+    margin-top: 16px;
+}
+
+.upload-file-control span {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: 0.92rem;
+    font-weight: 900;
+}
+
+.upload-file-control input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.selected-attachments {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.selected-attachment-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-white);
+    color: var(--color-primary-dark);
+    font-weight: 800;
+}
+
+.selected-attachment-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selected-attachment-item button {
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 1.15rem;
+    font-weight: 900;
+}
+
+.selected-attachment-item button:hover {
+    background: #fecaca;
+}
+
 .estimate-box,
 .summary-box {
     margin-top: 26px;

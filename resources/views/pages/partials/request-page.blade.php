@@ -93,7 +93,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('customer-requests.store', ['locale' => $locale]) }}">
+        <form method="POST" action="{{ route('customer-requests.store', ['locale' => $locale]) }}" enctype="multipart/form-data">
             @csrf
 
             <div class="request-layout">
@@ -230,15 +230,37 @@
                                 </div>
 
                                 @if (isset($step['helper_box']))
-                                    <div class="upload-box">
-                                        <strong>
-                                            {{ $step['helper_box']['title'][$locale] ?? $step['helper_box']['title']['nl'] }}
-                                        </strong>
+<div class="upload-box {{ $errors->has('attachments') || $errors->has('attachments.*') ? 'field-has-error' : '' }}">
+    <strong>
+        {{ $step['helper_box']['title'][$locale] ?? $step['helper_box']['title']['nl'] }}
+    </strong>
 
-                                        <p>
-                                            {{ $step['helper_box']['text'][$locale] ?? $step['helper_box']['text']['nl'] }}
-                                        </p>
-                                    </div>
+    <p>
+        {{ $step['helper_box']['text'][$locale] ?? $step['helper_box']['text']['nl'] }}
+    </p>
+
+    <label class="upload-file-control">
+        <span>Bestanden kiezen</span>
+
+        <input
+            id="attachmentsInput"
+            type="file"
+            name="attachments[]"
+            multiple
+            accept=".jpg,.jpeg,.png,.webp,.pdf"
+        >
+    </label>
+
+    <div id="selectedAttachments" class="selected-attachments"></div>
+
+    @error('attachments')
+        <p class="field-error-text">{{ $message }}</p>
+    @enderror
+
+    @error('attachments.*')
+        <p class="field-error-text">{{ $message }}</p>
+    @enderror
+</div>
                                 @endif
                             </div>
                         @endif

@@ -76,6 +76,8 @@ class RequestController extends Controller
 
     public function show(CustomerRequest $customerRequest): View
     {
+        $customerRequest->load('attachments');
+
         return view('admin.requests.show', [
             'customerRequest' => $customerRequest,
             'statuses' => $this->getStatuses(),

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CustomerRequest extends Model
 {
@@ -26,4 +27,9 @@ class CustomerRequest extends Model
         'unknown_device_details' => 'boolean',
         'metadata' => 'array',
     ];
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(CustomerRequestAttachment::class);
+    }
 }

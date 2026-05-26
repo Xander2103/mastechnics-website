@@ -188,13 +188,19 @@
     <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
 
 @if (session()->has('admin_user_email'))
-    <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
-        @csrf
+    <div class="footer-admin-actions">
+        <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
+            Admin panel
+        </a>
 
-        <button type="submit" class="footer-admin-link">
-            Uitloggen
-        </button>
-    </form>
+        <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
+            @csrf
+
+            <button type="submit" class="footer-admin-link">
+                Uitloggen
+            </button>
+        </form>
+    </div>
 @else
     <a class="footer-admin-link" href="{{ route('admin.login') }}">
         Admin

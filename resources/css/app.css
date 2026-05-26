@@ -1,11 +1,18 @@
-@import 'tailwindcss';
+/* Base */
+@import './base/variables.css';
+@import './base/reset.css';
+@import './base/typography.css';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* Layout */
+@import './layout/container.css';
+@import './layout/header.css';
+@import './layout/footer.css';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-}
+/* Components */
+@import './components/buttons.css';
+@import './components/language-switcher.css';
+@import './components/cards.css';
+
+/* Pages */
+@import './pages/home.css';
+@import './pages/service.css';

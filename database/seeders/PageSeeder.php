@@ -22,7 +22,7 @@ class PageSeeder extends Seeder
                 'title' => 'Technische service voor verwarming, airco, sanitair en koeling',
                 'intro' => 'Professionele ondersteuning voor particulieren en bedrijven, met een snelle intake en duidelijke opvolging van elke aanvraag.',
                 'content' => null,
-                'meta_title' => 'Website Martin | Technische service en interventies',
+                'meta_title' => 'Mastechnics | Technische service en interventies',
                 'meta_description' => 'Professionele technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koelcellen.',
             ],
             [
@@ -31,7 +31,7 @@ class PageSeeder extends Seeder
                 'title' => 'Service technique pour chauffage, climatisation, plomberie et réfrigération',
                 'intro' => 'Un accompagnement professionnel pour particuliers et entreprises, avec une prise de contact rapide et un suivi structuré.',
                 'content' => null,
-                'meta_title' => 'Website Martin | Service technique et interventions',
+                'meta_title' => 'Mastechnics | Service technique et interventions',
                 'meta_description' => 'Service technique professionnel pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d’eau et chambres froides.',
             ],
             [
@@ -40,7 +40,7 @@ class PageSeeder extends Seeder
                 'title' => 'Technical service for heating, air conditioning, plumbing and refrigeration',
                 'intro' => 'Professional support for residential and commercial clients, with fast intake and structured follow-up for every request.',
                 'content' => null,
-                'meta_title' => 'Website Martin | Technical service and interventions',
+                'meta_title' => 'Mastechnics | Technical service and interventions',
                 'meta_description' => 'Professional technical service for heating, air conditioning, plumbing, ventilation, water softeners and cold rooms.',
             ],
         ]);

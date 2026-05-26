@@ -47,6 +47,12 @@
                 </div>
             @endif
 
+            @if (session('success') === 'note_created')
+                <div class="form-success">
+                    Notitie werd toegevoegd.
+                </div>
+            @endif
+
             <div class="admin-detail-layout">
                 <aside class="admin-detail-card">
                     <h2>Klantgegevens</h2>
@@ -100,7 +106,8 @@
                         </div>
                     </dl>
 
-                    <form class="admin-status-form" method="POST" action="{{ route('admin.requests.update-status', $customerRequest) }}">
+                    <form class="admin-status-form" method="POST"
+                        action="{{ route('admin.requests.update-status', $customerRequest) }}">
                         @csrf
                         @method('PATCH')
 
@@ -109,7 +116,8 @@
 
                             <select name="status">
                                 @foreach ($statuses as $statusValue => $statusLabel)
-                                    <option value="{{ $statusValue }}" {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
+                                    <option value="{{ $statusValue }}"
+                                        {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
                                         {{ $statusLabel }}
                                     </option>
                                 @endforeach
@@ -208,14 +216,11 @@
                         @else
                             <div class="admin-attachments-grid">
                                 @foreach ($customerRequest->attachments as $attachment)
-                                    <a
-                                        class="admin-attachment-card"
-                                        href="{{ asset('storage/' . $attachment->path) }}"
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
+                                    <a class="admin-attachment-card" href="{{ asset('storage/' . $attachment->path) }}"
+                                        target="_blank" rel="noopener">
                                         @if (str_starts_with($attachment->mime_type ?? '', 'image/'))
-                                            <img src="{{ asset('storage/' . $attachment->path) }}" alt="{{ $attachment->original_name }}">
+                                            <img src="{{ asset('storage/' . $attachment->path) }}"
+                                                alt="{{ $attachment->original_name }}">
                                         @else
                                             <div class="admin-attachment-file">
                                                 Bestand
@@ -229,6 +234,47 @@
                         @endif
                     </div>
                 </div>
+            </div>
+
+            <div class="admin-detail-card admin-notes-card">
+                <h2>Interne notities</h2>
+
+                <form class="admin-note-form" method="POST"
+                    action="{{ route('admin.requests.notes.store', $customerRequest) }}">
+                    @csrf
+
+                    <label>
+                        <span>Nieuwe notitie</span>
+
+                        <textarea name="body" rows="4"
+                            placeholder="Bijvoorbeeld: klant gebeld, offerte doorgestuurd, wacht op extra foto...">{{ old('body') }}</textarea>
+                    </label>
+
+                    @error('body')
+                        <p class="field-error-text">{{ $message }}</p>
+                    @enderror
+
+                    <button class="button button-primary" type="submit">
+                        Notitie toevoegen
+                    </button>
+                </form>
+
+                @if ($customerRequest->notes->isEmpty())
+                    <p class="admin-muted-text">Er zijn nog geen notities voor deze aanvraag.</p>
+                @else
+                    <div class="admin-notes-list">
+                        @foreach ($customerRequest->notes as $note)
+                            <article class="admin-note-item">
+                                <div class="admin-note-meta">
+                                    <strong>{{ $note->author_email ?: 'Admin' }}</strong>
+                                    <span>{{ $note->created_at->format('d/m/Y H:i') }}</span>
+                                </div>
+
+                                <p>{{ $note->body }}</p>
+                            </article>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <div class="admin-detail-card admin-answers-card">

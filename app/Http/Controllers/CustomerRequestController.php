@@ -126,7 +126,7 @@ class CustomerRequestController extends Controller
             }
         }
 
-        $customerRequest->load('attachments');
+        $customerRequest->load(['attachments', 'notes']);
 
         $notificationEmails = config('admin.notification_emails', []);
 

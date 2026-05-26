@@ -540,6 +540,90 @@
 }
 
 /* ================================
+   Admin notes
+================================ */
+
+.admin-notes-card {
+    margin-top: 26px;
+}
+
+.admin-note-form {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.admin-note-form label {
+    display: grid;
+    gap: 8px;
+    color: var(--color-primary-dark);
+    font-weight: 900;
+}
+
+.admin-note-form textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 13px 14px;
+    background: #f8fbff;
+    color: var(--color-text);
+    font: inherit;
+    resize: vertical;
+}
+
+.admin-note-form textarea:focus {
+    outline: none;
+    border-color: rgba(15, 102, 194, 0.55);
+    box-shadow: 0 0 0 4px rgba(15, 102, 194, 0.1);
+}
+
+.admin-notes-list {
+    display: grid;
+    gap: 14px;
+}
+
+.admin-note-item {
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background: #f8fbff;
+}
+
+.admin-note-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.admin-note-meta strong {
+    color: var(--color-primary-dark);
+    font-size: 0.92rem;
+}
+
+.admin-note-meta span {
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.admin-note-item p {
+    margin: 0;
+    color: var(--color-muted);
+    line-height: 1.55;
+    white-space: pre-line;
+}
+
+.admin-muted-text {
+    margin: 0;
+    color: var(--color-muted);
+    font-weight: 800;
+}
+
+
+/* ================================
    Responsive
 ================================ */
 
@@ -682,5 +766,11 @@
     .admin-answers-grid,
     .admin-attachments-grid {
         grid-template-columns: 1fr;
+    }
+
+        .admin-note-meta {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
     }
 }

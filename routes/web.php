@@ -29,6 +29,9 @@ Route::middleware('admin')
 
         Route::patch('/requests/{customerRequest}/status', [AdminRequestController::class, 'updateStatus'])
             ->name('requests.update-status');
+
+        Route::post('/requests/{customerRequest}/notes', [AdminRequestController::class, 'storeNote'])
+            ->name('requests.notes.store');
     });
 
 Route::post('/{locale}/requests', [CustomerRequestController::class, 'store'])

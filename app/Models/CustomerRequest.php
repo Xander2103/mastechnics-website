@@ -14,22 +14,27 @@ class CustomerRequest extends Model
         'customer_name',
         'customer_email',
         'customer_phone',
+        'description',
         'brand',
         'device_model',
         'serial_number',
         'unknown_device_details',
-        'description',
-        'status',
         'metadata',
+        'status',
     ];
 
     protected $casts = [
-        'unknown_device_details' => 'boolean',
         'metadata' => 'array',
+        'unknown_device_details' => 'boolean',
     ];
 
     public function attachments(): HasMany
     {
         return $this->hasMany(CustomerRequestAttachment::class);
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(CustomerRequestNote::class)->latest();
     }
 }

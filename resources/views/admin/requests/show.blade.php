@@ -20,6 +20,18 @@
 
     <section class="section section-white">
         <div class="container">
+            <div class="admin-back-row">
+                <a class="button button-secondary admin-back-button" href="{{ route('admin.requests.index') }}">
+                    ← Terug naar overzicht
+                </a>
+            </div>
+
+            @if (session('success') === 'status_updated')
+                <div class="form-success">
+                    Status werd opgeslagen.
+                </div>
+            @endif
+
             <div class="admin-detail-layout">
                 <aside class="admin-detail-card">
                     <h2>Klantgegevens</h2>
@@ -47,8 +59,8 @@
                         <div>
                             <dt>Status</dt>
                             <dd>
-                                <span class="admin-status admin-status-new">
-                                    {{ $customerRequest->status }}
+                                <span class="admin-status admin-status-{{ $customerRequest->status }}">
+                                    {{ $statuses[$customerRequest->status] ?? $customerRequest->status }}
                                 </span>
                             </dd>
                         </div>
@@ -58,6 +70,31 @@
                             <dd>{{ $customerRequest->created_at->format('d/m/Y H:i') }}</dd>
                         </div>
                     </dl>
+
+                    <form class="admin-status-form" method="POST" action="{{ route('admin.requests.update-status', $customerRequest) }}">
+                        @csrf
+                        @method('PATCH')
+
+                        <label>
+                            <span>Status aanpassen</span>
+
+                            <select name="status">
+                                @foreach ($statuses as $statusValue => $statusLabel)
+                                    <option value="{{ $statusValue }}" {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
+                                        {{ $statusLabel }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </label>
+
+                        @error('status')
+                            <p class="field-error-text">{{ $message }}</p>
+                        @enderror
+
+                        <button class="button button-primary" type="submit">
+                            Status opslaan
+                        </button>
+                    </form>
                 </aside>
 
                 <div class="admin-detail-main">
@@ -107,34 +144,28 @@
                             </div>
                         </dl>
                     </div>
-
-                    <div class="admin-detail-card">
-                        <h2>Alle antwoorden</h2>
-
-                        <dl class="admin-detail-list">
-                            @foreach ($answers as $key => $value)
-                                <div>
-                                    <dt>{{ str_replace('_', ' ', ucfirst($key)) }}</dt>
-                                    <dd>
-                                        @if (is_bool($value))
-                                            {{ $value ? 'Ja' : 'Nee' }}
-                                        @elseif (is_array($value))
-                                            <pre>{{ json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                                        @else
-                                            {{ $value ?: '-' }}
-                                        @endif
-                                    </dd>
-                                </div>
-                            @endforeach
-                        </dl>
-                    </div>
-
-                    <div class="button-row">
-                        <a class="button button-secondary" href="{{ route('admin.requests.index') }}">
-                            Terug naar overzicht
-                        </a>
-                    </div>
                 </div>
+            </div>
+
+            <div class="admin-detail-card admin-answers-card">
+                <h2>Alle antwoorden</h2>
+
+                <dl class="admin-answers-grid">
+                    @foreach ($answers as $key => $value)
+                        <div>
+                            <dt>{{ str_replace('_', ' ', ucfirst($key)) }}</dt>
+                            <dd>
+                                @if (is_bool($value))
+                                    {{ $value ? 'Ja' : 'Nee' }}
+                                @elseif (is_array($value))
+                                    <pre>{{ json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                @else
+                                    {{ $value ?: '-' }}
+                                @endif
+                            </dd>
+                        </div>
+                    @endforeach
+                </dl>
             </div>
         </div>
     </section>

@@ -3,6 +3,16 @@
 @section('title', 'Admin | Aanvragen')
 
 @section('content')
+    @php
+        $statusLabels = [
+            'new' => 'Nieuw',
+            'contacted' => 'Gecontacteerd',
+            'planned' => 'Ingepland',
+            'done' => 'Afgewerkt',
+            'cancelled' => 'Geannuleerd',
+        ];
+    @endphp
+
     <section class="admin-hero">
         <div class="container">
             <span class="eyebrow">Admin</span>
@@ -57,8 +67,8 @@
                                         <td>{{ $serviceTitle }}</td>
                                         <td>{{ $requestTypeLabel }}</td>
                                         <td>
-                                            <span class="admin-status admin-status-new">
-                                                {{ $request->status }}
+                                            <span class="admin-status admin-status-{{ $request->status }}">
+                                                {{ $statusLabels[$request->status] ?? $request->status }}
                                             </span>
                                         </td>
                                         <td>

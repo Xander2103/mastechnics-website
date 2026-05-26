@@ -3,7 +3,7 @@
 ================================ */
 
 .admin-hero {
-    padding: 68px 0 48px;
+    padding: 20px 0 20px;
     background:
         radial-gradient(circle at top right, rgba(15, 102, 194, 0.14), transparent 34%),
         linear-gradient(135deg, #ffffff 0%, #edf5ff 100%);
@@ -20,6 +20,27 @@
     margin-bottom: 0;
     color: var(--color-muted);
 }
+
+/* ================================
+   Admin back button
+================================ */
+
+.admin-back-row {
+    margin-bottom: 22px;
+}
+
+.admin-back-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding-inline: 22px;
+    font-weight: 900;
+    background-color : rgb(28, 169, 212);
+}
+
+/* ================================
+   Admin panels
+================================ */
 
 .admin-panel,
 .admin-detail-card {
@@ -59,6 +80,10 @@
     font-weight: 800;
 }
 
+/* ================================
+   Admin table
+================================ */
+
 .admin-table-wrapper {
     overflow-x: auto;
 }
@@ -87,6 +112,19 @@
     font-size: 0.95rem;
 }
 
+.admin-link {
+    color: var(--color-primary);
+    font-weight: 900;
+}
+
+.admin-link:hover {
+    color: var(--color-primary-dark);
+}
+
+/* ================================
+   Admin status badges
+================================ */
+
 .admin-status {
     display: inline-flex;
     padding: 5px 10px;
@@ -101,14 +139,29 @@
     color: var(--color-primary-dark);
 }
 
-.admin-link {
-    color: var(--color-primary);
-    font-weight: 900;
+.admin-status-contacted {
+    background: #e0f2fe;
+    color: #075985;
 }
 
-.admin-link:hover {
-    color: var(--color-primary-dark);
+.admin-status-planned {
+    background: #fef3c7;
+    color: #92400e;
 }
+
+.admin-status-done {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.admin-status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ================================
+   Admin detail layout
+================================ */
 
 .admin-detail-layout {
     display: grid;
@@ -167,6 +220,100 @@
     font-size: 0.88rem;
 }
 
+/* ================================
+   Admin status form
+================================ */
+
+.admin-status-form {
+    display: grid;
+    gap: 14px;
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid var(--color-border);
+}
+
+.admin-status-form label {
+    display: grid;
+    gap: 8px;
+    color: var(--color-primary-dark);
+    font-weight: 900;
+}
+
+.admin-status-form select {
+    width: 100%;
+    border: 5px solid var(--color-border);
+    border-radius: 14px;
+    padding: 13px 14px;
+    background: #f8fbff;
+    color: var(--color-text);
+    font: inherit;
+    font-weight: 1000;
+}
+
+.admin-status-form select:focus {
+    outline: none;
+    border-color: rgba(15, 102, 194, 0.55);
+    box-shadow: 0 0 0 4px rgba(15, 102, 194, 0.1);
+}
+
+/* ================================
+   Admin answers full width
+================================ */
+
+.admin-answers-card {
+    margin-top: 26px;
+}
+
+.admin-answers-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 0;
+}
+
+.admin-answers-grid div {
+    display: grid;
+    gap: 5px;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background: #f8fbff;
+}
+
+.admin-answers-grid dt {
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    font-weight: 900;
+    text-transform: capitalize;
+}
+
+.admin-answers-grid dd {
+    margin: 0;
+    color: var(--color-primary-dark);
+    font-weight: 800;
+    word-break: break-word;
+}
+
+.admin-answers-grid pre {
+    overflow-x: auto;
+    margin: 0;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--color-white);
+    color: var(--color-primary-dark);
+    font-size: 0.85rem;
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 1000px) {
+    .admin-answers-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 920px) {
     .admin-detail-layout {
         grid-template-columns: 1fr;
@@ -174,5 +321,11 @@
 
     .admin-panel {
         padding: 22px;
+    }
+}
+
+@media (max-width: 680px) {
+    .admin-answers-grid {
+        grid-template-columns: 1fr;
     }
 }

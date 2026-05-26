@@ -23,3 +23,6 @@ Route::get('/admin/requests', [AdminRequestController::class, 'index'])
 
 Route::get('/admin/requests/{customerRequest}', [AdminRequestController::class, 'show'])
     ->name('admin.requests.show');
+
+Route::patch('/admin/requests/{customerRequest}/status', [AdminRequestController::class, 'updateStatus'])
+    ->name('admin.requests.update-status');

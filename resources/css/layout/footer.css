@@ -82,6 +82,16 @@
     font-size: 0.9rem;
 }
 
+.footer-admin-link {
+    color: #9fb5ca;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.footer-admin-link:hover {
+    color: var(--color-white);
+}
+
 @media (max-width: 860px) {
     .footer-grid {
         grid-template-columns: 1fr;

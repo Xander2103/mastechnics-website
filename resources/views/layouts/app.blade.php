@@ -184,9 +184,12 @@
             </div>
         </div>
 
-        <div class="container footer-bottom">
-            <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
-        </div>
-    </footer>
+<div class="container footer-bottom">
+    <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
+
+    <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
+        Admin
+    </a>
+</div>
 </body>
 </html>

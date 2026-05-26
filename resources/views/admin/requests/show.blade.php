@@ -71,7 +71,8 @@
                         </div>
                     </dl>
 
-                    <form class="admin-status-form" method="POST" action="{{ route('admin.requests.update-status', $customerRequest) }}">
+                    <form class="admin-status-form" method="POST"
+                        action="{{ route('admin.requests.update-status', $customerRequest) }}">
                         @csrf
                         @method('PATCH')
 
@@ -80,7 +81,8 @@
 
                             <select name="status">
                                 @foreach ($statuses as $statusValue => $statusLabel)
-                                    <option value="{{ $statusValue }}" {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
+                                    <option value="{{ $statusValue }}"
+                                        {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
                                         {{ $statusLabel }}
                                     </option>
                                 @endforeach
@@ -153,14 +155,11 @@
                         @else
                             <div class="admin-attachments-grid">
                                 @foreach ($customerRequest->attachments as $attachment)
-                                    <a
-                                        class="admin-attachment-card"
-                                        href="{{ asset('storage/' . $attachment->path) }}"
-                                        target="_blank"
-                                        rel="noopener"
-                                    >
+                                    <a class="admin-attachment-card" href="{{ asset('storage/' . $attachment->path) }}"
+                                        target="_blank" rel="noopener">
                                         @if (str_starts_with($attachment->mime_type ?? '', 'image/'))
-                                            <img src="{{ asset('storage/' . $attachment->path) }}" alt="{{ $attachment->original_name }}">
+                                            <img src="{{ asset('storage/' . $attachment->path) }}"
+                                                alt="{{ $attachment->original_name }}">
                                         @else
                                             <div class="admin-attachment-file">
                                                 Bestand

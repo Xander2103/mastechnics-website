@@ -10,15 +10,18 @@
             'benefits' => [
                 [
                     'title' => 'Snelle opvolging',
-                    'description' => 'Aanvragen worden gestructureerd verzameld zodat er sneller en duidelijker opgevolgd kan worden.',
+                    'description' =>
+                        'Aanvragen worden gestructureerd verzameld zodat er sneller en duidelijker opgevolgd kan worden.',
                 ],
                 [
                     'title' => 'Voor particulieren en bedrijven',
-                    'description' => 'De website en intakeflow zijn voorbereid voor zowel residentiële als commerciële technische aanvragen.',
+                    'description' =>
+                        'De website en intakeflow zijn voorbereid voor zowel residentiële als commerciële technische aanvragen.',
                 ],
                 [
                     'title' => 'Duidelijke technische intake',
-                    'description' => 'Belangrijke informatie zoals type installatie, merk, model en foto’s kan later via het formulier verzameld worden.',
+                    'description' =>
+                        'Belangrijke informatie zoals type installatie, merk, model en foto’s kan later via het formulier verzameld worden.',
                 ],
             ],
         ],
@@ -30,15 +33,18 @@
             'benefits' => [
                 [
                     'title' => 'Suivi rapide',
-                    'description' => 'Les demandes sont collectées de manière structurée afin de permettre un suivi plus rapide et plus clair.',
+                    'description' =>
+                        'Les demandes sont collectées de manière structurée afin de permettre un suivi plus rapide et plus clair.',
                 ],
                 [
                     'title' => 'Pour particuliers et entreprises',
-                    'description' => 'Le site et le flux de prise en charge sont préparés pour les demandes techniques résidentielles et commerciales.',
+                    'description' =>
+                        'Le site et le flux de prise en charge sont préparés pour les demandes techniques résidentielles et commerciales.',
                 ],
                 [
                     'title' => 'Prise en charge technique claire',
-                    'description' => 'Les informations importantes comme le type d’installation, la marque, le modèle et les photos pourront être collectées via le formulaire.',
+                    'description' =>
+                        'Les informations importantes comme le type d’installation, la marque, le modèle et les photos pourront être collectées via le formulaire.',
                 ],
             ],
         ],
@@ -50,15 +56,18 @@
             'benefits' => [
                 [
                     'title' => 'Fast follow-up',
-                    'description' => 'Requests are collected in a structured way so they can be followed up faster and more clearly.',
+                    'description' =>
+                        'Requests are collected in a structured way so they can be followed up faster and more clearly.',
                 ],
                 [
                     'title' => 'For homes and businesses',
-                    'description' => 'The website and intake flow are prepared for both residential and commercial technical requests.',
+                    'description' =>
+                        'The website and intake flow are prepared for both residential and commercial technical requests.',
                 ],
                 [
                     'title' => 'Clear technical intake',
-                    'description' => 'Important information such as installation type, brand, model and photos can later be collected through the form.',
+                    'description' =>
+                        'Important information such as installation type, brand, model and photos can later be collected through the form.',
                 ],
             ],
         ],
@@ -66,9 +75,7 @@
 
     $text = $labels[$locale] ?? $labels['nl'];
 
-    $requestSlug = $locale === 'fr'
-        ? 'demande'
-        : ($locale === 'en' ? 'request' : 'aanvraag');
+    $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
 @endphp
 
 <section class="service-hero">
@@ -93,10 +100,11 @@
             @endif
 
             <div class="button-row service-content-button">
-                <a class="button button-primary button-large" href="{{ route('pages.show', [
-                    'locale' => $locale,
-                    'slug' => $requestSlug,
-                ]) }}">
+                <a class="button button-primary button-large"
+                    href="{{ route('pages.show', [
+                        'locale' => $locale,
+                        'slug' => $requestSlug,
+                    ]) }}">
                     {{ $text['quote'] }}
                 </a>
             </div>

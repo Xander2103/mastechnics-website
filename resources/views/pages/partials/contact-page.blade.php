@@ -11,7 +11,8 @@
             'whatsapp' => 'WhatsApp',
             'messenger' => 'Messenger',
             'form_title' => 'Stuur een bericht',
-            'form_intro' => 'Voor algemene vragen kan je dit formulier gebruiken. Voor technische aanvragen of richtprijzen gebruik je best de slimme aanvraagflow.',
+            'form_intro' =>
+                'Voor algemene vragen kan je dit formulier gebruiken. Voor technische aanvragen of richtprijzen gebruik je best de slimme aanvraagflow.',
             'name' => 'Naam',
             'email_field' => 'E-mailadres',
             'phone_field' => 'Telefoonnummer',
@@ -19,7 +20,8 @@
             'message' => 'Bericht',
             'button' => 'Bericht voorbereiden',
             'request_cta_title' => 'Gaat het over een technische aanvraag?',
-            'request_cta_text' => 'Gebruik dan de slimme aanvraagflow zodat meteen de juiste technische informatie verzameld wordt.',
+            'request_cta_text' =>
+                'Gebruik dan de slimme aanvraagflow zodat meteen de juiste technische informatie verzameld wordt.',
             'request_cta_button' => 'Start aanvraag',
         ],
         'fr' => [
@@ -30,7 +32,8 @@
             'whatsapp' => 'WhatsApp',
             'messenger' => 'Messenger',
             'form_title' => 'Envoyer un message',
-            'form_intro' => 'Pour les questions générales, vous pouvez utiliser ce formulaire. Pour les demandes techniques ou estimations, utilisez plutôt le flux de demande intelligente.',
+            'form_intro' =>
+                'Pour les questions générales, vous pouvez utiliser ce formulaire. Pour les demandes techniques ou estimations, utilisez plutôt le flux de demande intelligente.',
             'name' => 'Nom',
             'email_field' => 'Adresse e-mail',
             'phone_field' => 'Numéro de téléphone',
@@ -38,7 +41,8 @@
             'message' => 'Message',
             'button' => 'Préparer le message',
             'request_cta_title' => 'Votre demande est technique ?',
-            'request_cta_text' => 'Utilisez alors le flux de demande intelligente afin de transmettre directement les bonnes informations techniques.',
+            'request_cta_text' =>
+                'Utilisez alors le flux de demande intelligente afin de transmettre directement les bonnes informations techniques.',
             'request_cta_button' => 'Démarrer ma demande',
         ],
         'en' => [
@@ -49,7 +53,8 @@
             'whatsapp' => 'WhatsApp',
             'messenger' => 'Messenger',
             'form_title' => 'Send a message',
-            'form_intro' => 'For general questions, you can use this form. For technical requests or estimates, it is better to use the smart request flow.',
+            'form_intro' =>
+                'For general questions, you can use this form. For technical requests or estimates, it is better to use the smart request flow.',
             'name' => 'Name',
             'email_field' => 'Email address',
             'phone_field' => 'Phone number',
@@ -57,16 +62,15 @@
             'message' => 'Message',
             'button' => 'Prepare message',
             'request_cta_title' => 'Is it a technical request?',
-            'request_cta_text' => 'Use the smart request flow so the right technical information is collected immediately.',
+            'request_cta_text' =>
+                'Use the smart request flow so the right technical information is collected immediately.',
             'request_cta_button' => 'Start request',
         ],
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
 
-    $requestSlug = $locale === 'fr'
-        ? 'demande'
-        : ($locale === 'en' ? 'request' : 'aanvraag');
+    $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
 @endphp
 
 <section class="contact-hero">
@@ -119,10 +123,11 @@
                     <h3>{{ $text['request_cta_title'] }}</h3>
                     <p>{{ $text['request_cta_text'] }}</p>
 
-                    <a class="button button-primary" href="{{ route('pages.show', [
-                        'locale' => $locale,
-                        'slug' => $requestSlug,
-                    ]) }}">
+                    <a class="button button-primary"
+                        href="{{ route('pages.show', [
+                            'locale' => $locale,
+                            'slug' => $requestSlug,
+                        ]) }}">
                         {{ $text['request_cta_button'] }}
                     </a>
                 </div>

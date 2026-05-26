@@ -9,7 +9,8 @@
             'services' => 'Diensten',
             'contact' => 'Contact',
             'request' => 'Start aanvraag',
-            'footer_services_text' => 'Technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koeling.',
+            'footer_services_text' =>
+                'Technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koeling.',
             'footer_request_title' => 'Aanvraag',
             'footer_request_text' => 'Start een slimme aanvraag en vul meteen de juiste technische informatie in.',
         ],
@@ -17,15 +18,18 @@
             'services' => 'Services',
             'contact' => 'Contact',
             'request' => 'Démarrer ma demande',
-            'footer_services_text' => 'Service technique pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d’eau et réfrigération.',
+            'footer_services_text' =>
+                'Service technique pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d’eau et réfrigération.',
             'footer_request_title' => 'Demande',
-            'footer_request_text' => 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
+            'footer_request_text' =>
+                'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
         ],
         'en' => [
             'services' => 'Services',
             'contact' => 'Contact',
             'request' => 'Start request',
-            'footer_services_text' => 'Technical service for heating, air conditioning, plumbing, ventilation, water softeners and refrigeration.',
+            'footer_services_text' =>
+                'Technical service for heating, air conditioning, plumbing, ventilation, water softeners and refrigeration.',
             'footer_request_title' => 'Request',
             'footer_request_text' => 'Start a smart request and add the right technical information immediately.',
         ],
@@ -57,6 +61,7 @@
 
 <!DOCTYPE html>
 <html lang="{{ $currentLocale }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="description" content="@yield('meta_description', '')">
@@ -66,6 +71,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
+
 <body>
     <header class="site-header">
         <div class="container">
@@ -85,17 +91,19 @@
                         </a>
                     @endif
 
-                    <a href="{{ route('pages.show', [
-                        'locale' => $currentLocale,
-                        'slug' => $contactSlug,
-                    ]) }}">
+                    <a
+                        href="{{ route('pages.show', [
+                            'locale' => $currentLocale,
+                            'slug' => $contactSlug,
+                        ]) }}">
                         {{ $nav['contact'] }}
                     </a>
 
                     <a href="{{ route('pages.show', [
                         'locale' => $currentLocale,
                         'slug' => $requestSlug,
-                    ]) }}" class="nav-cta">
+                    ]) }}"
+                        class="nav-cta">
                         {{ $nav['request'] }}
                     </a>
 
@@ -103,16 +111,18 @@
                         <div class="language-switcher">
                             @foreach ($page->translations as $languageVersion)
                                 @if ($page->type === 'home')
-                                    <a href="{{ route('pages.home', [
-                                        'locale' => $languageVersion->locale,
-                                    ]) }}">
+                                    <a
+                                        href="{{ route('pages.home', [
+                                            'locale' => $languageVersion->locale,
+                                        ]) }}">
                                         {{ strtoupper($languageVersion->locale) }}
                                     </a>
                                 @else
-                                    <a href="{{ route('pages.show', [
-                                        'locale' => $languageVersion->locale,
-                                        'slug' => $languageVersion->slug,
-                                    ]) }}">
+                                    <a
+                                        href="{{ route('pages.show', [
+                                            'locale' => $languageVersion->locale,
+                                            'slug' => $languageVersion->slug,
+                                        ]) }}">
                                         {{ strtoupper($languageVersion->locale) }}
                                     </a>
                                 @endif
@@ -175,37 +185,39 @@
                     {{ $nav['footer_request_text'] }}
                 </p>
 
-                <a class="footer-link" href="{{ route('pages.show', [
-                    'locale' => $currentLocale,
-                    'slug' => $requestSlug,
-                ]) }}">
+                <a class="footer-link"
+                    href="{{ route('pages.show', [
+                        'locale' => $currentLocale,
+                        'slug' => $requestSlug,
+                    ]) }}">
                     {{ $nav['request'] }}
                 </a>
             </div>
         </div>
 
-<div class="container footer-bottom">
-    <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
+        <div class="container footer-bottom">
+            <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
 
-@if (session()->has('admin_user_email'))
-    <div class="footer-admin-actions">
-        <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
-            Admin panel
-        </a>
+            @if (session()->has('admin_user_email'))
+                <div class="footer-admin-actions">
+                    <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
+                        Admin panel
+                    </a>
 
-        <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
-            @csrf
+                    <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
+                        @csrf
 
-            <button type="submit" class="footer-admin-link">
-                Uitloggen
-            </button>
-        </form>
-    </div>
-@else
-    <a class="footer-admin-link" href="{{ route('admin.login') }}">
-        Admin
-    </a>
-@endif
-</div>
+                        <button type="submit" class="footer-admin-link">
+                            Uitloggen
+                        </button>
+                    </form>
+                </div>
+            @else
+                <a class="footer-admin-link" href="{{ route('admin.login') }}">
+                    Admin
+                </a>
+            @endif
+        </div>
 </body>
+
 </html>

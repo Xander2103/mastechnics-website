@@ -3,7 +3,7 @@
     $configuredServices = config('services');
 
     $services = collect($configuredServices)
-        ->filter(fn ($service) => $service['is_active'] ?? false)
+        ->filter(fn($service) => $service['is_active'] ?? false)
         ->map(function ($service) use ($locale) {
             return $service['translations'][$locale] ?? $service['translations']['nl'];
         })
@@ -26,7 +26,8 @@
 
             'process_label' => 'Slimme intake',
             'process_title' => 'Geen losse berichten, maar meteen de juiste informatie.',
-            'process_intro' => 'De aanvraagflow wordt opgebouwd om technische aanvragen duidelijker binnen te laten komen. Zo hoeft er minder heen-en-weer gemaild of gebeld te worden.',
+            'process_intro' =>
+                'De aanvraagflow wordt opgebouwd om technische aanvragen duidelijker binnen te laten komen. Zo hoeft er minder heen-en-weer gemaild of gebeld te worden.',
             'process_steps' => [
                 [
                     'title' => '1. Kies je dienst',
@@ -42,19 +43,23 @@
                 ],
                 [
                     'title' => '4. Snellere inschatting',
-                    'description' => 'Met volledige info kan er sneller een richtprijs, advies of vervolgstap voorgesteld worden.',
+                    'description' =>
+                        'Met volledige info kan er sneller een richtprijs, advies of vervolgstap voorgesteld worden.',
                 ],
             ],
 
             'services_label' => 'Diensten',
             'services_title' => 'Technische service voor particulieren en bedrijven',
-            'services_intro' => $siteName . ' focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
+            'services_intro' =>
+                $siteName .
+                ' focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
             'more_info' => 'Meer info',
             'soon' => 'Binnenkort',
 
             'cta_label' => 'Start slim',
             'cta_title' => 'Beschrijf je probleem of project meteen duidelijk.',
-            'cta_text' => 'Beantwoord enkele gerichte vragen en voeg later foto’s toe. Zo komt je aanvraag gestructureerd binnen en kan er sneller ingeschat worden wat nodig is.',
+            'cta_text' =>
+                'Beantwoord enkele gerichte vragen en voeg later foto’s toe. Zo komt je aanvraag gestructureerd binnen en kan er sneller ingeschat worden wat nodig is.',
             'cta_button' => 'Start aanvraag',
         ],
 
@@ -74,7 +79,8 @@
 
             'process_label' => 'Prise en charge intelligente',
             'process_title' => 'Pas de messages incomplets, mais les bonnes informations dès le départ.',
-            'process_intro' => 'Le flux de demande est conçu pour recevoir les informations techniques de manière claire. Cela réduit les échanges inutiles par e-mail ou téléphone.',
+            'process_intro' =>
+                'Le flux de demande est conçu pour recevoir les informations techniques de manière claire. Cela réduit les échanges inutiles par e-mail ou téléphone.',
             'process_steps' => [
                 [
                     'title' => '1. Choisissez votre service',
@@ -82,27 +88,33 @@
                 ],
                 [
                     'title' => '2. Décrivez votre situation',
-                    'description' => 'Indiquez s’il s’agit d’une panne, d’un entretien, d’une installation ou d’un nouveau projet.',
+                    'description' =>
+                        'Indiquez s’il s’agit d’une panne, d’un entretien, d’une installation ou d’un nouveau projet.',
                 ],
                 [
                     'title' => '3. Ajoutez les infos techniques',
-                    'description' => 'Type d’appareil, marque, modèle, numéro de série ou photo de la plaque signalétique.',
+                    'description' =>
+                        'Type d’appareil, marque, modèle, numéro de série ou photo de la plaque signalétique.',
                 ],
                 [
                     'title' => '4. Estimation plus rapide',
-                    'description' => 'Avec des informations complètes, il est plus facile de proposer une estimation, un conseil ou une prochaine étape.',
+                    'description' =>
+                        'Avec des informations complètes, il est plus facile de proposer une estimation, un conseil ou une prochaine étape.',
                 ],
             ],
 
             'services_label' => 'Services',
             'services_title' => 'Service technique pour particuliers et entreprises',
-            'services_intro' => $siteName . ' se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
+            'services_intro' =>
+                $siteName .
+                ' se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
             'more_info' => 'Plus d’infos',
             'soon' => 'Bientôt',
 
             'cta_label' => 'Commencez clairement',
             'cta_title' => 'Décrivez votre problème ou projet de manière structurée.',
-            'cta_text' => 'Répondez à quelques questions ciblées et ajoutez des photos si nécessaire. Votre demande arrive ainsi complète et peut être estimée plus rapidement.',
+            'cta_text' =>
+                'Répondez à quelques questions ciblées et ajoutez des photos si nécessaire. Votre demande arrive ainsi complète et peut être estimée plus rapidement.',
             'cta_button' => 'Démarrer ma demande',
         ],
 
@@ -122,7 +134,8 @@
 
             'process_label' => 'Smart intake',
             'process_title' => 'No incomplete messages, but the right information from the start.',
-            'process_intro' => 'The request flow is designed to collect technical information clearly. This reduces unnecessary back-and-forth by email or phone.',
+            'process_intro' =>
+                'The request flow is designed to collect technical information clearly. This reduces unnecessary back-and-forth by email or phone.',
             'process_steps' => [
                 [
                     'title' => '1. Choose your service',
@@ -138,19 +151,23 @@
                 ],
                 [
                     'title' => '4. Faster estimate',
-                    'description' => 'With complete information, it is easier to provide an estimate, advice or next step.',
+                    'description' =>
+                        'With complete information, it is easier to provide an estimate, advice or next step.',
                 ],
             ],
 
             'services_label' => 'Services',
             'services_title' => 'Technical service for homes and businesses',
-            'services_intro' => $siteName . ' focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
+            'services_intro' =>
+                $siteName .
+                ' focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
             'more_info' => 'More info',
             'soon' => 'Coming soon',
 
             'cta_label' => 'Start clearly',
             'cta_title' => 'Describe your issue or project in a structured way.',
-            'cta_text' => 'Answer a few targeted questions and upload photos if needed. Your request comes in complete and can be estimated faster.',
+            'cta_text' =>
+                'Answer a few targeted questions and upload photos if needed. Your request comes in complete and can be estimated faster.',
             'cta_button' => 'Start request',
         ],
     ];
@@ -172,10 +189,11 @@
                 @endif
 
                 <div class="button-row">
-                    <a class="button button-primary button-large" href="{{ route('pages.show', [
-                        'locale' => $locale,
-                        'slug' => $requestSlug,
-                    ]) }}">
+                    <a class="button button-primary button-large"
+                        href="{{ route('pages.show', [
+                            'locale' => $locale,
+                            'slug' => $requestSlug,
+                        ]) }}">
                         {{ $text['primary_cta'] }}
                     </a>
 
@@ -231,20 +249,21 @@
             <p>{{ $text['services_intro'] }}</p>
         </div>
 
-<div class="service-grid">
-    @foreach ($services as $service)
-        <a class="service-card service-card-link" href="{{ route('pages.show', [
-            'locale' => $locale,
-            'slug' => $service['slug'],
-        ]) }}">
-            <h3>{{ $service['title'] }}</h3>
+        <div class="service-grid">
+            @foreach ($services as $service)
+                <a class="service-card service-card-link"
+                    href="{{ route('pages.show', [
+                        'locale' => $locale,
+                        'slug' => $service['slug'],
+                    ]) }}">
+                    <h3>{{ $service['title'] }}</h3>
 
-            <p>{{ $service['description'] }}</p>
+                    <p>{{ $service['description'] }}</p>
 
-            <span>{{ $text['more_info'] }}</span>
-        </a>
-    @endforeach
-</div>
+                    <span>{{ $text['more_info'] }}</span>
+                </a>
+            @endforeach
+        </div>
     </div>
 </section>
 
@@ -259,10 +278,11 @@
                 <p>{{ $text['cta_text'] }}</p>
             </div>
 
-            <a class="button button-light button-large" href="{{ route('pages.show', [
-                'locale' => $locale,
-                'slug' => $requestSlug,
-            ]) }}">
+            <a class="button button-light button-large"
+                href="{{ route('pages.show', [
+                    'locale' => $locale,
+                    'slug' => $requestSlug,
+                ]) }}">
                 {{ $text['cta_button'] }}
             </a>
         </div>

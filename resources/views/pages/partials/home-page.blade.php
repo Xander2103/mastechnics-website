@@ -231,28 +231,20 @@
             <p>{{ $text['services_intro'] }}</p>
         </div>
 
-        <div class="service-grid">
-            @foreach ($services as $index => $service)
-                <article class="service-card">
-                    <h3>{{ $service['title'] }}</h3>
+<div class="service-grid">
+    @foreach ($services as $service)
+        <a class="service-card service-card-link" href="{{ route('pages.show', [
+            'locale' => $locale,
+            'slug' => $service['slug'],
+        ]) }}">
+            <h3>{{ $service['title'] }}</h3>
 
-                    <p>{{ $service['description'] }}</p>
+            <p>{{ $service['description'] }}</p>
 
-                    @if ($index === 0)
-                        <a href="{{ route('pages.show', [
-                            'locale' => $locale,
-                            'slug' => $service['slug'],
-                        ]) }}">
-                            {{ $text['more_info'] }}
-                        </a>
-                    @else
-                        <a href="#">
-                            {{ $text['soon'] }}
-                        </a>
-                    @endif
-                </article>
-            @endforeach
-        </div>
+            <span>{{ $text['more_info'] }}</span>
+        </a>
+    @endforeach
+</div>
     </div>
 </section>
 

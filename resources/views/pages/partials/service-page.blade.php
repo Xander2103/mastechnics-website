@@ -80,15 +80,6 @@
         @if ($translation->intro)
             <p class="service-intro">{{ $translation->intro }}</p>
         @endif
-
-        <div class="button-row">
-            <a class="button button-primary button-large" href="{{ route('pages.show', [
-                'locale' => $locale,
-                'slug' => $requestSlug,
-            ]) }}">
-                {{ $text['quote'] }}
-            </a>
-        </div>
     </div>
 </section>
 
@@ -100,6 +91,15 @@
             @if ($translation->content)
                 <p>{{ $translation->content }}</p>
             @endif
+
+            <div class="button-row service-content-button">
+                <a class="button button-primary button-large" href="{{ route('pages.show', [
+                    'locale' => $locale,
+                    'slug' => $requestSlug,
+                ]) }}">
+                    {{ $text['quote'] }}
+                </a>
+            </div>
         </div>
     </div>
 </section>

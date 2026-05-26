@@ -196,9 +196,9 @@ return [
                     'type' => 'checkbox',
                     'required' => false,
                     'labels' => [
-                        'nl' => 'Ik weet merk/model niet',
-                        'fr' => 'Je ne connais pas la marque/le modèle',
-                        'en' => 'I don’t know the brand/model',
+                        'nl' => 'Ik weet merk/model/serienummer niet',
+                        'fr' => 'Je ne connais pas la marque/le modèle/le numéro de série',
+                        'en' => 'I don’t know the brand/model/serial number',
                     ],
                 ],
             ],

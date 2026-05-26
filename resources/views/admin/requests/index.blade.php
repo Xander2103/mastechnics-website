@@ -24,6 +24,7 @@
                 <details class="admin-filter-details" {{ collect($filters)->filter()->isNotEmpty() ? 'open' : '' }}>
                     <summary>
                         Filters
+
                         @if (collect($filters)->filter()->isNotEmpty())
                             <span>actief</span>
                         @endif
@@ -79,6 +80,34 @@
                         </label>
 
                         <label>
+                            <span>Urgentie</span>
+                            <select name="urgency">
+                                <option value="">Alle urgenties</option>
+
+                                @foreach ($urgencies as $urgencyValue => $urgencyLabel)
+                                    <option value="{{ $urgencyValue }}"
+                                        {{ $filters['urgency'] === $urgencyValue ? 'selected' : '' }}>
+                                        {{ $urgencyLabel }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </label>
+
+                        <label>
+                            <span>Klanttype</span>
+                            <select name="customer_type">
+                                <option value="">Alle klanttypes</option>
+
+                                @foreach ($customerTypes as $customerTypeValue => $customerTypeLabel)
+                                    <option value="{{ $customerTypeValue }}"
+                                        {{ $filters['customer_type'] === $customerTypeValue ? 'selected' : '' }}>
+                                        {{ $customerTypeLabel }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </label>
+
+                        <label>
                             <span>Van datum</span>
                             <input type="date" name="date_from" value="{{ $filters['date_from'] }}">
                         </label>
@@ -90,7 +119,7 @@
 
                         <div class="admin-filter-actions">
                             <button class="button button-primary" type="submit">
-                                Zoeken
+                                Filteren
                             </button>
 
                             <a class="button button-secondary" href="{{ route('admin.requests.index') }}">
@@ -115,6 +144,7 @@
                                     <th>Telefoon</th>
                                     <th>Dienst</th>
                                     <th>Type</th>
+                                    <th>Urgentie</th>
                                     <th>Status</th>
                                     <th></th>
                                 </tr>
@@ -124,24 +154,39 @@
                                 @foreach ($customerRequests as $request)
                                     @php
                                         $metadata = $request->metadata ?? [];
+                                        $answers = $metadata['answers'] ?? [];
+
                                         $serviceTitle = $metadata['service']['title'] ?? $request->service_slug;
                                         $requestTypeLabel =
                                             $metadata['request_type']['label'] ?? $request->request_type;
+
+                                        $urgencyLabels = [
+                                            'urgent' => 'Dringend',
+                                            'within_days' => 'Enkele dagen',
+                                            'not_urgent' => 'Niet dringend',
+                                        ];
+
+                                        $urgency = $answers['urgency'] ?? null;
                                     @endphp
 
                                     <tr>
-                                        <td>{{ $request->created_at->format('d/m/Y H:i') }}</td>
-                                        <td>{{ $request->customer_name }}</td>
-                                        <td>{{ $request->customer_email }}</td>
-                                        <td>{{ $request->customer_phone ?: '-' }}</td>
-                                        <td>{{ $serviceTitle }}</td>
-                                        <td>{{ $requestTypeLabel }}</td>
-                                        <td>
+                                        <td data-label="Datum">{{ $request->created_at->format('d/m/Y H:i') }}</td>
+                                        <td data-label="Naam">{{ $request->customer_name }}</td>
+                                        <td data-label="E-mail">{{ $request->customer_email }}</td>
+                                        <td data-label="Telefoon">{{ $request->customer_phone ?: '-' }}</td>
+                                        <td data-label="Dienst">{{ $serviceTitle }}</td>
+                                        <td data-label="Type">{{ $requestTypeLabel }}</td>
+                                        <td data-label="Urgentie">
+                                            <span class="admin-urgency admin-urgency-{{ $urgency ?: 'none' }}">
+                                                {{ $urgencyLabels[$urgency] ?? '-' }}
+                                            </span>
+                                        </td>
+                                        <td data-label="Status">
                                             <span class="admin-status admin-status-{{ $request->status }}">
                                                 {{ $statuses[$request->status] ?? $request->status }}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="">
                                             <a class="admin-link" href="{{ route('admin.requests.show', $request) }}">
                                                 Bekijken
                                             </a>

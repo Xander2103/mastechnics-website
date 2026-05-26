@@ -6,8 +6,23 @@
     @php
         $metadata = $customerRequest->metadata ?? [];
         $answers = $metadata['answers'] ?? [];
+
         $serviceTitle = $metadata['service']['title'] ?? $customerRequest->service_slug;
         $requestTypeLabel = $metadata['request_type']['label'] ?? $customerRequest->request_type;
+
+        $customerTypeLabels = [
+            'residential' => 'Particulier',
+            'business' => 'Bedrijf',
+        ];
+
+        $urgencyLabels = [
+            'urgent' => 'Dringend',
+            'within_days' => 'Binnen enkele dagen',
+            'not_urgent' => 'Niet dringend',
+        ];
+
+        $customerType = $answers['customer_type'] ?? null;
+        $urgency = $answers['urgency'] ?? null;
     @endphp
 
     <section class="admin-hero">
@@ -57,6 +72,20 @@
                         </div>
 
                         <div>
+                            <dt>Klanttype</dt>
+                            <dd>{{ $customerTypeLabels[$customerType] ?? '-' }}</dd>
+                        </div>
+
+                        <div>
+                            <dt>Urgentie</dt>
+                            <dd>
+                                <span class="admin-urgency admin-urgency-{{ $urgency ?: 'none' }}">
+                                    {{ $urgencyLabels[$urgency] ?? '-' }}
+                                </span>
+                            </dd>
+                        </div>
+
+                        <div>
                             <dt>Status</dt>
                             <dd>
                                 <span class="admin-status admin-status-{{ $customerRequest->status }}">
@@ -71,8 +100,7 @@
                         </div>
                     </dl>
 
-                    <form class="admin-status-form" method="POST"
-                        action="{{ route('admin.requests.update-status', $customerRequest) }}">
+                    <form class="admin-status-form" method="POST" action="{{ route('admin.requests.update-status', $customerRequest) }}">
                         @csrf
                         @method('PATCH')
 
@@ -81,8 +109,7 @@
 
                             <select name="status">
                                 @foreach ($statuses as $statusValue => $statusLabel)
-                                    <option value="{{ $statusValue }}"
-                                        {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
+                                    <option value="{{ $statusValue }}" {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
                                         {{ $statusLabel }}
                                     </option>
                                 @endforeach
@@ -122,6 +149,32 @@
                     </div>
 
                     <div class="admin-detail-card">
+                        <h2>Locatie en beschikbaarheid</h2>
+
+                        <dl class="admin-detail-list">
+                            <div>
+                                <dt>Straat</dt>
+                                <dd>{{ $answers['street'] ?? '-' }}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Postcode</dt>
+                                <dd>{{ $answers['postal_code'] ?? '-' }}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Gemeente</dt>
+                                <dd>{{ $answers['city'] ?? '-' }}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Beschikbaarheid</dt>
+                                <dd>{{ $answers['availability'] ?? '-' }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="admin-detail-card">
                         <h2>Technische gegevens</h2>
 
                         <dl class="admin-detail-list">
@@ -141,7 +194,7 @@
                             </div>
 
                             <div>
-                                <dt>Ik weet dit niet</dt>
+                                <dt>Merk/model/serienummer onbekend</dt>
                                 <dd>{{ $customerRequest->unknown_device_details ? 'Ja' : 'Nee' }}</dd>
                             </div>
                         </dl>
@@ -155,11 +208,14 @@
                         @else
                             <div class="admin-attachments-grid">
                                 @foreach ($customerRequest->attachments as $attachment)
-                                    <a class="admin-attachment-card" href="{{ asset('storage/' . $attachment->path) }}"
-                                        target="_blank" rel="noopener">
+                                    <a
+                                        class="admin-attachment-card"
+                                        href="{{ asset('storage/' . $attachment->path) }}"
+                                        target="_blank"
+                                        rel="noopener"
+                                    >
                                         @if (str_starts_with($attachment->mime_type ?? '', 'image/'))
-                                            <img src="{{ asset('storage/' . $attachment->path) }}"
-                                                alt="{{ $attachment->original_name }}">
+                                            <img src="{{ asset('storage/' . $attachment->path) }}" alt="{{ $attachment->original_name }}">
                                         @else
                                             <div class="admin-attachment-file">
                                                 Bestand

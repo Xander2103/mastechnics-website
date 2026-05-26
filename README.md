@@ -1,21 +1,48 @@
-# mastechnics Website Platform
+# Reusable Service Website & Smart Request Platform
 
-A multilingual Laravel web platform for a technical service company offering heating, air conditioning, plumbing, ventilation, water softeners and refrigeration services.
+A reusable multilingual Laravel platform for service-based businesses.
 
-The goal of this project is not just to build a basic company website, but to create a structured and scalable foundation for a professional service intake system.
+This project started with **mastechnics** as the first real-world implementation, but the goal is to build a reusable system that can be adapted for other companies such as HVAC businesses, plumbers, electricians, roofers, garden services, repair companies and other technical service providers.
 
-## Project Goal
+The focus is not just on building a standard website, but on creating a structured platform for service presentation, smart customer intake, contact handling and future request management.
 
-mastechnics is being developed as a multilingual service website with a strong focus on:
+## Project Concept
 
-- clear service presentation
-- multilingual content structure
-- SEO-friendly URLs
-- scalable page management
-- future quote request flows
+Many service companies receive incomplete requests through phone calls, emails, Messenger, WhatsApp or basic contact forms.
+
+This platform aims to improve that flow by combining:
+
+- a multilingual website
+- clear service pages
+- a smart request flow
+- structured technical intake
+- contact options
+- future request management
 - future CRM and automation integration
 
-The long-term idea is to support the full client journey: from first website visit and quote request to structured follow-up of customer inquiries.
+Instead of only asking for a name and message, the system guides the visitor through a more useful request process.
+
+Example:
+
+1. Choose a service
+2. Choose the type of request
+3. Add technical details
+4. Describe the issue or project
+5. Add photos if needed
+6. Prepare the request for faster follow-up or estimate
+
+## First Implementation: mastechnics
+
+The first implementation is built for **mastechnics**, a technical service company focused on:
+
+- heating
+- air conditioning
+- plumbing
+- ventilation
+- water softeners
+- cold rooms and refrigeration
+
+The current version includes a first branded mock-up for mastechnics, while keeping the long-term goal of making the system reusable for other service businesses.
 
 ## Current Features
 
@@ -29,24 +56,26 @@ The long-term idea is to support the full client journey: from first website vis
 - Separate page translations per language
 - SEO fields per language
 - Reusable Blade layout structure
-- Different page types, such as:
+- Page types:
   - homepage
-  - service pages
-  - default content pages
+  - service page
+  - smart request page
+  - contact page
+  - default page fallback
 - Language switcher linked to the correct translated page
-- Initial homepage and heating service page
+- Styled homepage focused on a smart request flow
+- First service page implementation
+- Smart request form mock-up
+- Contact page mock-up
+- Responsive CSS structure split by base, layout, components and pages
+- Git-based version control and GitHub backup
 
 ## Technical Approach
 
 The project uses a database-driven multilingual page structure.
 
-Instead of creating separate hardcoded pages for every language, the system uses a central `pages` table and a related `page_translations` table.
-
-This allows one page to have multiple language versions while still using the same reusable Laravel views.
-
-Example structure:
+Instead of creating separate hardcoded files for every language, the system uses:
 
 ```text
-/nl/verwarming
-/fr/chauffage
-/en/heating
+pages
+page_translations

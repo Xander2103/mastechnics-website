@@ -1,6 +1,9 @@
 @php
     $siteName = config('site.name');
+
     $configuredServices = config('services');
+    $requestSteps = config('request-flow.steps', []);
+    $requestTypes = config('request-flow.request_types', []);
 
     $services = collect($configuredServices)
         ->filter(fn ($service) => $service['is_active'] ?? false)
@@ -12,33 +15,6 @@
     $labels = [
         'nl' => [
             'badge' => 'Slimme technische aanvraag',
-            'service_step' => '1. Kies je dienst',
-            'type_step' => '2. Type aanvraag',
-            'description_step' => '3. Probleem of project',
-            'technical_step' => '4. Technische gegevens',
-            'contact_step' => '5. Contactgegevens',
-            'summary_step' => '6. Samenvatting',
-
-            'request_types' => [
-                ['value' => 'repair', 'label' => 'Herstelling'],
-                ['value' => 'maintenance', 'label' => 'Onderhoud'],
-                ['value' => 'installation', 'label' => 'Installatie'],
-                ['value' => 'new_project', 'label' => 'Nieuw project'],
-            ],
-
-            'description' => 'Beschrijf kort je probleem of project',
-            'photos' => 'Foto’s toevoegen',
-            'photos_help' => 'Foto-upload komt later. Voor nu kan de klant het probleem beschrijven.',
-
-            'brand' => 'Merk',
-            'model' => 'Model',
-            'serial' => 'Serienummer',
-            'unknown' => 'Ik weet dit niet',
-
-            'name' => 'Naam',
-            'email' => 'E-mailadres',
-            'phone' => 'Telefoonnummer',
-
             'estimate_title' => 'Richtprijs mogelijk na volledige info',
             'estimate_text' => 'Op basis van de gekozen dienst, technische gegevens en foto’s kan ' . $siteName . ' sneller inschatten wat nodig is en indien mogelijk een richtprijs of duidelijke vervolgstap voorstellen.',
             'summary_title' => 'Samenvatting',
@@ -47,36 +23,8 @@
             'success' => 'Je aanvraag werd goed ontvangen. We nemen zo snel mogelijk contact op.',
             'errors_title' => 'Controleer de ingevulde gegevens.',
         ],
-
         'fr' => [
             'badge' => 'Demande technique intelligente',
-            'service_step' => '1. Choisissez votre service',
-            'type_step' => '2. Type de demande',
-            'description_step' => '3. Problème ou projet',
-            'technical_step' => '4. Informations techniques',
-            'contact_step' => '5. Coordonnées',
-            'summary_step' => '6. Résumé',
-
-            'request_types' => [
-                ['value' => 'repair', 'label' => 'Réparation'],
-                ['value' => 'maintenance', 'label' => 'Entretien'],
-                ['value' => 'installation', 'label' => 'Installation'],
-                ['value' => 'new_project', 'label' => 'Nouveau projet'],
-            ],
-
-            'description' => 'Décrivez brièvement votre problème ou projet',
-            'photos' => 'Ajouter des photos',
-            'photos_help' => 'L’upload de photos sera ajouté plus tard. Pour l’instant, le client peut décrire le problème.',
-
-            'brand' => 'Marque',
-            'model' => 'Modèle',
-            'serial' => 'Numéro de série',
-            'unknown' => 'Je ne sais pas',
-
-            'name' => 'Nom',
-            'email' => 'Adresse e-mail',
-            'phone' => 'Numéro de téléphone',
-
             'estimate_title' => 'Estimation possible après informations complètes',
             'estimate_text' => 'Grâce au service choisi, aux informations techniques et aux photos, ' . $siteName . ' peut estimer plus rapidement ce qui est nécessaire et proposer une estimation ou une prochaine étape claire.',
             'summary_title' => 'Résumé',
@@ -85,36 +33,8 @@
             'success' => 'Votre demande a bien été reçue. Nous vous contacterons dès que possible.',
             'errors_title' => 'Veuillez vérifier les informations saisies.',
         ],
-
         'en' => [
             'badge' => 'Smart technical request',
-            'service_step' => '1. Choose your service',
-            'type_step' => '2. Request type',
-            'description_step' => '3. Issue or project',
-            'technical_step' => '4. Technical details',
-            'contact_step' => '5. Contact details',
-            'summary_step' => '6. Summary',
-
-            'request_types' => [
-                ['value' => 'repair', 'label' => 'Repair'],
-                ['value' => 'maintenance', 'label' => 'Maintenance'],
-                ['value' => 'installation', 'label' => 'Installation'],
-                ['value' => 'new_project', 'label' => 'New project'],
-            ],
-
-            'description' => 'Briefly describe your issue or project',
-            'photos' => 'Add photos',
-            'photos_help' => 'Photo upload will be added later. For now, the customer can describe the issue.',
-
-            'brand' => 'Brand',
-            'model' => 'Model',
-            'serial' => 'Serial number',
-            'unknown' => 'I don’t know',
-
-            'name' => 'Name',
-            'email' => 'Email address',
-            'phone' => 'Phone number',
-
             'estimate_title' => 'Estimate possible after complete information',
             'estimate_text' => 'Based on the selected service, technical details and photos, ' . $siteName . ' can estimate what is needed faster and provide an estimate or clear next step when possible.',
             'summary_title' => 'Summary',
@@ -126,6 +46,14 @@
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
+
+    $getLabel = function (array $item) use ($locale): string {
+        return $item['labels'][$locale] ?? $item['labels']['nl'] ?? '';
+    };
+
+    $getPlaceholder = function (array $item) use ($locale): string {
+        return $item['placeholder'][$locale] ?? $item['placeholder']['nl'] ?? '';
+    };
 @endphp
 
 <section class="request-hero">
@@ -165,121 +93,120 @@
 
             <div class="request-layout">
                 <aside class="request-steps">
-                    <div class="request-step is-active">{{ $text['service_step'] }}</div>
-                    <div class="request-step">{{ $text['type_step'] }}</div>
-                    <div class="request-step">{{ $text['description_step'] }}</div>
-                    <div class="request-step">{{ $text['technical_step'] }}</div>
-                    <div class="request-step">{{ $text['contact_step'] }}</div>
-                    <div class="request-step">{{ $text['summary_step'] }}</div>
+                    @foreach ($requestSteps as $index => $step)
+                        <div class="request-step {{ $index === 0 ? 'is-active' : '' }}">
+                            {{ $getLabel($step) }}
+                        </div>
+                    @endforeach
                 </aside>
 
                 <div class="request-form-card">
-                    <div class="form-section" data-step="0">
-                        <h2>{{ $text['service_step'] }}</h2>
+                    @foreach ($requestSteps as $stepIndex => $step)
+                        @if ($step['type'] === 'service_selection')
+                            <div class="form-section" data-step="{{ $stepIndex }}">
+                                <h2>{{ $getLabel($step) }}</h2>
 
-                        <div class="option-grid">
-                            @foreach ($services as $index => $service)
-                                <label class="option-card {{ old('service_slug', $services[0]['slug'] ?? '') === $service['slug'] ? 'is-selected' : '' }}">
-                                    <input
-                                        type="radio"
-                                        name="service_slug"
-                                        value="{{ $service['slug'] }}"
-                                        {{ old('service_slug', $services[0]['slug'] ?? '') === $service['slug'] ? 'checked' : '' }}
-                                    >
-                                    <span>{{ $service['title'] }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
+                                <div class="option-grid">
+                                    @foreach ($services as $index => $service)
+                                        <label class="option-card {{ old('service_slug', $services[0]['slug'] ?? '') === $service['slug'] ? 'is-selected' : '' }}">
+                                            <input
+                                                type="radio"
+                                                name="service_slug"
+                                                value="{{ $service['slug'] }}"
+                                                {{ old('service_slug', $services[0]['slug'] ?? '') === $service['slug'] ? 'checked' : '' }}
+                                            >
+                                            <span>{{ $service['title'] }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
-                    <div class="form-section" data-step="1">
-                        <h2>{{ $text['type_step'] }}</h2>
+                        @if ($step['type'] === 'request_type_selection')
+                            <div class="form-section" data-step="{{ $stepIndex }}">
+                                <h2>{{ $getLabel($step) }}</h2>
 
-                        <div class="option-grid option-grid-small">
-                            @foreach ($text['request_types'] as $type)
-                                <label class="option-card {{ old('request_type', $text['request_types'][0]['value']) === $type['value'] ? 'is-selected' : '' }}">
-                                    <input
-                                        type="radio"
-                                        name="request_type"
-                                        value="{{ $type['value'] }}"
-                                        {{ old('request_type', $text['request_types'][0]['value']) === $type['value'] ? 'checked' : '' }}
-                                    >
-                                    <span>{{ $type['label'] }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
+                                <div class="option-grid option-grid-small">
+                                    @foreach ($requestTypes as $index => $requestType)
+                                        <label class="option-card {{ old('request_type', $requestTypes[0]['value'] ?? '') === $requestType['value'] ? 'is-selected' : '' }}">
+                                            <input
+                                                type="radio"
+                                                name="request_type"
+                                                value="{{ $requestType['value'] }}"
+                                                {{ old('request_type', $requestTypes[0]['value'] ?? '') === $requestType['value'] ? 'checked' : '' }}
+                                            >
+                                            <span>{{ $getLabel($requestType) }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
-                    <div class="form-section" data-step="2">
-                        <h2>{{ $text['description_step'] }}</h2>
+                        @if ($step['type'] === 'fields')
+                            <div class="form-section" data-step="{{ $stepIndex }}">
+                                <h2>{{ $getLabel($step) }}</h2>
 
-                        <label>
-                            <span>{{ $text['description'] }}</span>
-                            <textarea name="description" rows="5" placeholder="...">{{ old('description') }}</textarea>
-                        </label>
+                                <div class="field-grid">
+                                    @foreach ($step['fields'] as $field)
+                                        @if ($field['type'] === 'checkbox')
+                                            <label class="checkbox-field">
+                                                <input
+                                                    type="checkbox"
+                                                    name="{{ $field['name'] }}"
+                                                    value="1"
+                                                    {{ old($field['name']) ? 'checked' : '' }}
+                                                >
+                                                <span>{{ $getLabel($field) }}</span>
+                                            </label>
+                                        @elseif ($field['type'] === 'textarea')
+                                            <label class="field-full">
+                                                <span>{{ $getLabel($field) }}</span>
+                                                <textarea
+                                                    name="{{ $field['name'] }}"
+                                                    rows="5"
+                                                    placeholder="{{ $getPlaceholder($field) }}"
+                                                >{{ old($field['name']) }}</textarea>
+                                            </label>
+                                        @else
+                                            <label>
+                                                <span>{{ $getLabel($field) }}</span>
+                                                <input
+                                                    type="{{ $field['type'] }}"
+                                                    name="{{ $field['name'] }}"
+                                                    value="{{ old($field['name']) }}"
+                                                    placeholder="{{ $getPlaceholder($field) }}"
+                                                >
+                                            </label>
+                                        @endif
+                                    @endforeach
+                                </div>
 
-                        <div class="upload-box">
-                            <strong>{{ $text['photos'] }}</strong>
-                            <p>{{ $text['photos_help'] }}</p>
-                        </div>
-                    </div>
+                                @if (isset($step['helper_box']))
+                                    <div class="upload-box">
+                                        <strong>
+                                            {{ $step['helper_box']['title'][$locale] ?? $step['helper_box']['title']['nl'] }}
+                                        </strong>
 
-                    <div class="form-section" data-step="3">
-                        <h2>{{ $text['technical_step'] }}</h2>
+                                        <p>
+                                            {{ $step['helper_box']['text'][$locale] ?? $step['helper_box']['text']['nl'] }}
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
 
-                        <div class="field-grid">
-                            <label>
-                                <span>{{ $text['brand'] }}</span>
-                                <input type="text" name="brand" value="{{ old('brand') }}" placeholder="Vaillant, Daikin, Bosch...">
-                            </label>
+                        @if ($step['type'] === 'summary')
+                            <div class="estimate-box" data-step="{{ $stepIndex }}">
+                                <h3>{{ $text['estimate_title'] }}</h3>
+                                <p>{{ $text['estimate_text'] }}</p>
+                            </div>
 
-                            <label>
-                                <span>{{ $text['model'] }}</span>
-                                <input type="text" name="device_model" value="{{ old('device_model') }}" placeholder="ecoTEC plus, Altherma...">
-                            </label>
-
-                            <label>
-                                <span>{{ $text['serial'] }}</span>
-                                <input type="text" name="serial_number" value="{{ old('serial_number') }}" placeholder="SN / serial...">
-                            </label>
-
-                            <label class="checkbox-field">
-                                <input type="checkbox" name="unknown_device_details" value="1" {{ old('unknown_device_details') ? 'checked' : '' }}>
-                                <span>{{ $text['unknown'] }}</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-section" data-step="4">
-                        <h2>{{ $text['contact_step'] }}</h2>
-
-                        <div class="field-grid">
-                            <label>
-                                <span>{{ $text['name'] }}</span>
-                                <input type="text" name="customer_name" value="{{ old('customer_name') }}">
-                            </label>
-
-                            <label>
-                                <span>{{ $text['email'] }}</span>
-                                <input type="email" name="customer_email" value="{{ old('customer_email') }}">
-                            </label>
-
-                            <label>
-                                <span>{{ $text['phone'] }}</span>
-                                <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}">
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="estimate-box" data-step="5">
-                        <h3>{{ $text['estimate_title'] }}</h3>
-                        <p>{{ $text['estimate_text'] }}</p>
-                    </div>
-
-                    <div class="summary-box" data-step="5">
-                        <h3>{{ $text['summary_title'] }}</h3>
-                        <p>{{ $text['summary_text'] }}</p>
-                    </div>
+                            <div class="summary-box" data-step="{{ $stepIndex }}">
+                                <h3>{{ $text['summary_title'] }}</h3>
+                                <p>{{ $text['summary_text'] }}</p>
+                            </div>
+                        @endif
+                    @endforeach
 
                     <div class="button-row">
                         <button class="button button-primary button-large" type="submit">

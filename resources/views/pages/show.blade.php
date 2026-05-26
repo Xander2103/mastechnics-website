@@ -10,6 +10,8 @@
         @include('pages.partials.service-page')
     @elseif ($page->type === 'request')
         @include('pages.partials.request-page')
+    @elseif ($page->type === 'contact')
+        @include('pages.partials.contact-page')
     @else
         @include('pages.partials.default-page')
     @endif

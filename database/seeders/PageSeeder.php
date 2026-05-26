@@ -81,6 +81,42 @@ class PageSeeder extends Seeder
             ],
         ]);
 
+        $contact = Page::create([
+            'code' => 'contact',
+            'type' => 'contact',
+            'is_active' => true,
+        ]);
+
+        $contact->translations()->createMany([
+            [
+                'locale' => 'nl',
+                'slug' => 'contact',
+                'title' => 'Contacteer mastechnics',
+                'intro' => 'Heb je een algemene vraag of wil je snel contact opnemen? Gebruik het contactformulier of bereik ons rechtstreeks via telefoon, e-mail of WhatsApp.',
+                'content' => null,
+                'meta_title' => 'Contact | mastechnics',
+                'meta_description' => 'Contacteer mastechnics via telefoon, e-mail, WhatsApp of het contactformulier.',
+            ],
+            [
+                'locale' => 'fr',
+                'slug' => 'contact',
+                'title' => 'Contacter mastechnics',
+                'intro' => 'Vous avez une question générale ou souhaitez nous contacter rapidement ? Utilisez le formulaire de contact ou contactez-nous directement par téléphone, e-mail ou WhatsApp.',
+                'content' => null,
+                'meta_title' => 'Contact | mastechnics',
+                'meta_description' => 'Contactez mastechnics par téléphone, e-mail, WhatsApp ou via le formulaire de contact.',
+            ],
+            [
+                'locale' => 'en',
+                'slug' => 'contact',
+                'title' => 'Contact mastechnics',
+                'intro' => 'Do you have a general question or want to get in touch quickly? Use the contact form or contact us directly by phone, email or WhatsApp.',
+                'content' => null,
+                'meta_title' => 'Contact | mastechnics',
+                'meta_description' => 'Contact mastechnics by phone, email, WhatsApp or through the contact form.',
+            ],
+        ]);
+
         $heating = Page::create([
             'code' => 'heating',
             'type' => 'service',

@@ -4,7 +4,6 @@
             'primary_cta' => 'Start aanvraag',
             'secondary_cta' => 'Bekijk diensten',
             'hero_badge' => 'Slimme technische aanvraag',
-            'hero_title_prefix' => null,
 
             'panel_label' => 'Hoe werkt het?',
             'panel_title' => 'Van probleem naar duidelijke inschatting.',
@@ -41,7 +40,6 @@
             'services_title' => 'Technische service voor particulieren en bedrijven',
             'services_intro' => 'mastechnics focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
             'more_info' => 'Meer info',
-            'start_service_request' => 'Start aanvraag',
             'soon' => 'Binnenkort',
 
             'cta_label' => 'Start slim',
@@ -81,7 +79,6 @@
             'primary_cta' => 'Démarrer ma demande',
             'secondary_cta' => 'Voir les services',
             'hero_badge' => 'Demande technique intelligente',
-            'hero_title_prefix' => null,
 
             'panel_label' => 'Comment ça fonctionne ?',
             'panel_title' => 'Du problème à une estimation claire.',
@@ -118,7 +115,6 @@
             'services_title' => 'Service technique pour particuliers et entreprises',
             'services_intro' => 'mastechnics se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
             'more_info' => 'Plus d’infos',
-            'start_service_request' => 'Démarrer la demande',
             'soon' => 'Bientôt',
 
             'cta_label' => 'Commencez clairement',
@@ -158,7 +154,6 @@
             'primary_cta' => 'Start request',
             'secondary_cta' => 'View services',
             'hero_badge' => 'Smart technical request',
-            'hero_title_prefix' => null,
 
             'panel_label' => 'How it works',
             'panel_title' => 'From problem to clear estimate.',
@@ -195,7 +190,6 @@
             'services_title' => 'Technical service for homes and businesses',
             'services_intro' => 'mastechnics focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
             'more_info' => 'More info',
-            'start_service_request' => 'Start request',
             'soon' => 'Coming soon',
 
             'cta_label' => 'Start clearly',
@@ -234,6 +228,7 @@
 
     $text = $labels[$locale] ?? $labels['nl'];
     $heatingSlug = $locale === 'fr' ? 'chauffage' : ($locale === 'en' ? 'heating' : 'verwarming');
+    $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
 @endphp
 
 <section class="home-hero">
@@ -249,14 +244,14 @@
                 @endif
 
                 <div class="button-row">
-                    <a class="button button-primary button-large" href="#">
+                    <a class="button button-primary button-large" href="{{ route('pages.show', [
+                        'locale' => $locale,
+                        'slug' => $requestSlug,
+                    ]) }}">
                         {{ $text['primary_cta'] }}
                     </a>
 
-                    <a class="button button-secondary" href="{{ route('pages.show', [
-                        'locale' => $locale,
-                        'slug' => $heatingSlug,
-                    ]) }}">
+                    <a class="button button-secondary" href="#diensten">
                         {{ $text['secondary_cta'] }}
                     </a>
                 </div>
@@ -298,7 +293,7 @@
     </div>
 </section>
 
-<section class="section">
+<section class="section" id="diensten">
     <div class="container">
         <div class="section-header">
             <span class="eyebrow">{{ $text['services_label'] }}</span>
@@ -344,7 +339,10 @@
                 <p>{{ $text['cta_text'] }}</p>
             </div>
 
-            <a class="button button-light button-large" href="#">
+            <a class="button button-light button-large" href="{{ route('pages.show', [
+                'locale' => $locale,
+                'slug' => $requestSlug,
+            ]) }}">
                 {{ $text['cta_button'] }}
             </a>
         </div>

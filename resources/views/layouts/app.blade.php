@@ -3,18 +3,18 @@
 
     $navLabels = [
         'nl' => [
-            'home' => 'Home',
             'services' => 'Diensten',
+            'contact' => 'Contact',
             'request' => 'Start aanvraag',
         ],
         'fr' => [
-            'home' => 'Accueil',
             'services' => 'Services',
+            'contact' => 'Contact',
             'request' => 'Démarrer ma demande',
         ],
         'en' => [
-            'home' => 'Home',
             'services' => 'Services',
+            'contact' => 'Contact',
             'request' => 'Start request',
         ],
     ];
@@ -25,8 +25,22 @@
         'en' => 'heating',
     ];
 
+    $requestSlugs = [
+        'nl' => 'aanvraag',
+        'fr' => 'demande',
+        'en' => 'request',
+    ];
+
+    $contactSlugs = [
+        'nl' => 'contact',
+        'fr' => 'contact',
+        'en' => 'contact',
+    ];
+
     $nav = $navLabels[$currentLocale] ?? $navLabels['nl'];
     $serviceSlug = $serviceSlugs[$currentLocale] ?? $serviceSlugs['nl'];
+    $requestSlug = $requestSlugs[$currentLocale] ?? $requestSlugs['nl'];
+    $contactSlug = $contactSlugs[$currentLocale] ?? $contactSlugs['nl'];
 @endphp
 
 <!DOCTYPE html>
@@ -49,18 +63,27 @@
                 </a>
 
                 <div class="nav-links">
-                    <a href="{{ route('pages.home', ['locale' => $currentLocale]) }}">
-                        {{ $nav['home'] }}
+                    @if (isset($page) && $page->type === 'home')
+                        <a href="#diensten">
+                            {{ $nav['services'] }}
+                        </a>
+                    @else
+                        <a href="{{ route('pages.home', ['locale' => $currentLocale]) }}#diensten">
+                            {{ $nav['services'] }}
+                        </a>
+                    @endif
+
+                    <a href="{{ route('pages.show', [
+                        'locale' => $currentLocale,
+                        'slug' => $contactSlug,
+                    ]) }}">
+                        {{ $nav['contact'] }}
                     </a>
 
                     <a href="{{ route('pages.show', [
                         'locale' => $currentLocale,
-                        'slug' => $serviceSlug,
-                    ]) }}">
-                        {{ $nav['services'] }}
-                    </a>
-
-                    <a href="#" class="nav-cta">
+                        'slug' => $requestSlug,
+                    ]) }}" class="nav-cta">
                         {{ $nav['request'] }}
                     </a>
 
@@ -94,7 +117,56 @@
     </main>
 
     <footer class="site-footer">
-        <div class="container footer-inner">
+        <div class="container footer-grid">
+            <div>
+                <a class="footer-brand" href="{{ route('pages.home', ['locale' => $currentLocale]) }}">
+                    mastechnics
+                </a>
+
+                <p>
+                    Technische service voor verwarming, airco, sanitair, ventilatie,
+                    waterverzachters en koeling.
+                </p>
+            </div>
+
+            <div>
+                <h3>Contact</h3>
+
+                <ul class="footer-list">
+                    <li>
+                        <a href="tel:+32495121178">0495 12 11 78</a>
+                    </li>
+                    <li>
+                        <a href="mailto:martin@mastechnics.be">martin@mastechnics.be</a>
+                    </li>
+                    <li>
+                        <a href="https://wa.me/32495121178" target="_blank" rel="noopener">
+                            WhatsApp
+                        </a>
+                    </li>
+                    <li>
+                        Messenger: mastechnics
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <h3>Aanvraag</h3>
+
+                <p>
+                    Start een slimme aanvraag en vul meteen de juiste technische informatie in.
+                </p>
+
+                <a class="footer-link" href="{{ route('pages.show', [
+                    'locale' => $currentLocale,
+                    'slug' => $requestSlug,
+                ]) }}">
+                    {{ $nav['request'] }}
+                </a>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
             <p>&copy; {{ date('Y') }} mastechnics. All rights reserved.</p>
         </div>
     </footer>

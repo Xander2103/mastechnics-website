@@ -6,13 +6,15 @@ use App\Models\CustomerRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Mail\NewCustomerRequestMail;
+use Illuminate\Support\Facades\Mail;
 
 class CustomerRequestController extends Controller
 {
     public function store(Request $request, string $locale): RedirectResponse
     {
         $services = collect(config('services'))
-            ->filter(fn (array $service): bool => $service['is_active'] ?? false)
+            ->filter(fn(array $service): bool => $service['is_active'] ?? false)
             ->map(function (array $service) use ($locale): array {
                 return $service['translations'][$locale] ?? $service['translations']['nl'];
             })
@@ -121,6 +123,14 @@ class CustomerRequestController extends Controller
                     'size' => $uploadedFile->getSize(),
                 ]);
             }
+        }
+
+        $customerRequest->load('attachments');
+
+        $notificationEmails = config('admin.notification_emails', []);
+
+        foreach ($notificationEmails as $email) {
+            Mail::to($email)->send(new NewCustomerRequestMail($customerRequest));
         }
 
         return back()->with('success', 'request_created');

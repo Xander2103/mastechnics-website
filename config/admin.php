@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'notification_emails' => [
+        'duisburg2103@gmail.com',
+    ],
     'users' => [
         [
             'name' => 'Martin',

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Mail\NewCustomerRequestMail;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\CustomerRequestConfirmationMail;
 
 class CustomerRequestController extends Controller
 {
@@ -132,6 +133,10 @@ class CustomerRequestController extends Controller
         foreach ($notificationEmails as $email) {
             Mail::to($email)->send(new NewCustomerRequestMail($customerRequest));
         }
+
+        Mail::to($customerRequest->customer_email)->send(
+            new CustomerRequestConfirmationMail($customerRequest)
+        );
 
         return back()->with('success', 'request_created');
     }

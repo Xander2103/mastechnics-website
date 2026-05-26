@@ -187,9 +187,18 @@
 <div class="container footer-bottom">
     <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
 
-    <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
+@if (session()->has('admin_user_id'))
+    <form method="POST" action="{{ route('admin.logout') }}">
+        @csrf
+        <button type="submit" class="footer-admin-link">
+            Uitloggen
+        </button>
+    </form>
+@else
+    <a class="footer-admin-link" href="{{ route('admin.login') }}">
         Admin
     </a>
+@endif
 </div>
 </body>
 </html>

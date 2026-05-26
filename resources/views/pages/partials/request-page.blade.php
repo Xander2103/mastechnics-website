@@ -1,4 +1,6 @@
 @php
+    $siteName = config('site.name');
+
     $labels = [
         'nl' => [
             'badge' => 'Slimme technische aanvraag',
@@ -29,7 +31,7 @@
             'photos' => 'Foto’s toevoegen',
             'photos_help' => 'Bijvoorbeeld een foto van het toestel, typeplaatje of probleemzone.',
             'estimate_title' => 'Richtprijs mogelijk na volledige info',
-            'estimate_text' => 'Op basis van de gekozen dienst, technische gegevens en foto’s kan mastechnics sneller inschatten wat nodig is en indien mogelijk een richtprijs of duidelijke vervolgstap voorstellen.',
+            'estimate_text' => 'Op basis van de gekozen dienst, technische gegevens en foto’s kan ' . $siteName . ' sneller inschatten wat nodig is en indien mogelijk een richtprijs of duidelijke vervolgstap voorstellen.',
             'summary_title' => 'Voorbeeld samenvatting',
             'summary_text' => 'Verwarming • Herstelling • Technische gegevens ingevuld • Foto’s toegevoegd',
             'button' => 'Aanvraag voorbereiden',
@@ -64,7 +66,7 @@
             'photos' => 'Ajouter des photos',
             'photos_help' => 'Par exemple une photo de l’appareil, de la plaque signalétique ou de la zone du problème.',
             'estimate_title' => 'Estimation possible après informations complètes',
-            'estimate_text' => 'Grâce au service choisi, aux informations techniques et aux photos, mastechnics peut estimer plus rapidement ce qui est nécessaire et proposer une estimation ou une prochaine étape claire.',
+            'estimate_text' => 'Grâce au service choisi, aux informations techniques et aux photos, ' . $siteName . ' peut estimer plus rapidement ce qui est nécessaire et proposer une estimation ou une prochaine étape claire.',
             'summary_title' => 'Exemple de résumé',
             'summary_text' => 'Chauffage • Réparation • Informations techniques ajoutées • Photos ajoutées',
             'button' => 'Préparer la demande',
@@ -99,7 +101,7 @@
             'photos' => 'Add photos',
             'photos_help' => 'For example a photo of the unit, nameplate or problem area.',
             'estimate_title' => 'Estimate possible after complete information',
-            'estimate_text' => 'Based on the selected service, technical details and photos, mastechnics can estimate what is needed faster and provide an estimate or clear next step when possible.',
+            'estimate_text' => 'Based on the selected service, technical details and photos, ' . $siteName . ' can estimate what is needed faster and provide an estimate or clear next step when possible.',
             'summary_title' => 'Example summary',
             'summary_text' => 'Heating • Repair • Technical details added • Photos uploaded',
             'button' => 'Prepare request',

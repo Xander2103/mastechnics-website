@@ -1,4 +1,7 @@
 @php
+    $siteName = config('site.name');
+    $siteContact = config('site.contact');
+
     $labels = [
         'nl' => [
             'badge' => 'Contact',
@@ -60,7 +63,10 @@
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
-    $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
+
+    $requestSlug = $locale === 'fr'
+        ? 'demande'
+        : ($locale === 'en' ? 'request' : 'aanvraag');
 @endphp
 
 <section class="contact-hero">
@@ -84,24 +90,28 @@
                 <div class="contact-list">
                     <div class="contact-item">
                         <span>{{ $text['phone'] }}</span>
-                        <a href="tel:+32495121178">0495 12 11 78</a>
+                        <a href="tel:{{ $siteContact['phone_link'] }}">
+                            {{ $siteContact['phone_display'] }}
+                        </a>
                     </div>
 
                     <div class="contact-item">
                         <span>{{ $text['email'] }}</span>
-                        <a href="mailto:martin@mastechnics.be">martin@mastechnics.be</a>
+                        <a href="mailto:{{ $siteContact['email'] }}">
+                            {{ $siteContact['email'] }}
+                        </a>
                     </div>
 
                     <div class="contact-item">
                         <span>{{ $text['whatsapp'] }}</span>
-                        <a href="https://wa.me/32495121178" target="_blank" rel="noopener">
-                            +32 495 12 11 78
+                        <a href="https://wa.me/{{ $siteContact['whatsapp_link'] }}" target="_blank" rel="noopener">
+                            {{ $siteContact['whatsapp_display'] }}
                         </a>
                     </div>
 
                     <div class="contact-item">
                         <span>{{ $text['messenger'] }}</span>
-                        <strong>mastechnics</strong>
+                        <strong>{{ $siteContact['messenger'] }}</strong>
                     </div>
                 </div>
 

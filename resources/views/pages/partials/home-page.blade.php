@@ -1,4 +1,6 @@
 @php
+    $siteName = config('site.name');
+
     $labels = [
         'nl' => [
             'primary_cta' => 'Start aanvraag',
@@ -38,7 +40,7 @@
 
             'services_label' => 'Diensten',
             'services_title' => 'Technische service voor particulieren en bedrijven',
-            'services_intro' => 'mastechnics focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
+            'services_intro' => $siteName . ' focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
             'more_info' => 'Meer info',
             'soon' => 'Binnenkort',
 
@@ -113,7 +115,7 @@
 
             'services_label' => 'Services',
             'services_title' => 'Service technique pour particuliers et entreprises',
-            'services_intro' => 'mastechnics se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
+            'services_intro' => $siteName . ' se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
             'more_info' => 'Plus d’infos',
             'soon' => 'Bientôt',
 
@@ -188,7 +190,7 @@
 
             'services_label' => 'Services',
             'services_title' => 'Technical service for homes and businesses',
-            'services_intro' => 'mastechnics focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
+            'services_intro' => $siteName . ' focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
             'more_info' => 'More info',
             'soon' => 'Coming soon',
 

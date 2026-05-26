@@ -1,10 +1,12 @@
 @php
+    $siteName = config('site.name');
+
     $labels = [
         'nl' => [
             'type' => 'Service',
-            'quote' => 'Offerte aanvragen',
+            'quote' => 'Start aanvraag',
             'what' => 'Wat kunnen we voor u doen?',
-            'why' => 'Waarom kiezen voor mastechnics?',
+            'why' => 'Waarom kiezen voor ' . $siteName . '?',
             'benefits' => [
                 [
                     'title' => 'Snelle opvolging',
@@ -22,9 +24,9 @@
         ],
         'fr' => [
             'type' => 'Service',
-            'quote' => 'Demander un devis',
+            'quote' => 'Démarrer ma demande',
             'what' => 'Que pouvons-nous faire pour vous ?',
-            'why' => 'Pourquoi choisir mastechnics ?',
+            'why' => 'Pourquoi choisir ' . $siteName . ' ?',
             'benefits' => [
                 [
                     'title' => 'Suivi rapide',
@@ -42,9 +44,9 @@
         ],
         'en' => [
             'type' => 'Service',
-            'quote' => 'Request a quote',
+            'quote' => 'Start request',
             'what' => 'How can we help?',
-            'why' => 'Why choose mastechnics?',
+            'why' => 'Why choose ' . $siteName . '?',
             'benefits' => [
                 [
                     'title' => 'Fast follow-up',
@@ -63,6 +65,10 @@
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
+
+    $requestSlug = $locale === 'fr'
+        ? 'demande'
+        : ($locale === 'en' ? 'request' : 'aanvraag');
 @endphp
 
 <section class="service-hero">
@@ -76,7 +82,10 @@
         @endif
 
         <div class="button-row">
-            <a class="button button-primary" href="#">
+            <a class="button button-primary button-large" href="{{ route('pages.show', [
+                'locale' => $locale,
+                'slug' => $requestSlug,
+            ]) }}">
                 {{ $text['quote'] }}
             </a>
         </div>

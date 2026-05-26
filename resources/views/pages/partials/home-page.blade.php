@@ -24,6 +24,13 @@
                 'Ontvang sneller een richtprijs of oplossing',
             ],
 
+            'services_label' => 'Diensten',
+            'services_title' => 'Technische service voor particulieren en bedrijven',
+            'services_intro' =>
+                $siteName .
+                ' focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
+            'more_info' => 'Meer info',
+
             'process_label' => 'Slimme intake',
             'process_title' => 'Geen losse berichten, maar meteen de juiste informatie.',
             'process_intro' =>
@@ -48,14 +55,6 @@
                 ],
             ],
 
-            'services_label' => 'Diensten',
-            'services_title' => 'Technische service voor particulieren en bedrijven',
-            'services_intro' =>
-                $siteName .
-                ' focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
-            'more_info' => 'Meer info',
-            'soon' => 'Binnenkort',
-
             'cta_label' => 'Start slim',
             'cta_title' => 'Beschrijf je probleem of project meteen duidelijk.',
             'cta_text' =>
@@ -76,6 +75,13 @@
                 'Ajoutez des photos si nécessaire',
                 'Recevez plus rapidement une estimation ou une solution',
             ],
+
+            'services_label' => 'Services',
+            'services_title' => 'Service technique pour particuliers et entreprises',
+            'services_intro' =>
+                $siteName .
+                ' se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
+            'more_info' => 'Plus d’infos',
 
             'process_label' => 'Prise en charge intelligente',
             'process_title' => 'Pas de messages incomplets, mais les bonnes informations dès le départ.',
@@ -103,14 +109,6 @@
                 ],
             ],
 
-            'services_label' => 'Services',
-            'services_title' => 'Service technique pour particuliers et entreprises',
-            'services_intro' =>
-                $siteName .
-                ' se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
-            'more_info' => 'Plus d’infos',
-            'soon' => 'Bientôt',
-
             'cta_label' => 'Commencez clairement',
             'cta_title' => 'Décrivez votre problème ou projet de manière structurée.',
             'cta_text' =>
@@ -131,6 +129,13 @@
                 'Upload photos if needed',
                 'Receive a faster estimate or solution',
             ],
+
+            'services_label' => 'Services',
+            'services_title' => 'Technical service for homes and businesses',
+            'services_intro' =>
+                $siteName .
+                ' focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
+            'more_info' => 'More info',
 
             'process_label' => 'Smart intake',
             'process_title' => 'No incomplete messages, but the right information from the start.',
@@ -155,14 +160,6 @@
                         'With complete information, it is easier to provide an estimate, advice or next step.',
                 ],
             ],
-
-            'services_label' => 'Services',
-            'services_title' => 'Technical service for homes and businesses',
-            'services_intro' =>
-                $siteName .
-                ' focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
-            'more_info' => 'More info',
-            'soon' => 'Coming soon',
 
             'cta_label' => 'Start clearly',
             'cta_title' => 'Describe your issue or project in a structured way.',
@@ -189,11 +186,13 @@
                 @endif
 
                 <div class="button-row">
-                    <a class="button button-primary button-large"
+                    <a
+                        class="button button-primary button-large"
                         href="{{ route('pages.show', [
                             'locale' => $locale,
                             'slug' => $requestSlug,
-                        ]) }}">
+                        ]) }}"
+                    >
                         {{ $text['primary_cta'] }}
                     </a>
 
@@ -214,6 +213,36 @@
                     @endforeach
                 </ul>
             </aside>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="diensten">
+    <div class="container">
+        <div class="section-header">
+            <span class="eyebrow">{{ $text['services_label'] }}</span>
+
+            <h2>{{ $text['services_title'] }}</h2>
+
+            <p>{{ $text['services_intro'] }}</p>
+        </div>
+
+        <div class="service-grid">
+            @foreach ($services as $service)
+                <a
+                    class="service-card service-card-link"
+                    href="{{ route('pages.show', [
+                        'locale' => $locale,
+                        'slug' => $service['slug'],
+                    ]) }}"
+                >
+                    <h3>{{ $service['title'] }}</h3>
+
+                    <p>{{ $service['description'] }}</p>
+
+                    <span>{{ $text['more_info'] }}</span>
+                </a>
+            @endforeach
         </div>
     </div>
 </section>
@@ -239,34 +268,6 @@
     </div>
 </section>
 
-<section class="section" id="diensten">
-    <div class="container">
-        <div class="section-header">
-            <span class="eyebrow">{{ $text['services_label'] }}</span>
-
-            <h2>{{ $text['services_title'] }}</h2>
-
-            <p>{{ $text['services_intro'] }}</p>
-        </div>
-
-        <div class="service-grid">
-            @foreach ($services as $service)
-                <a class="service-card service-card-link"
-                    href="{{ route('pages.show', [
-                        'locale' => $locale,
-                        'slug' => $service['slug'],
-                    ]) }}">
-                    <h3>{{ $service['title'] }}</h3>
-
-                    <p>{{ $service['description'] }}</p>
-
-                    <span>{{ $text['more_info'] }}</span>
-                </a>
-            @endforeach
-        </div>
-    </div>
-</section>
-
 <section class="section section-white">
     <div class="container">
         <div class="home-cta">
@@ -278,11 +279,13 @@
                 <p>{{ $text['cta_text'] }}</p>
             </div>
 
-            <a class="button button-light button-large"
+            <a
+                class="button button-light button-large"
                 href="{{ route('pages.show', [
                     'locale' => $locale,
                     'slug' => $requestSlug,
-                ]) }}">
+                ]) }}"
+            >
                 {{ $text['cta_button'] }}
             </a>
         </div>

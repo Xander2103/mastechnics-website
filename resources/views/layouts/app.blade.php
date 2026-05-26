@@ -187,9 +187,10 @@
 <div class="container footer-bottom">
     <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
 
-@if (session()->has('admin_user_id'))
-    <form method="POST" action="{{ route('admin.logout') }}">
+@if (session()->has('admin_user_email'))
+    <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
         @csrf
+
         <button type="submit" class="footer-admin-link">
             Uitloggen
         </button>

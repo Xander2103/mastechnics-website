@@ -92,6 +92,18 @@
     color: var(--color-white);
 }
 
+.footer-admin-form {
+    margin: 0;
+}
+
+.footer-admin-form button {
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font: inherit;
+}
+
 @media (max-width: 860px) {
     .footer-grid {
         grid-template-columns: 1fr;

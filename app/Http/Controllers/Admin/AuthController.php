@@ -3,17 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AdminUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class AuthController extends Controller
 {
     public function showLogin(): View|RedirectResponse
     {
-        if (session()->has('admin_user_id')) {
+        if (session()->has('admin_user_email')) {
             return redirect()->route('admin.requests.index');
         }
 
@@ -27,9 +25,12 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $adminUser = AdminUser::where('email', $validatedData['email'])->first();
+        $adminUser = $this->findAdminUser(
+            $validatedData['email'],
+            $validatedData['password']
+        );
 
-        if (!$adminUser || !Hash::check($validatedData['password'], $adminUser->password)) {
+        if ($adminUser === null) {
             return back()
                 ->withErrors([
                     'email' => 'De login gegevens zijn niet correct.',
@@ -40,8 +41,8 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         session([
-            'admin_user_id' => $adminUser->id,
-            'admin_user_name' => $adminUser->name,
+            'admin_user_name' => $adminUser['name'],
+            'admin_user_email' => $adminUser['email'],
         ]);
 
         return redirect()->intended(route('admin.requests.index'));
@@ -50,12 +51,26 @@ class AuthController extends Controller
     public function logout(Request $request): RedirectResponse
     {
         $request->session()->forget([
-            'admin_user_id',
             'admin_user_name',
+            'admin_user_email',
         ]);
 
         $request->session()->regenerateToken();
 
         return redirect()->route('admin.login');
+    }
+
+    private function findAdminUser(string $email, string $password): ?array
+    {
+        foreach (config('admin.users', []) as $adminUser) {
+            if (
+                strtolower($adminUser['email']) === strtolower($email)
+                && $adminUser['password'] === $password
+            ) {
+                return $adminUser;
+            }
+        }
+
+        return null;
     }
 }

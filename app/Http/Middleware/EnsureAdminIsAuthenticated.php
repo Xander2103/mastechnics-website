@@ -10,7 +10,7 @@ class EnsureAdminIsAuthenticated
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!session()->has('admin_user_id')) {
+        if (!session()->has('admin_user_email')) {
             return redirect()->route('admin.login');
         }
 

@@ -151,6 +151,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
+    align-items: start;
 }
 
 .field-grid label,
@@ -159,6 +160,16 @@
     gap: 8px;
     color: var(--color-primary-dark);
     font-weight: 800;
+}
+
+.field-full {
+    grid-column: 1 / -1;
+}
+
+.required-star {
+    margin-left: 4px;
+    color: #dc2626;
+    font-weight: 900;
 }
 
 input,
@@ -249,8 +260,9 @@ textarea {
 }
 
 /* ================================
-   Form Error messages
+   Success / error blocks
 ================================ */
+
 .form-success {
     margin-bottom: 24px;
     padding: 18px 20px;
@@ -278,6 +290,34 @@ textarea {
 .form-error-list ul {
     margin: 0;
     padding-left: 20px;
+}
+
+/* ================================
+   Field validation
+================================ */
+
+.field-error-text {
+    margin-top: 8px;
+    color: #b91c1c;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.field-has-error input,
+.field-has-error textarea {
+    border-color: #ef4444;
+    background: #fff7f7;
+}
+
+.option-group-has-error .option-card {
+    border-color: rgba(239, 68, 68, 0.45);
+}
+
+.option-group-error {
+    margin-top: 10px;
+    color: #b91c1c;
+    font-size: 0.88rem;
+    font-weight: 800;
 }
 
 /* ================================

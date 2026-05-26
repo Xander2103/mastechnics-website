@@ -54,6 +54,11 @@
     $getPlaceholder = function (array $item) use ($locale): string {
         return $item['placeholder'][$locale] ?? $item['placeholder']['nl'] ?? '';
     };
+
+    $isRequiredField = function (array $field): bool {
+        return ($field['required'] ?? false)
+            || in_array($field['name'], ['brand', 'device_model'], true);
+    };
 @endphp
 
 <section class="request-hero">
@@ -104,9 +109,12 @@
                     @foreach ($requestSteps as $stepIndex => $step)
                         @if ($step['type'] === 'service_selection')
                             <div class="form-section" data-step="{{ $stepIndex }}">
-                                <h2>{{ $getLabel($step) }}</h2>
+                                <h2>
+                                    {{ $getLabel($step) }}
+                                    <span class="required-star">*</span>
+                                </h2>
 
-                                <div class="option-grid">
+                                <div class="option-grid {{ $errors->has('service_slug') ? 'option-group-has-error' : '' }}">
                                     @foreach ($services as $index => $service)
                                         <label class="option-card {{ old('service_slug', $services[0]['slug'] ?? '') === $service['slug'] ? 'is-selected' : '' }}">
                                             <input
@@ -119,14 +127,21 @@
                                         </label>
                                     @endforeach
                                 </div>
+
+                                @error('service_slug')
+                                    <p class="option-group-error">{{ $message }}</p>
+                                @enderror
                             </div>
                         @endif
 
                         @if ($step['type'] === 'request_type_selection')
                             <div class="form-section" data-step="{{ $stepIndex }}">
-                                <h2>{{ $getLabel($step) }}</h2>
+                                <h2>
+                                    {{ $getLabel($step) }}
+                                    <span class="required-star">*</span>
+                                </h2>
 
-                                <div class="option-grid option-grid-small">
+                                <div class="option-grid option-grid-small {{ $errors->has('request_type') ? 'option-group-has-error' : '' }}">
                                     @foreach ($requestTypes as $index => $requestType)
                                         <label class="option-card {{ old('request_type', $requestTypes[0]['value'] ?? '') === $requestType['value'] ? 'is-selected' : '' }}">
                                             <input
@@ -139,6 +154,10 @@
                                         </label>
                                     @endforeach
                                 </div>
+
+                                @error('request_type')
+                                    <p class="option-group-error">{{ $message }}</p>
+                                @enderror
                             </div>
                         @endif
 
@@ -149,7 +168,7 @@
                                 <div class="field-grid">
                                     @foreach ($step['fields'] as $field)
                                         @if ($field['type'] === 'checkbox')
-                                            <label class="checkbox-field">
+                                            <label class="checkbox-field {{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
                                                 <input
                                                     type="checkbox"
                                                     name="{{ $field['name'] }}"
@@ -157,25 +176,54 @@
                                                     {{ old($field['name']) ? 'checked' : '' }}
                                                 >
                                                 <span>{{ $getLabel($field) }}</span>
+
+                                                @error($field['name'])
+                                                    <p class="field-error-text">{{ $message }}</p>
+                                                @enderror
                                             </label>
                                         @elseif ($field['type'] === 'textarea')
-                                            <label class="field-full">
-                                                <span>{{ $getLabel($field) }}</span>
+                                            <label class="field-full {{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
+                                                <span>
+                                                    {{ $getLabel($field) }}
+
+                                                    @if ($isRequiredField($field))
+                                                        <span class="required-star">*</span>
+                                                    @endif
+                                                </span>
+
                                                 <textarea
                                                     name="{{ $field['name'] }}"
                                                     rows="5"
                                                     placeholder="{{ $getPlaceholder($field) }}"
                                                 >{{ old($field['name']) }}</textarea>
+
+                                                @error($field['name'])
+                                                    <p class="field-error-text">{{ $message }}</p>
+                                                @enderror
                                             </label>
                                         @else
-                                            <label>
-                                                <span>{{ $getLabel($field) }}</span>
+                                            <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
+                                                <span>
+                                                    {{ $getLabel($field) }}
+
+                                                    @if ($isRequiredField($field))
+                                                        <span class="required-star">*</span>
+                                                    @endif
+                                                </span>
+
                                                 <input
                                                     type="{{ $field['type'] }}"
                                                     name="{{ $field['name'] }}"
                                                     value="{{ old($field['name']) }}"
                                                     placeholder="{{ $getPlaceholder($field) }}"
+                                                    @if ($field['type'] === 'tel')
+                                                        pattern="[0-9+\s().-]+"
+                                                    @endif
                                                 >
+
+                                                @error($field['name'])
+                                                    <p class="field-error-text">{{ $message }}</p>
+                                                @enderror
                                             </label>
                                         @endif
                                     @endforeach

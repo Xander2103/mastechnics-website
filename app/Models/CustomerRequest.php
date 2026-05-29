@@ -21,11 +21,19 @@ class CustomerRequest extends Model
         'unknown_device_details',
         'metadata',
         'status',
+        'source',
+        'service_category',
+        'urgency_level',
+        'preferred_time',
+        'customer_message',
+        'ai_summary',
+        'ai_detected_missing_fields',
     ];
 
     protected $casts = [
         'metadata' => 'array',
         'unknown_device_details' => 'boolean',
+        'ai_detected_missing_fields' => 'array',
     ];
 
     public function attachments(): HasMany

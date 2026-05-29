@@ -1,48 +1,618 @@
 <?php
 
 return [
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEPS
+    // Step 0  : service_category_selection   (replaces old steps 0 + 1)
+    // Step 1  : cv_onderhoud_details         (conditional: onderhoud_cv)
+    // Step 2  : lek_dringend_details         (conditional: dringend_lek)
+    // Step 3  : airco_offerte_details        (conditional: airco_offerte)
+    // Step 4  : airco_onderhoud_details      (conditional: airco_onderhoud)
+    // Step 5  : customer_context
+    // Step 6  : description                  (file upload lives here)
+    // Step 7  : technical_details
+    // Step 8  : location_availability
+    // Step 9  : contact_details
+    // Step 10 : summary
+    // ─────────────────────────────────────────────────────────────────────────
     'steps' => [
+
+        // ── Step 0 ───────────────────────────────────────────────────────────
         [
-            'code' => 'service',
+            'code'   => 'service_category_selection',
+            'type'   => 'service_category_selection',
             'labels' => [
-                'nl' => '1. Kies je dienst',
-                'fr' => '1. Choisissez votre service',
-                'en' => '1. Choose your service',
+                'nl' => 'Waarvoor wenst u een aanvraag te doen?',
+                'fr' => 'Pour quoi souhaitez-vous une demande ?',
+                'en' => 'What would you like to request?',
             ],
-            'type' => 'service_selection',
+            'options' => [
+                [
+                    'value'  => 'airco_offerte',
+                    'labels' => [
+                        'nl' => 'Airco offerte',
+                        'fr' => 'Offre climatisation',
+                        'en' => 'Air conditioning quote',
+                    ],
+                ],
+                [
+                    'value'  => 'airco_onderhoud',
+                    'labels' => [
+                        'nl' => 'Airco onderhoud',
+                        'fr' => 'Entretien climatisation',
+                        'en' => 'Air conditioning maintenance',
+                    ],
+                ],
+                [
+                    'value'  => 'onderhoud_cv',
+                    'labels' => [
+                        'nl' => 'Onderhoud CV',
+                        'fr' => 'Entretien chauffage central',
+                        'en' => 'Central heating service',
+                    ],
+                ],
+                [
+                    'value'  => 'herstelling_cv',
+                    'labels' => [
+                        'nl' => 'Herstelling verwarming',
+                        'fr' => 'Réparation chauffage',
+                        'en' => 'Heating repair',
+                    ],
+                ],
+                [
+                    'value'  => 'dringend_lek',
+                    'labels' => [
+                        'nl' => 'Lek of dringend probleem',
+                        'fr' => 'Fuite ou problème urgent',
+                        'en' => 'Leak or urgent issue',
+                    ],
+                ],
+                [
+                    'value'  => 'sanitair',
+                    'labels' => [
+                        'nl' => 'Sanitair / loodgieterij',
+                        'fr' => 'Sanitaire / plomberie',
+                        'en' => 'Plumbing',
+                    ],
+                ],
+                [
+                    'value'  => 'ventilatie',
+                    'labels' => [
+                        'nl' => 'Ventilatie',
+                        'fr' => 'Ventilation',
+                        'en' => 'Ventilation',
+                    ],
+                ],
+                [
+                    'value'  => 'waterverzachter',
+                    'labels' => [
+                        'nl' => 'Waterverzachter',
+                        'fr' => 'Adoucisseur d\'eau',
+                        'en' => 'Water softener',
+                    ],
+                ],
+                [
+                    'value'  => 'koeling',
+                    'labels' => [
+                        'nl' => 'Koeling / koelcel',
+                        'fr' => 'Réfrigération / chambre froide',
+                        'en' => 'Cooling / cold room',
+                    ],
+                ],
+                [
+                    'value'  => 'andere',
+                    'labels' => [
+                        'nl' => 'Andere aanvraag',
+                        'fr' => 'Autre demande',
+                        'en' => 'Other request',
+                    ],
+                ],
+            ],
         ],
 
+        // ── Step 1 (conditional) ─────────────────────────────────────────────
         [
-            'code' => 'request_type',
-            'labels' => [
-                'nl' => '2. Type aanvraag',
-                'fr' => '2. Type de demande',
-                'en' => '2. Request type',
+            'code'      => 'cv_onderhoud_details',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['onderhoud_cv'],
             ],
-            'type' => 'request_type_selection',
-        ],
-
-        [
-            'code' => 'customer_context',
             'labels' => [
-                'nl' => '3. Klant en urgentie',
-                'fr' => '3. Client et urgence',
-                'en' => '3. Customer and urgency',
+                'nl' => 'Informatie over uw CV-installatie',
+                'fr' => 'Informations sur votre installation de chauffage',
+                'en' => 'Information about your heating system',
             ],
-            'type' => 'fields',
             'fields' => [
                 [
-                    'name' => 'customer_type',
-                    'type' => 'select',
+                    'name'     => 'cv_installation_type',
+                    'type'     => 'select',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Type installatie',
+                        'fr' => 'Type d\'installation',
+                        'en' => 'Installation type',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'gasketel',
+                            'labels' => [
+                                'nl' => 'Gasketel',
+                                'fr' => 'Chaudière gaz',
+                                'en' => 'Gas boiler',
+                            ],
+                        ],
+                        [
+                            'value'  => 'gascondensatieketel',
+                            'labels' => [
+                                'nl' => 'Gascondensatieketel',
+                                'fr' => 'Chaudière gaz à condensation',
+                                'en' => 'Gas condensing boiler',
+                            ],
+                        ],
+                        [
+                            'value'  => 'stookolieketel',
+                            'labels' => [
+                                'nl' => 'Stookolieketel',
+                                'fr' => 'Chaudière mazout',
+                                'en' => 'Oil boiler',
+                            ],
+                        ],
+                        [
+                            'value'  => 'warmtepomp',
+                            'labels' => [
+                                'nl' => 'Warmtepomp',
+                                'fr' => 'Pompe à chaleur',
+                                'en' => 'Heat pump',
+                            ],
+                        ],
+                        [
+                            'value'  => 'unknown',
+                            'labels' => [
+                                'nl' => 'Ik weet het niet',
+                                'fr' => 'Je ne sais pas',
+                                'en' => 'I don\'t know',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name'        => 'cv_brand',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Merk ketel',
+                        'fr' => 'Marque chaudière',
+                        'en' => 'Boiler brand',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Vaillant, Buderus, Viessmann...',
+                        'fr' => 'Vaillant, Buderus, Viessmann...',
+                        'en' => 'Vaillant, Buderus, Viessmann...',
+                    ],
+                ],
+                [
+                    'name'        => 'cv_device_model',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Model ketel',
+                        'fr' => 'Modèle chaudière',
+                        'en' => 'Boiler model',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'ecoTEC plus, Logamax...',
+                        'fr' => 'ecoTEC plus, Logamax...',
+                        'en' => 'ecoTEC plus, Logamax...',
+                    ],
+                ],
+                [
+                    'name'        => 'cv_last_maintenance',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Laatste onderhoud (indien gekend)',
+                        'fr' => 'Dernier entretien (si connu)',
+                        'en' => 'Last service (if known)',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijvoorbeeld: september 2022',
+                        'fr' => 'Par exemple : septembre 2022',
+                        'en' => 'For example: September 2022',
+                    ],
+                ],
+                [
+                    'name'        => 'preferred_time',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Gewenst moment',
+                        'fr' => 'Moment préféré',
+                        'en' => 'Preferred timing',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Liefst voormiddag, niet op maandag...',
+                        'fr' => 'De préférence le matin, pas le lundi...',
+                        'en' => 'Preferably mornings, not on Monday...',
+                    ],
+                ],
+            ],
+            'helper_box' => [
+                'render_upload' => false,
+                'title'         => [
+                    'nl' => 'Foto typeplaatje uploaden',
+                    'fr' => 'Télécharger une photo de la plaque signalétique',
+                    'en' => 'Upload a photo of the nameplate',
+                ],
+                'text'          => [
+                    'nl' => 'U vindt dit op of in de ketel, vaak achter het klepje. Zorg dat merk, model en serienummer leesbaar zijn. Upload de foto bij \'Probleem of project\' hieronder.',
+                    'fr' => 'Vous la trouverez sur ou dans la chaudière, souvent derrière le panneau. Assurez-vous que la marque, le modèle et le numéro de série sont lisibles. Téléchargez la photo dans \'Problème ou projet\' ci-dessous.',
+                    'en' => 'You will find it on or inside the boiler, often behind the front panel. Make sure the brand, model and serial number are legible. Upload the photo in \'Issue or project\' below.',
+                ],
+            ],
+        ],
+
+        // ── Step 2 (conditional) ─────────────────────────────────────────────
+        [
+            'code'           => 'lek_dringend_details',
+            'type'           => 'fields',
+            'condition'      => [
+                'service_categories' => ['dringend_lek'],
+            ],
+            'labels'         => [
+                'nl' => 'Meer over uw lek of dringend probleem',
+                'fr' => 'Plus d\'informations sur votre fuite ou problème urgent',
+                'en' => 'More about your leak or urgent issue',
+            ],
+            'urgent_warning' => [
+                'nl' => 'Bij ernstige wateroverlast of direct gevaar: bel ons direct. Dit formulier is voor niet-spoedeisende situaties.',
+                'fr' => 'En cas de dégâts des eaux graves ou de danger immédiat : appelez-nous directement. Ce formulaire est pour les situations non urgentes.',
+                'en' => 'In case of serious flooding or immediate danger: call us directly. This form is for non-emergency situations.',
+            ],
+            'fields' => [
+                [
+                    'name'     => 'lek_location',
+                    'type'     => 'select',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Waar situeert het probleem zich?',
+                        'fr' => 'Où se situe le problème ?',
+                        'en' => 'Where is the problem located?',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'centrale_verwarming',
+                            'labels' => [
+                                'nl' => 'Centrale verwarming',
+                                'fr' => 'Chauffage central',
+                                'en' => 'Central heating',
+                            ],
+                        ],
+                        [
+                            'value'  => 'sanitair',
+                            'labels' => [
+                                'nl' => 'Sanitair',
+                                'fr' => 'Sanitaire',
+                                'en' => 'Plumbing / sanitary',
+                            ],
+                        ],
+                        [
+                            'value'  => 'boiler',
+                            'labels' => [
+                                'nl' => 'Boiler / warmwatertoestel',
+                                'fr' => 'Chauffe-eau / boiler',
+                                'en' => 'Water heater / boiler',
+                            ],
+                        ],
+                        [
+                            'value'  => 'leidingen',
+                            'labels' => [
+                                'nl' => 'Leidingen',
+                                'fr' => 'Tuyauterie',
+                                'en' => 'Pipes',
+                            ],
+                        ],
+                        [
+                            'value'  => 'unknown',
+                            'labels' => [
+                                'nl' => 'Ik weet het niet',
+                                'fr' => 'Je ne sais pas',
+                                'en' => 'I don\'t know',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name'     => 'urgency_level',
+                    'type'     => 'select',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Wat beschrijft de situatie het best?',
+                        'fr' => 'Qu\'est-ce qui décrit le mieux la situation ?',
+                        'en' => 'What best describes the situation?',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'water_leaking',
+                            'labels' => [
+                                'nl' => 'Er staat water / ernstig lek',
+                                'fr' => 'Il y a de l\'eau / fuite grave',
+                                'en' => 'Standing water / serious leak',
+                            ],
+                        ],
+                        [
+                            'value'  => 'small_leak',
+                            'labels' => [
+                                'nl' => 'Klein lek',
+                                'fr' => 'Petite fuite',
+                                'en' => 'Small leak',
+                            ],
+                        ],
+                        [
+                            'value'  => 'no_heating',
+                            'labels' => [
+                                'nl' => 'Geen verwarming',
+                                'fr' => 'Pas de chauffage',
+                                'en' => 'No heating',
+                            ],
+                        ],
+                        [
+                            'value'  => 'no_hot_water',
+                            'labels' => [
+                                'nl' => 'Geen warm water',
+                                'fr' => 'Pas d\'eau chaude',
+                                'en' => 'No hot water',
+                            ],
+                        ],
+                        [
+                            'value'  => 'other',
+                            'labels' => [
+                                'nl' => 'Andere',
+                                'fr' => 'Autre',
+                                'en' => 'Other',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name'        => 'preferred_time',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Wanneer bereikbaar?',
+                        'fr' => 'Quand disponible ?',
+                        'en' => 'When available?',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijvoorbeeld: elke dag bereikbaar, liefst voor 10u...',
+                        'fr' => 'Par exemple : disponible tous les jours, de préférence avant 10h...',
+                        'en' => 'For example: available any day, preferably before 10am...',
+                    ],
+                ],
+            ],
+            'helper_box' => [
+                'render_upload' => false,
+                'title'         => [
+                    'nl' => 'Foto of video toevoegen',
+                    'fr' => 'Ajouter une photo ou vidéo',
+                    'en' => 'Add a photo or video',
+                ],
+                'text'          => [
+                    'nl' => 'Voeg een foto of video toe van het lek of het probleem bij \'Probleem of project\' hieronder. Dit helpt ons de ernst inschatten.',
+                    'fr' => 'Ajoutez une photo ou vidéo de la fuite ou du problème dans \'Problème ou projet\' ci-dessous. Cela nous aide à évaluer la gravité.',
+                    'en' => 'Add a photo or video of the leak or problem in \'Issue or project\' below. This helps us assess the severity.',
+                ],
+            ],
+        ],
+
+        // ── Step 3 (conditional) ─────────────────────────────────────────────
+        [
+            'code'      => 'airco_offerte_details',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['airco_offerte'],
+            ],
+            'labels' => [
+                'nl' => 'Details voor uw airco-offerte',
+                'fr' => 'Détails pour votre offre climatisation',
+                'en' => 'Details for your air conditioning quote',
+            ],
+            'fields' => [
+                [
+                    'name'        => 'airco_rooms_count',
+                    'type'        => 'number',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Aantal ruimtes',
+                        'fr' => 'Nombre de pièces',
+                        'en' => 'Number of rooms',
+                    ],
+                    'placeholder' => [
+                        'nl' => '1',
+                        'fr' => '1',
+                        'en' => '1',
+                    ],
+                ],
+                [
+                    'name'        => 'airco_room_types',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Type ruimtes',
+                        'fr' => 'Type de pièces',
+                        'en' => 'Room types',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Slaapkamer, living, bureau...',
+                        'fr' => 'Chambre, salon, bureau...',
+                        'en' => 'Bedroom, living room, office...',
+                    ],
+                ],
+                [
+                    'name'     => 'airco_has_outdoor_unit',
+                    'type'     => 'select',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Is er al een buitenunit aanwezig?',
+                        'fr' => 'Y a-t-il déjà une unité extérieure ?',
+                        'en' => 'Is there already an outdoor unit?',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'yes',
+                            'labels' => [
+                                'nl' => 'Ja',
+                                'fr' => 'Oui',
+                                'en' => 'Yes',
+                            ],
+                        ],
+                        [
+                            'value'  => 'no',
+                            'labels' => [
+                                'nl' => 'Nee',
+                                'fr' => 'Non',
+                                'en' => 'No',
+                            ],
+                        ],
+                        [
+                            'value'  => 'unknown',
+                            'labels' => [
+                                'nl' => 'Ik weet het niet',
+                                'fr' => 'Je ne sais pas',
+                                'en' => 'I don\'t know',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name'        => 'preferred_time',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Gewenste timing',
+                        'fr' => 'Timing souhaité',
+                        'en' => 'Desired timing',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Voor de zomer, zo snel mogelijk...',
+                        'fr' => 'Avant l\'été, dès que possible...',
+                        'en' => 'Before summer, as soon as possible...',
+                    ],
+                ],
+            ],
+            'helper_box' => [
+                'render_upload' => false,
+                'title'         => [
+                    'nl' => 'Foto\'s toevoegen (optioneel)',
+                    'fr' => 'Ajouter des photos (facultatif)',
+                    'en' => 'Add photos (optional)',
+                ],
+                'text'          => [
+                    'nl' => 'Foto\'s van de ruimtes of de geplande buitenunit-locatie helpen bij de offerte. Upload via \'Probleem of project\' hieronder.',
+                    'fr' => 'Des photos des pièces ou de l\'emplacement prévu pour l\'unité extérieure facilitent l\'établissement de l\'offre. Téléchargez via \'Problème ou projet\' ci-dessous.',
+                    'en' => 'Photos of the rooms or the planned outdoor unit location help with the quote. Upload via \'Issue or project\' below.',
+                ],
+            ],
+        ],
+
+        // ── Step 4 (conditional) ─────────────────────────────────────────────
+        [
+            'code'      => 'airco_onderhoud_details',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['airco_onderhoud'],
+            ],
+            'labels' => [
+                'nl' => 'Informatie over uw airco',
+                'fr' => 'Informations sur votre climatisation',
+                'en' => 'Information about your air conditioning',
+            ],
+            'fields' => [
+                [
+                    'name'        => 'airco_brand',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Merk airco',
+                        'fr' => 'Marque climatisation',
+                        'en' => 'Air conditioning brand',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Daikin, Mitsubishi, Samsung...',
+                        'fr' => 'Daikin, Mitsubishi, Samsung...',
+                        'en' => 'Daikin, Mitsubishi, Samsung...',
+                    ],
+                ],
+                [
+                    'name'        => 'airco_indoor_units_count',
+                    'type'        => 'number',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Aantal binnenunits',
+                        'fr' => 'Nombre d\'unités intérieures',
+                        'en' => 'Number of indoor units',
+                    ],
+                    'placeholder' => [
+                        'nl' => '1',
+                        'fr' => '1',
+                        'en' => '1',
+                    ],
+                ],
+                [
+                    'name'        => 'airco_last_maintenance',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Laatste onderhoud (indien gekend)',
+                        'fr' => 'Dernier entretien (si connu)',
+                        'en' => 'Last service (if known)',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijvoorbeeld: zomer 2023',
+                        'fr' => 'Par exemple : été 2023',
+                        'en' => 'For example: summer 2023',
+                    ],
+                ],
+                [
+                    'name'        => 'preferred_time',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Gewenst afspraakmoment',
+                        'fr' => 'Moment de rendez-vous souhaité',
+                        'en' => 'Preferred appointment time',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Liefst voor de zomer, flexibel...',
+                        'fr' => 'De préférence avant l\'été, flexible...',
+                        'en' => 'Preferably before summer, flexible...',
+                    ],
+                ],
+            ],
+            // No helper_box for this step
+        ],
+
+        // ── Step 5 ───────────────────────────────────────────────────────────
+        [
+            'code'   => 'customer_context',
+            'labels' => [
+                'nl' => 'Klant en urgentie',
+                'fr' => 'Client et urgence',
+                'en' => 'Customer and urgency',
+            ],
+            'type'   => 'fields',
+            'fields' => [
+                [
+                    'name'     => 'customer_type',
+                    'type'     => 'select',
                     'required' => true,
-                    'labels' => [
+                    'labels'   => [
                         'nl' => 'Klanttype',
                         'fr' => 'Type de client',
                         'en' => 'Customer type',
                     ],
                     'options' => [
                         [
-                            'value' => 'residential',
+                            'value'  => 'residential',
                             'labels' => [
                                 'nl' => 'Particulier',
                                 'fr' => 'Particulier',
@@ -50,7 +620,7 @@ return [
                             ],
                         ],
                         [
-                            'value' => 'business',
+                            'value'  => 'business',
                             'labels' => [
                                 'nl' => 'Bedrijf',
                                 'fr' => 'Entreprise',
@@ -60,17 +630,17 @@ return [
                     ],
                 ],
                 [
-                    'name' => 'urgency',
-                    'type' => 'select',
+                    'name'     => 'urgency',
+                    'type'     => 'select',
                     'required' => true,
-                    'labels' => [
+                    'labels'   => [
                         'nl' => 'Urgentie',
                         'fr' => 'Urgence',
                         'en' => 'Urgency',
                     ],
                     'options' => [
                         [
-                            'value' => 'urgent',
+                            'value'  => 'urgent',
                             'labels' => [
                                 'nl' => 'Dringend',
                                 'fr' => 'Urgent',
@@ -78,7 +648,7 @@ return [
                             ],
                         ],
                         [
-                            'value' => 'within_days',
+                            'value'  => 'within_days',
                             'labels' => [
                                 'nl' => 'Binnen enkele dagen',
                                 'fr' => 'Dans quelques jours',
@@ -86,7 +656,7 @@ return [
                             ],
                         ],
                         [
-                            'value' => 'not_urgent',
+                            'value'  => 'not_urgent',
                             'labels' => [
                                 'nl' => 'Niet dringend',
                                 'fr' => 'Pas urgent',
@@ -98,20 +668,21 @@ return [
             ],
         ],
 
+        // ── Step 6 ───────────────────────────────────────────────────────────
         [
-            'code' => 'description',
+            'code'   => 'description',
             'labels' => [
-                'nl' => '4. Probleem of project',
-                'fr' => '4. Problème ou projet',
-                'en' => '4. Issue or project',
+                'nl' => 'Probleem of project',
+                'fr' => 'Problème ou projet',
+                'en' => 'Issue or project',
             ],
-            'type' => 'fields',
+            'type'   => 'fields',
             'fields' => [
                 [
-                    'name' => 'description',
-                    'type' => 'textarea',
-                    'required' => true,
-                    'labels' => [
+                    'name'        => 'description',
+                    'type'        => 'textarea',
+                    'required'    => true,
+                    'labels'      => [
                         'nl' => 'Beschrijf kort je probleem of project',
                         'fr' => 'Décrivez brièvement votre problème ou projet',
                         'en' => 'Briefly describe your issue or project',
@@ -125,249 +696,34 @@ return [
             ],
             'helper_box' => [
                 'title' => [
-                    'nl' => 'Foto’s toevoegen',
+                    'nl' => 'Foto\'s toevoegen',
                     'fr' => 'Ajouter des photos',
                     'en' => 'Add photos',
                 ],
-                'text' => [
-                    'nl' => 'Voeg indien mogelijk foto’s toe van het toestel, typeplaatje, foutcode of probleemzone.',
-                    'fr' => 'Ajoutez si possible des photos de l’appareil, de la plaque signalétique, du code erreur ou de la zone du problème.',
+                'text'  => [
+                    'nl' => 'Voeg indien mogelijk foto\'s toe van het toestel, typeplaatje, foutcode of probleemzone.',
+                    'fr' => 'Ajoutez si possible des photos de l\'appareil, de la plaque signalétique, du code erreur ou de la zone du problème.',
                     'en' => 'If possible, add photos of the unit, nameplate, error code or problem area.',
                 ],
             ],
         ],
 
+        // ── Step 7 ───────────────────────────────────────────────────────────
+        // Always shown; brand/device_model here serve categories without a dedicated detail step (herstelling_cv, sanitair, ventilatie, waterverzachter, koeling, andere).
         [
-            'code' => 'airco_project_details',
+            'code'   => 'technical_details',
             'labels' => [
-                'nl' => '5. Extra airco-informatie',
-                'fr' => '5. Informations climatisation',
-                'en' => '5. Extra air conditioning details',
+                'nl' => 'Technische gegevens',
+                'fr' => 'Informations techniques',
+                'en' => 'Technical details',
             ],
-            'type' => 'fields',
-            'condition' => [
-                'service_slug' => ['airco', 'climatisation', 'air-conditioning'],
-                'request_types' => ['installation', 'new_project'],
-            ],
+            'type'   => 'fields',
             'fields' => [
                 [
-                    'name' => 'airco_rooms_count',
-                    'type' => 'number',
-                    'required' => true,
-                    'conditional_required' => true,
-                    'labels' => [
-                        'nl' => 'Aantal kamers / ruimtes',
-                        'fr' => 'Nombre de pièces / espaces',
-                        'en' => 'Number of rooms / areas',
-                    ],
-                    'placeholder' => [
-                        'nl' => 'Bijvoorbeeld: 2',
-                        'fr' => 'Par exemple : 2',
-                        'en' => 'For example: 2',
-                    ],
-                ],
-                [
-                    'name' => 'airco_total_surface',
-                    'type' => 'text',
-                    'required' => true,
-                    'conditional_required' => true,
-                    'labels' => [
-                        'nl' => 'Totale oppervlakte ongeveer',
-                        'fr' => 'Surface totale approximative',
-                        'en' => 'Approximate total surface',
-                    ],
-                    'placeholder' => [
-                        'nl' => 'Bijvoorbeeld: 45 m²',
-                        'fr' => 'Par exemple : 45 m²',
-                        'en' => 'For example: 45 m²',
-                    ],
-                ],
-                [
-                    'name' => 'airco_room_types',
-                    'type' => 'text',
-                    'required' => false,
-                    'labels' => [
-                        'nl' => 'Type ruimtes',
-                        'fr' => 'Type de pièces',
-                        'en' => 'Room types',
-                    ],
-                    'placeholder' => [
-                        'nl' => 'Slaapkamer, living, bureau, winkelruimte...',
-                        'fr' => 'Chambre, salon, bureau, commerce...',
-                        'en' => 'Bedroom, living room, office, shop...',
-                    ],
-                ],
-                [
-                    'name' => 'airco_building_type',
-                    'type' => 'select',
-                    'required' => false,
-                    'labels' => [
-                        'nl' => 'Type gebouw',
-                        'fr' => 'Type de bâtiment',
-                        'en' => 'Building type',
-                    ],
-                    'options' => [
-                        [
-                            'value' => 'house',
-                            'labels' => [
-                                'nl' => 'Woning',
-                                'fr' => 'Maison',
-                                'en' => 'House',
-                            ],
-                        ],
-                        [
-                            'value' => 'apartment',
-                            'labels' => [
-                                'nl' => 'Appartement',
-                                'fr' => 'Appartement',
-                                'en' => 'Apartment',
-                            ],
-                        ],
-                        [
-                            'value' => 'office',
-                            'labels' => [
-                                'nl' => 'Kantoor',
-                                'fr' => 'Bureau',
-                                'en' => 'Office',
-                            ],
-                        ],
-                        [
-                            'value' => 'commercial',
-                            'labels' => [
-                                'nl' => 'Handelspand',
-                                'fr' => 'Commerce',
-                                'en' => 'Commercial property',
-                            ],
-                        ],
-                        [
-                            'value' => 'other',
-                            'labels' => [
-                                'nl' => 'Andere',
-                                'fr' => 'Autre',
-                                'en' => 'Other',
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    'name' => 'airco_floor',
-                    'type' => 'text',
-                    'required' => false,
-                    'labels' => [
-                        'nl' => 'Verdieping',
-                        'fr' => 'Étage',
-                        'en' => 'Floor',
-                    ],
-                    'placeholder' => [
-                        'nl' => 'Gelijkvloers, 1e verdieping, zolder...',
-                        'fr' => 'Rez-de-chaussée, 1er étage, grenier...',
-                        'en' => 'Ground floor, first floor, attic...',
-                    ],
-                ],
-                [
-                    'name' => 'airco_outdoor_unit_possible',
-                    'type' => 'select',
-                    'required' => false,
-                    'labels' => [
-                        'nl' => 'Buitenunit mogelijk?',
-                        'fr' => 'Unité extérieure possible ?',
-                        'en' => 'Outdoor unit possible?',
-                    ],
-                    'options' => [
-                        [
-                            'value' => 'yes',
-                            'labels' => [
-                                'nl' => 'Ja',
-                                'fr' => 'Oui',
-                                'en' => 'Yes',
-                            ],
-                        ],
-                        [
-                            'value' => 'no',
-                            'labels' => [
-                                'nl' => 'Nee',
-                                'fr' => 'Non',
-                                'en' => 'No',
-                            ],
-                        ],
-                        [
-                            'value' => 'unknown',
-                            'labels' => [
-                                'nl' => 'Ik weet het niet',
-                                'fr' => 'Je ne sais pas',
-                                'en' => 'I don’t know',
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    'name' => 'airco_sun_exposure',
-                    'type' => 'select',
-                    'required' => false,
-                    'labels' => [
-                        'nl' => 'Veel zon of grote ramen?',
-                        'fr' => 'Beaucoup de soleil ou grandes fenêtres ?',
-                        'en' => 'Lots of sun or large windows?',
-                    ],
-                    'options' => [
-                        [
-                            'value' => 'yes',
-                            'labels' => [
-                                'nl' => 'Ja',
-                                'fr' => 'Oui',
-                                'en' => 'Yes',
-                            ],
-                        ],
-                        [
-                            'value' => 'no',
-                            'labels' => [
-                                'nl' => 'Nee',
-                                'fr' => 'Non',
-                                'en' => 'No',
-                            ],
-                        ],
-                        [
-                            'value' => 'unknown',
-                            'labels' => [
-                                'nl' => 'Ik weet het niet',
-                                'fr' => 'Je ne sais pas',
-                                'en' => 'I don’t know',
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    'name' => 'airco_extra_info',
-                    'type' => 'textarea',
-                    'required' => false,
-                    'labels' => [
-                        'nl' => 'Extra uitleg over de ruimtes',
-                        'fr' => 'Informations supplémentaires sur les espaces',
-                        'en' => 'Extra information about the rooms',
-                    ],
-                    'placeholder' => [
-                        'nl' => 'Bijvoorbeeld: living met veel glas, slaapkamers op zolder, buitenunit kan op plat dak...',
-                        'fr' => 'Par exemple : salon avec beaucoup de vitrage, chambres sous le toit, unité extérieure possible sur toit plat...',
-                        'en' => 'For example: living room with lots of glass, bedrooms in the attic, outdoor unit can be placed on flat roof...',
-                    ],
-                ],
-            ],
-        ],
-
-        [
-            'code' => 'technical_details',
-            'labels' => [
-                'nl' => '6. Technische gegevens',
-                'fr' => '6. Informations techniques',
-                'en' => '6. Technical details',
-            ],
-            'type' => 'fields',
-            'fields' => [
-                [
-                    'name' => 'brand',
-                    'type' => 'text',
-                    'required' => false,
-                    'labels' => [
+                    'name'        => 'brand',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
                         'nl' => 'Merk',
                         'fr' => 'Marque',
                         'en' => 'Brand',
@@ -379,10 +735,10 @@ return [
                     ],
                 ],
                 [
-                    'name' => 'device_model',
-                    'type' => 'text',
-                    'required' => false,
-                    'labels' => [
+                    'name'        => 'device_model',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
                         'nl' => 'Model',
                         'fr' => 'Modèle',
                         'en' => 'Model',
@@ -394,10 +750,10 @@ return [
                     ],
                 ],
                 [
-                    'name' => 'serial_number',
-                    'type' => 'text',
-                    'required' => false,
-                    'labels' => [
+                    'name'        => 'serial_number',
+                    'type'        => 'text',
+                    'required'    => false,
+                    'labels'      => [
                         'nl' => 'Serienummer',
                         'fr' => 'Numéro de série',
                         'en' => 'Serial number',
@@ -409,32 +765,33 @@ return [
                     ],
                 ],
                 [
-                    'name' => 'unknown_device_details',
-                    'type' => 'checkbox',
+                    'name'     => 'unknown_device_details',
+                    'type'     => 'checkbox',
                     'required' => false,
-                    'labels' => [
+                    'labels'   => [
                         'nl' => 'Ik weet merk/model/serienummer niet',
                         'fr' => 'Je ne connais pas la marque/le modèle/le numéro de série',
-                        'en' => 'I don’t know the brand/model/serial number',
+                        'en' => 'I don\'t know the brand/model/serial number',
                     ],
                 ],
             ],
         ],
 
+        // ── Step 8 ───────────────────────────────────────────────────────────
         [
-            'code' => 'location_availability',
+            'code'   => 'location_availability',
             'labels' => [
-                'nl' => '7. Locatie en beschikbaarheid',
-                'fr' => '7. Lieu et disponibilité',
-                'en' => '7. Location and availability',
+                'nl' => 'Locatie en beschikbaarheid',
+                'fr' => 'Lieu et disponibilité',
+                'en' => 'Location and availability',
             ],
-            'type' => 'fields',
+            'type'   => 'fields',
             'fields' => [
                 [
-                    'name' => 'street',
-                    'type' => 'text',
-                    'required' => true,
-                    'labels' => [
+                    'name'        => 'street',
+                    'type'        => 'text',
+                    'required'    => true,
+                    'labels'      => [
                         'nl' => 'Straat en nummer',
                         'fr' => 'Rue et numéro',
                         'en' => 'Street and number',
@@ -446,10 +803,10 @@ return [
                     ],
                 ],
                 [
-                    'name' => 'postal_code',
-                    'type' => 'text',
-                    'required' => true,
-                    'labels' => [
+                    'name'        => 'postal_code',
+                    'type'        => 'text',
+                    'required'    => true,
+                    'labels'      => [
                         'nl' => 'Postcode',
                         'fr' => 'Code postal',
                         'en' => 'Postal code',
@@ -461,10 +818,10 @@ return [
                     ],
                 ],
                 [
-                    'name' => 'city',
-                    'type' => 'text',
-                    'required' => true,
-                    'labels' => [
+                    'name'        => 'city',
+                    'type'        => 'text',
+                    'required'    => true,
+                    'labels'      => [
                         'nl' => 'Gemeente',
                         'fr' => 'Commune',
                         'en' => 'City',
@@ -476,10 +833,10 @@ return [
                     ],
                 ],
                 [
-                    'name' => 'availability',
-                    'type' => 'textarea',
-                    'required' => false,
-                    'labels' => [
+                    'name'        => 'availability',
+                    'type'        => 'textarea',
+                    'required'    => false,
+                    'labels'      => [
                         'nl' => 'Beschikbaarheid of voorkeurmoment',
                         'fr' => 'Disponibilité ou moment préféré',
                         'en' => 'Availability or preferred moment',
@@ -493,40 +850,41 @@ return [
             ],
         ],
 
+        // ── Step 9 ───────────────────────────────────────────────────────────
         [
-            'code' => 'contact_details',
+            'code'   => 'contact_details',
             'labels' => [
-                'nl' => '8. Contactgegevens',
-                'fr' => '8. Coordonnées',
-                'en' => '8. Contact details',
+                'nl' => 'Contactgegevens',
+                'fr' => 'Coordonnées',
+                'en' => 'Contact details',
             ],
-            'type' => 'fields',
+            'type'   => 'fields',
             'fields' => [
                 [
-                    'name' => 'customer_name',
-                    'type' => 'text',
+                    'name'     => 'customer_name',
+                    'type'     => 'text',
                     'required' => true,
-                    'labels' => [
+                    'labels'   => [
                         'nl' => 'Naam',
                         'fr' => 'Nom',
                         'en' => 'Name',
                     ],
                 ],
                 [
-                    'name' => 'customer_email',
-                    'type' => 'email',
+                    'name'     => 'customer_email',
+                    'type'     => 'email',
                     'required' => true,
-                    'labels' => [
+                    'labels'   => [
                         'nl' => 'E-mailadres',
                         'fr' => 'Adresse e-mail',
                         'en' => 'Email address',
                     ],
                 ],
                 [
-                    'name' => 'customer_phone',
-                    'type' => 'tel',
+                    'name'     => 'customer_phone',
+                    'type'     => 'tel',
                     'required' => false,
-                    'labels' => [
+                    'labels'   => [
                         'nl' => 'Telefoonnummer',
                         'fr' => 'Numéro de téléphone',
                         'en' => 'Phone number',
@@ -535,20 +893,132 @@ return [
             ],
         ],
 
+        // ── Step 10 ──────────────────────────────────────────────────────────
         [
-            'code' => 'summary',
+            'code'   => 'summary',
             'labels' => [
-                'nl' => '9. Samenvatting',
-                'fr' => '9. Résumé',
-                'en' => '9. Summary',
+                'nl' => 'Samenvatting',
+                'fr' => 'Résumé',
+                'en' => 'Summary',
             ],
-            'type' => 'summary',
+            'type'   => 'summary',
         ],
     ],
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // SERVICE CATEGORIES
+    // Controller reads this to resolve service_key + request_type from the
+    // category value the user selected in step 0.
+    // ─────────────────────────────────────────────────────────────────────────
+    'service_categories' => [
+        [
+            'value'       => 'airco_offerte',
+            'service_key' => 'airco',
+            'request_type' => 'installation',
+            'labels'      => [
+                'nl' => 'Airco offerte',
+                'fr' => 'Offre climatisation',
+                'en' => 'Air conditioning quote',
+            ],
+        ],
+        [
+            'value'       => 'airco_onderhoud',
+            'service_key' => 'airco',
+            'request_type' => 'maintenance',
+            'labels'      => [
+                'nl' => 'Airco onderhoud',
+                'fr' => 'Entretien climatisation',
+                'en' => 'Air conditioning maintenance',
+            ],
+        ],
+        [
+            'value'       => 'onderhoud_cv',
+            'service_key' => 'heating',
+            'request_type' => 'maintenance',
+            'labels'      => [
+                'nl' => 'Onderhoud CV',
+                'fr' => 'Entretien chauffage central',
+                'en' => 'Central heating service',
+            ],
+        ],
+        [
+            'value'       => 'herstelling_cv',
+            'service_key' => 'heating',
+            'request_type' => 'repair',
+            'labels'      => [
+                'nl' => 'Herstelling verwarming',
+                'fr' => 'Réparation chauffage',
+                'en' => 'Heating repair',
+            ],
+        ],
+        [
+            'value'       => 'dringend_lek',
+            'service_key' => 'plumbing',
+            'request_type' => 'repair',
+            'labels'      => [
+                'nl' => 'Lek of dringend probleem',
+                'fr' => 'Fuite ou problème urgent',
+                'en' => 'Leak or urgent issue',
+            ],
+        ],
+        [
+            'value'       => 'sanitair',
+            'service_key' => 'plumbing',
+            'request_type' => 'repair',
+            'labels'      => [
+                'nl' => 'Sanitair / loodgieterij',
+                'fr' => 'Sanitaire / plomberie',
+                'en' => 'Plumbing',
+            ],
+        ],
+        [
+            'value'       => 'ventilatie',
+            'service_key' => 'ventilation',
+            'request_type' => 'new_project',
+            'labels'      => [
+                'nl' => 'Ventilatie',
+                'fr' => 'Ventilation',
+                'en' => 'Ventilation',
+            ],
+        ],
+        [
+            'value'       => 'waterverzachter',
+            'service_key' => 'water-softeners',
+            'request_type' => 'installation',
+            'labels'      => [
+                'nl' => 'Waterverzachter',
+                'fr' => 'Adoucisseur d\'eau',
+                'en' => 'Water softener',
+            ],
+        ],
+        [
+            'value'       => 'koeling',
+            'service_key' => 'cold-rooms',
+            'request_type' => 'installation',
+            'labels'      => [
+                'nl' => 'Koeling / koelcel',
+                'fr' => 'Réfrigération / chambre froide',
+                'en' => 'Cooling / cold room',
+            ],
+        ],
+        [
+            'value'       => 'andere',
+            'service_key' => 'heating',
+            'request_type' => 'repair',
+            'labels'      => [
+                'nl' => 'Andere aanvraag',
+                'fr' => 'Autre demande',
+                'en' => 'Other request',
+            ],
+        ],
+    ],
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // REQUEST TYPES  (used by admin filter — unchanged)
+    // ─────────────────────────────────────────────────────────────────────────
     'request_types' => [
         [
-            'value' => 'repair',
+            'value'  => 'repair',
             'labels' => [
                 'nl' => 'Herstelling',
                 'fr' => 'Réparation',
@@ -556,7 +1026,7 @@ return [
             ],
         ],
         [
-            'value' => 'maintenance',
+            'value'  => 'maintenance',
             'labels' => [
                 'nl' => 'Onderhoud',
                 'fr' => 'Entretien',
@@ -564,7 +1034,7 @@ return [
             ],
         ],
         [
-            'value' => 'installation',
+            'value'  => 'installation',
             'labels' => [
                 'nl' => 'Installatie',
                 'fr' => 'Installation',
@@ -572,7 +1042,7 @@ return [
             ],
         ],
         [
-            'value' => 'new_project',
+            'value'  => 'new_project',
             'labels' => [
                 'nl' => 'Nieuw project',
                 'fr' => 'Nouveau projet',

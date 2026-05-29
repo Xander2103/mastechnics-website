@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -25,12 +27,12 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $adminUser = $this->findAdminUser(
-            $validatedData['email'],
-            $validatedData['password']
-        );
+        $adminUser = AdminUser::where('email', $validatedData['email'])->first();
 
-        if ($adminUser === null) {
+        if (
+            $adminUser === null
+            || ! Hash::check($validatedData['password'], $adminUser->password)
+        ) {
             return back()
                 ->withErrors([
                     'email' => 'De login gegevens zijn niet correct.',
@@ -41,8 +43,8 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         session([
-            'admin_user_name' => $adminUser['name'],
-            'admin_user_email' => $adminUser['email'],
+            'admin_user_name' => $adminUser->name,
+            'admin_user_email' => $adminUser->email,
         ]);
 
         return redirect()->intended(route('admin.requests.index'));
@@ -58,19 +60,5 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('admin.login');
-    }
-
-    private function findAdminUser(string $email, string $password): ?array
-    {
-        foreach (config('admin.users', []) as $adminUser) {
-            if (
-                strtolower($adminUser['email']) === strtolower($email)
-                && $adminUser['password'] === $password
-            ) {
-                return $adminUser;
-            }
-        }
-
-        return null;
     }
 }

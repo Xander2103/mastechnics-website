@@ -10,16 +10,14 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (config('admin.users', []) as $adminUser) {
-            AdminUser::updateOrCreate(
-                [
-                    'email' => $adminUser['email'],
-                ],
-                [
-                    'name' => $adminUser['name'],
-                    'password' => Hash::make($adminUser['password']),
-                ]
-            );
-        }
+        AdminUser::updateOrCreate(
+            [
+                'email' => env('ADMIN_EMAIL', 'admin@example.com'),
+            ],
+            [
+                'name' => env('ADMIN_NAME', 'Admin'),
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
+            ]
+        );
     }
 }

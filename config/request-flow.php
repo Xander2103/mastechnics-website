@@ -138,11 +138,228 @@ return [
         ],
 
         [
+            'code' => 'airco_project_details',
+            'labels' => [
+                'nl' => '5. Extra airco-informatie',
+                'fr' => '5. Informations climatisation',
+                'en' => '5. Extra air conditioning details',
+            ],
+            'type' => 'fields',
+            'condition' => [
+                'service_slug' => ['airco', 'climatisation', 'air-conditioning'],
+                'request_types' => ['installation', 'new_project'],
+            ],
+            'fields' => [
+                [
+                    'name' => 'airco_rooms_count',
+                    'type' => 'number',
+                    'required' => true,
+                    'conditional_required' => true,
+                    'labels' => [
+                        'nl' => 'Aantal kamers / ruimtes',
+                        'fr' => 'Nombre de pièces / espaces',
+                        'en' => 'Number of rooms / areas',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijvoorbeeld: 2',
+                        'fr' => 'Par exemple : 2',
+                        'en' => 'For example: 2',
+                    ],
+                ],
+                [
+                    'name' => 'airco_total_surface',
+                    'type' => 'text',
+                    'required' => true,
+                    'conditional_required' => true,
+                    'labels' => [
+                        'nl' => 'Totale oppervlakte ongeveer',
+                        'fr' => 'Surface totale approximative',
+                        'en' => 'Approximate total surface',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijvoorbeeld: 45 m²',
+                        'fr' => 'Par exemple : 45 m²',
+                        'en' => 'For example: 45 m²',
+                    ],
+                ],
+                [
+                    'name' => 'airco_room_types',
+                    'type' => 'text',
+                    'required' => false,
+                    'labels' => [
+                        'nl' => 'Type ruimtes',
+                        'fr' => 'Type de pièces',
+                        'en' => 'Room types',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Slaapkamer, living, bureau, winkelruimte...',
+                        'fr' => 'Chambre, salon, bureau, commerce...',
+                        'en' => 'Bedroom, living room, office, shop...',
+                    ],
+                ],
+                [
+                    'name' => 'airco_building_type',
+                    'type' => 'select',
+                    'required' => false,
+                    'labels' => [
+                        'nl' => 'Type gebouw',
+                        'fr' => 'Type de bâtiment',
+                        'en' => 'Building type',
+                    ],
+                    'options' => [
+                        [
+                            'value' => 'house',
+                            'labels' => [
+                                'nl' => 'Woning',
+                                'fr' => 'Maison',
+                                'en' => 'House',
+                            ],
+                        ],
+                        [
+                            'value' => 'apartment',
+                            'labels' => [
+                                'nl' => 'Appartement',
+                                'fr' => 'Appartement',
+                                'en' => 'Apartment',
+                            ],
+                        ],
+                        [
+                            'value' => 'office',
+                            'labels' => [
+                                'nl' => 'Kantoor',
+                                'fr' => 'Bureau',
+                                'en' => 'Office',
+                            ],
+                        ],
+                        [
+                            'value' => 'commercial',
+                            'labels' => [
+                                'nl' => 'Handelspand',
+                                'fr' => 'Commerce',
+                                'en' => 'Commercial property',
+                            ],
+                        ],
+                        [
+                            'value' => 'other',
+                            'labels' => [
+                                'nl' => 'Andere',
+                                'fr' => 'Autre',
+                                'en' => 'Other',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'airco_floor',
+                    'type' => 'text',
+                    'required' => false,
+                    'labels' => [
+                        'nl' => 'Verdieping',
+                        'fr' => 'Étage',
+                        'en' => 'Floor',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Gelijkvloers, 1e verdieping, zolder...',
+                        'fr' => 'Rez-de-chaussée, 1er étage, grenier...',
+                        'en' => 'Ground floor, first floor, attic...',
+                    ],
+                ],
+                [
+                    'name' => 'airco_outdoor_unit_possible',
+                    'type' => 'select',
+                    'required' => false,
+                    'labels' => [
+                        'nl' => 'Buitenunit mogelijk?',
+                        'fr' => 'Unité extérieure possible ?',
+                        'en' => 'Outdoor unit possible?',
+                    ],
+                    'options' => [
+                        [
+                            'value' => 'yes',
+                            'labels' => [
+                                'nl' => 'Ja',
+                                'fr' => 'Oui',
+                                'en' => 'Yes',
+                            ],
+                        ],
+                        [
+                            'value' => 'no',
+                            'labels' => [
+                                'nl' => 'Nee',
+                                'fr' => 'Non',
+                                'en' => 'No',
+                            ],
+                        ],
+                        [
+                            'value' => 'unknown',
+                            'labels' => [
+                                'nl' => 'Ik weet het niet',
+                                'fr' => 'Je ne sais pas',
+                                'en' => 'I don’t know',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'airco_sun_exposure',
+                    'type' => 'select',
+                    'required' => false,
+                    'labels' => [
+                        'nl' => 'Veel zon of grote ramen?',
+                        'fr' => 'Beaucoup de soleil ou grandes fenêtres ?',
+                        'en' => 'Lots of sun or large windows?',
+                    ],
+                    'options' => [
+                        [
+                            'value' => 'yes',
+                            'labels' => [
+                                'nl' => 'Ja',
+                                'fr' => 'Oui',
+                                'en' => 'Yes',
+                            ],
+                        ],
+                        [
+                            'value' => 'no',
+                            'labels' => [
+                                'nl' => 'Nee',
+                                'fr' => 'Non',
+                                'en' => 'No',
+                            ],
+                        ],
+                        [
+                            'value' => 'unknown',
+                            'labels' => [
+                                'nl' => 'Ik weet het niet',
+                                'fr' => 'Je ne sais pas',
+                                'en' => 'I don’t know',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'airco_extra_info',
+                    'type' => 'textarea',
+                    'required' => false,
+                    'labels' => [
+                        'nl' => 'Extra uitleg over de ruimtes',
+                        'fr' => 'Informations supplémentaires sur les espaces',
+                        'en' => 'Extra information about the rooms',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijvoorbeeld: living met veel glas, slaapkamers op zolder, buitenunit kan op plat dak...',
+                        'fr' => 'Par exemple : salon avec beaucoup de vitrage, chambres sous le toit, unité extérieure possible sur toit plat...',
+                        'en' => 'For example: living room with lots of glass, bedrooms in the attic, outdoor unit can be placed on flat roof...',
+                    ],
+                ],
+            ],
+        ],
+
+        [
             'code' => 'technical_details',
             'labels' => [
-                'nl' => '5. Technische gegevens',
-                'fr' => '5. Informations techniques',
-                'en' => '5. Technical details',
+                'nl' => '6. Technische gegevens',
+                'fr' => '6. Informations techniques',
+                'en' => '6. Technical details',
             ],
             'type' => 'fields',
             'fields' => [
@@ -207,9 +424,9 @@ return [
         [
             'code' => 'location_availability',
             'labels' => [
-                'nl' => '6. Locatie en beschikbaarheid',
-                'fr' => '6. Lieu et disponibilité',
-                'en' => '6. Location and availability',
+                'nl' => '7. Locatie en beschikbaarheid',
+                'fr' => '7. Lieu et disponibilité',
+                'en' => '7. Location and availability',
             ],
             'type' => 'fields',
             'fields' => [
@@ -279,9 +496,9 @@ return [
         [
             'code' => 'contact_details',
             'labels' => [
-                'nl' => '7. Contactgegevens',
-                'fr' => '7. Coordonnées',
-                'en' => '7. Contact details',
+                'nl' => '8. Contactgegevens',
+                'fr' => '8. Coordonnées',
+                'en' => '8. Contact details',
             ],
             'type' => 'fields',
             'fields' => [
@@ -321,9 +538,9 @@ return [
         [
             'code' => 'summary',
             'labels' => [
-                'nl' => '8. Samenvatting',
-                'fr' => '8. Résumé',
-                'en' => '8. Summary',
+                'nl' => '9. Samenvatting',
+                'fr' => '9. Résumé',
+                'en' => '9. Summary',
             ],
             'type' => 'summary',
         ],

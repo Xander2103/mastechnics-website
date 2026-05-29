@@ -32,6 +32,45 @@
         return $field['required'] ?? false;
     };
 
+    $getConditionServices = function (array $condition): array {
+        if (isset($condition['service_slugs']) && is_array($condition['service_slugs'])) {
+            return $condition['service_slugs'];
+        }
+
+        if (isset($condition['service_slug']) && is_string($condition['service_slug'])) {
+            return [$condition['service_slug']];
+        }
+
+        return [];
+    };
+
+    $stepMatchesOldInput = function (array $step) use ($services, $requestTypes, $getConditionServices): bool {
+        $condition = $step['condition'] ?? null;
+
+        if (! $condition) {
+            return true;
+        }
+
+        $defaultService = $services->first()['slug'] ?? '';
+        $defaultRequestType = $requestTypes[0]['value'] ?? '';
+
+        $selectedService = old('service_slug', $defaultService);
+        $selectedRequestType = old('request_type', $defaultRequestType);
+
+        $conditionServices = $getConditionServices($condition);
+        $conditionRequestTypes = $condition['request_types'] ?? [];
+
+        if (! empty($conditionServices) && ! in_array($selectedService, $conditionServices, true)) {
+            return false;
+        }
+
+        if (! empty($conditionRequestTypes) && ! in_array($selectedRequestType, $conditionRequestTypes, true)) {
+            return false;
+        }
+
+        return true;
+    };
+
     $labels = [
         'nl' => [
             'hero_badge' => 'Slimme aanvraag',
@@ -126,7 +165,19 @@
                 <div class="request-layout">
                     <aside class="request-steps">
                         @foreach ($steps as $index => $step)
-                            <div class="request-step {{ $index === 0 ? 'is-active' : '' }}">
+                            @php
+                                $condition = $step['condition'] ?? null;
+                                $isVisibleByDefault = $stepMatchesOldInput($step);
+                            @endphp
+
+                            <div
+                                class="request-step {{ $index === 0 ? 'is-active' : '' }} {{ $isVisibleByDefault ? '' : 'is-condition-hidden' }}"
+                                data-step-nav="{{ $index }}"
+                                @if ($condition)
+                                    data-condition-services="{{ implode(',', $getConditionServices($condition)) }}"
+                                    data-condition-request-types="{{ implode(',', $condition['request_types'] ?? []) }}"
+                                @endif
+                            >
                                 {{ $getLabel($step) }}
                             </div>
                         @endforeach
@@ -134,7 +185,19 @@
 
                     <div class="request-form-card">
                         @foreach ($steps as $stepIndex => $step)
-                            <section class="form-section" data-step="{{ $stepIndex }}">
+                            @php
+                                $condition = $step['condition'] ?? null;
+                                $isVisibleByDefault = $stepMatchesOldInput($step);
+                            @endphp
+
+                            <section
+                                class="form-section {{ $isVisibleByDefault ? '' : 'is-condition-hidden' }}"
+                                data-step="{{ $stepIndex }}"
+                                @if ($condition)
+                                    data-condition-services="{{ implode(',', $getConditionServices($condition)) }}"
+                                    data-condition-request-types="{{ implode(',', $condition['request_types'] ?? []) }}"
+                                @endif
+                            >
                                 @if (($step['type'] ?? '') !== 'summary')
                                     <h2>{{ $getLabel($step) }}</h2>
                                 @endif
@@ -323,3 +386,110 @@
         </div>
     </section>
 </div>
+
+<script>
+    (function () {
+        function initConditionalRequestSteps() {
+            const conditionalElements = document.querySelectorAll('[data-condition-services]');
+            const serviceInputs = document.querySelectorAll('input[name="service_slug"]');
+            const requestTypeInputs = document.querySelectorAll('input[name="request_type"]');
+
+            function getCheckedValue(inputs) {
+                const checkedInput = Array.from(inputs).find((input) => input.checked);
+
+                return checkedInput ? checkedInput.value : '';
+            }
+
+            function forceInputSelection(input) {
+                input.checked = true;
+            }
+
+            function updateOptionCardStates(inputs) {
+                inputs.forEach((input) => {
+                    const card = input.closest('.option-card');
+
+                    if (!card) {
+                        return;
+                    }
+
+                    card.classList.toggle('is-selected', input.checked);
+                });
+            }
+
+            function updateConditionalSteps() {
+                const selectedService = getCheckedValue(serviceInputs);
+                const selectedRequestType = getCheckedValue(requestTypeInputs);
+
+                console.log('Selected service:', selectedService);
+                console.log('Selected request type:', selectedRequestType);
+
+                conditionalElements.forEach((element) => {
+                    const allowedServices = (element.dataset.conditionServices || '')
+                        .split(',')
+                        .map((value) => value.trim())
+                        .filter(Boolean);
+
+                    const allowedRequestTypes = (element.dataset.conditionRequestTypes || '')
+                        .split(',')
+                        .map((value) => value.trim())
+                        .filter(Boolean);
+
+                    console.log('Allowed services:', allowedServices);
+                    console.log('Allowed request types:', allowedRequestTypes);
+
+                    const matchesService = allowedServices.length === 0 || allowedServices.includes(selectedService);
+                    const matchesRequestType = allowedRequestTypes.length === 0 || allowedRequestTypes.includes(selectedRequestType);
+
+                    console.log('Matches service:', matchesService);
+                    console.log('Matches request type:', matchesRequestType);
+
+                    element.classList.toggle('is-condition-hidden', !(matchesService && matchesRequestType));
+                });
+            }
+
+            serviceInputs.forEach((input) => {
+                const card = input.closest('.option-card');
+
+                if (card) {
+                    card.addEventListener('click', () => {
+                        forceInputSelection(input);
+                        updateOptionCardStates(serviceInputs);
+                        updateConditionalSteps();
+                    });
+                }
+
+                input.addEventListener('change', () => {
+                    updateOptionCardStates(serviceInputs);
+                    updateConditionalSteps();
+                });
+            });
+
+            requestTypeInputs.forEach((input) => {
+                const card = input.closest('.option-card');
+
+                if (card) {
+                    card.addEventListener('click', () => {
+                        forceInputSelection(input);
+                        updateOptionCardStates(requestTypeInputs);
+                        updateConditionalSteps();
+                    });
+                }
+
+                input.addEventListener('change', () => {
+                    updateOptionCardStates(requestTypeInputs);
+                    updateConditionalSteps();
+                });
+            });
+
+            updateOptionCardStates(serviceInputs);
+            updateOptionCardStates(requestTypeInputs);
+            updateConditionalSteps();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initConditionalRequestSteps);
+        } else {
+            initConditionalRequestSteps();
+        }
+    })();
+</script>

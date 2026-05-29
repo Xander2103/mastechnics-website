@@ -83,6 +83,10 @@
     color: var(--color-primary-dark);
 }
 
+.is-condition-hidden {
+    display: none !important;
+}
+
 /* ================================
    Options
 ================================ */

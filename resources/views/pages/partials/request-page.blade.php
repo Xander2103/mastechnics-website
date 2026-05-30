@@ -1,16 +1,7 @@
 @php
     $siteName = config('site.name');
 
-    $configuredServices = config('services');
     $steps = config('request-flow.steps', []);
-    $requestTypes = config('request-flow.request_types', []);
-
-    $services = collect($configuredServices)
-        ->filter(fn ($service) => $service['is_active'] ?? false)
-        ->map(function ($service) use ($locale) {
-            return $service['translations'][$locale] ?? $service['translations']['nl'];
-        })
-        ->values();
 
     $getLabel = function (array $item) use ($locale): string {
         return $item['labels'][$locale]
@@ -32,43 +23,17 @@
         return $field['required'] ?? false;
     };
 
-    $getConditionServices = function (array $condition): array {
-        if (isset($condition['service_slugs']) && is_array($condition['service_slugs'])) {
-            return $condition['service_slugs'];
-        }
-
-        if (isset($condition['service_slug']) && is_string($condition['service_slug'])) {
-            return [$condition['service_slug']];
-        }
-
-        return [];
+    $getConditionCategories = function (array $step): array {
+        return $step['condition']['service_categories'] ?? [];
     };
 
-    $stepMatchesOldInput = function (array $step) use ($services, $requestTypes, $getConditionServices): bool {
-        $condition = $step['condition'] ?? null;
-
-        if (! $condition) {
-            return true;
+    $stepMatchesOldInput = function (array $step) use ($getConditionCategories): bool {
+        $allowedCategories = $getConditionCategories($step);
+        if (empty($allowedCategories)) {
+            return true; // no condition = always visible
         }
-
-        $defaultService = $services->first()['slug'] ?? '';
-        $defaultRequestType = $requestTypes[0]['value'] ?? '';
-
-        $selectedService = old('service_slug', $defaultService);
-        $selectedRequestType = old('request_type', $defaultRequestType);
-
-        $conditionServices = $getConditionServices($condition);
-        $conditionRequestTypes = $condition['request_types'] ?? [];
-
-        if (! empty($conditionServices) && ! in_array($selectedService, $conditionServices, true)) {
-            return false;
-        }
-
-        if (! empty($conditionRequestTypes) && ! in_array($selectedRequestType, $conditionRequestTypes, true)) {
-            return false;
-        }
-
-        return true;
+        $selectedCategory = old('service_category', '');
+        return in_array($selectedCategory, $allowedCategories, true);
     };
 
     $labels = [
@@ -81,7 +46,7 @@
             'success_text' => 'We hebben je aanvraag goed ontvangen en nemen zo snel mogelijk contact op.',
             'error_title' => 'Controleer de ingevulde informatie.',
             'estimate_title' => 'Richtprijs mogelijk na volledige info',
-            'estimate_text' => 'Op basis van de gekozen dienst, technische gegevens en foto’s kan ' . $siteName . ' sneller inschatten wat nodig is en indien mogelijk een richtprijs of duidelijke vervolgstap voorstellen.',
+            'estimate_text' => 'Op basis van de gekozen dienst, technische gegevens en foto's kan ' . $siteName . ' sneller inschatten wat nodig is en indien mogelijk een richtprijs of duidelijke vervolgstap voorstellen.',
             'summary_title' => 'Samenvatting',
             'summary_text' => 'De aanvraag wordt opgeslagen zodat ze later opgevolgd kan worden in het admin panel.',
             'choose_option' => 'Kies een optie',
@@ -97,7 +62,7 @@
             'estimate_title' => 'Estimation possible après informations complètes',
             'estimate_text' => 'Sur la base du service choisi, des informations techniques et des photos, ' . $siteName . ' peut évaluer plus rapidement la situation et proposer une estimation ou une prochaine étape claire si possible.',
             'summary_title' => 'Résumé',
-            'summary_text' => 'La demande sera enregistrée afin de pouvoir être suivie plus tard dans le panneau d’administration.',
+            'summary_text' => 'La demande sera enregistrée afin de pouvoir être suivie plus tard dans le panneau d'administration.',
             'choose_option' => 'Choisissez une option',
         ],
         'en' => [
@@ -166,16 +131,15 @@
                     <aside class="request-steps">
                         @foreach ($steps as $index => $step)
                             @php
-                                $condition = $step['condition'] ?? null;
+                                $conditionCategories = $getConditionCategories($step);
                                 $isVisibleByDefault = $stepMatchesOldInput($step);
                             @endphp
 
                             <div
                                 class="request-step {{ $index === 0 ? 'is-active' : '' }} {{ $isVisibleByDefault ? '' : 'is-condition-hidden' }}"
                                 data-step-nav="{{ $index }}"
-                                @if ($condition)
-                                    data-condition-services="{{ implode(',', $getConditionServices($condition)) }}"
-                                    data-condition-request-types="{{ implode(',', $condition['request_types'] ?? []) }}"
+                                @if (!empty($conditionCategories))
+                                    data-condition-service-categories="{{ implode(',', $conditionCategories) }}"
                                 @endif
                             >
                                 {{ $getLabel($step) }}
@@ -186,61 +150,46 @@
                     <div class="request-form-card">
                         @foreach ($steps as $stepIndex => $step)
                             @php
-                                $condition = $step['condition'] ?? null;
+                                $conditionCategories = $getConditionCategories($step);
                                 $isVisibleByDefault = $stepMatchesOldInput($step);
                             @endphp
 
                             <section
                                 class="form-section {{ $isVisibleByDefault ? '' : 'is-condition-hidden' }}"
                                 data-step="{{ $stepIndex }}"
-                                @if ($condition)
-                                    data-condition-services="{{ implode(',', $getConditionServices($condition)) }}"
-                                    data-condition-request-types="{{ implode(',', $condition['request_types'] ?? []) }}"
+                                @if (!empty($conditionCategories))
+                                    data-condition-service-categories="{{ implode(',', $conditionCategories) }}"
                                 @endif
                             >
                                 @if (($step['type'] ?? '') !== 'summary')
                                     <h2>{{ $getLabel($step) }}</h2>
                                 @endif
 
-                                @if (($step['type'] ?? '') === 'service_selection')
+                                @if (($step['type'] ?? '') === 'service_category_selection')
                                     <div class="option-grid">
-                                        @foreach ($services as $service)
-                                            <label class="option-card {{ old('service_slug', $services->first()['slug'] ?? '') === $service['slug'] ? 'is-selected' : '' }}">
+                                        @foreach ($step['options'] ?? [] as $option)
+                                            <label class="option-card {{ old('service_category', '') === $option['value'] ? 'is-selected' : '' }}">
                                                 <input
                                                     type="radio"
-                                                    name="service_slug"
-                                                    value="{{ $service['slug'] }}"
-                                                    {{ old('service_slug', $services->first()['slug'] ?? '') === $service['slug'] ? 'checked' : '' }}
+                                                    name="service_category"
+                                                    value="{{ $option['value'] }}"
+                                                    {{ old('service_category', '') === $option['value'] ? 'checked' : '' }}
                                                 >
-
-                                                <span>{{ $service['title'] }}</span>
+                                                <span>{{ $getLabel($option) }}</span>
                                             </label>
                                         @endforeach
                                     </div>
 
-                                    @error('service_slug')
-                                        <p class="field-error-text">{{ $message }}</p>
-                                    @enderror
-                                @elseif (($step['type'] ?? '') === 'request_type_selection')
-                                    <div class="option-grid option-grid-four">
-                                        @foreach ($requestTypes as $requestType)
-                                            <label class="option-card {{ old('request_type', $requestTypes[0]['value'] ?? '') === $requestType['value'] ? 'is-selected' : '' }}">
-                                                <input
-                                                    type="radio"
-                                                    name="request_type"
-                                                    value="{{ $requestType['value'] }}"
-                                                    {{ old('request_type', $requestTypes[0]['value'] ?? '') === $requestType['value'] ? 'checked' : '' }}
-                                                >
-
-                                                <span>{{ $getLabel($requestType) }}</span>
-                                            </label>
-                                        @endforeach
-                                    </div>
-
-                                    @error('request_type')
+                                    @error('service_category')
                                         <p class="field-error-text">{{ $message }}</p>
                                     @enderror
                                 @elseif (($step['type'] ?? '') === 'fields')
+                                    @if (isset($step['urgent_warning']))
+                                        <div class="urgent-warning-box">
+                                            {{ $step['urgent_warning'][$locale] ?? $step['urgent_warning']['nl'] }}
+                                        </div>
+                                    @endif
+
                                     <div class="form-grid">
                                         @foreach ($step['fields'] ?? [] as $field)
                                             @if (($field['type'] ?? '') === 'checkbox')
@@ -336,29 +285,31 @@
                                                 {{ $step['helper_box']['text'][$locale] ?? $step['helper_box']['text']['nl'] }}
                                             </p>
 
-                                            <label class="upload-file-control">
-                                                <span>
-                                                    {{ $locale === 'fr' ? 'Choisir des fichiers' : ($locale === 'en' ? 'Choose files' : 'Bestanden kiezen') }}
-                                                </span>
+                                            @if ($step['helper_box']['render_upload'] ?? true)
+                                                <label class="upload-file-control">
+                                                    <span>
+                                                        {{ $locale === 'fr' ? 'Choisir des fichiers' : ($locale === 'en' ? 'Choose files' : 'Bestanden kiezen') }}
+                                                    </span>
 
-                                                <input
-                                                    id="attachmentsInput"
-                                                    type="file"
-                                                    name="attachments[]"
-                                                    multiple
-                                                    accept=".jpg,.jpeg,.png,.webp,.pdf"
-                                                >
-                                            </label>
+                                                    <input
+                                                        id="attachmentsInput"
+                                                        type="file"
+                                                        name="attachments[]"
+                                                        multiple
+                                                        accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                                    >
+                                                </label>
 
-                                            <div id="selectedAttachments" class="selected-attachments"></div>
+                                                <div id="selectedAttachments" class="selected-attachments"></div>
 
-                                            @error('attachments')
-                                                <p class="field-error-text">{{ $message }}</p>
-                                            @enderror
+                                                @error('attachments')
+                                                    <p class="field-error-text">{{ $message }}</p>
+                                                @enderror
 
-                                            @error('attachments.*')
-                                                <p class="field-error-text">{{ $message }}</p>
-                                            @enderror
+                                                @error('attachments.*')
+                                                    <p class="field-error-text">{{ $message }}</p>
+                                                @enderror
+                                            @endif
                                         </div>
                                     @endif
                                 @elseif (($step['type'] ?? '') === 'summary')
@@ -388,108 +339,45 @@
 </div>
 
 <script>
-    (function () {
-        function initConditionalRequestSteps() {
-            const conditionalElements = document.querySelectorAll('[data-condition-services]');
-            const serviceInputs = document.querySelectorAll('input[name="service_slug"]');
-            const requestTypeInputs = document.querySelectorAll('input[name="request_type"]');
+(function () {
+    function initConditionalRequestSteps() {
+        const conditionalElements = document.querySelectorAll('[data-condition-service-categories]');
+        const categoryInputs = document.querySelectorAll('input[name="service_category"]');
 
-            function getCheckedValue(inputs) {
-                const checkedInput = Array.from(inputs).find((input) => input.checked);
-
-                return checkedInput ? checkedInput.value : '';
-            }
-
-            function forceInputSelection(input) {
-                input.checked = true;
-            }
-
-            function updateOptionCardStates(inputs) {
-                inputs.forEach((input) => {
-                    const card = input.closest('.option-card');
-
-                    if (!card) {
-                        return;
-                    }
-
-                    card.classList.toggle('is-selected', input.checked);
-                });
-            }
-
-            function updateConditionalSteps() {
-                const selectedService = getCheckedValue(serviceInputs);
-                const selectedRequestType = getCheckedValue(requestTypeInputs);
-
-                console.log('Selected service:', selectedService);
-                console.log('Selected request type:', selectedRequestType);
-
-                conditionalElements.forEach((element) => {
-                    const allowedServices = (element.dataset.conditionServices || '')
-                        .split(',')
-                        .map((value) => value.trim())
-                        .filter(Boolean);
-
-                    const allowedRequestTypes = (element.dataset.conditionRequestTypes || '')
-                        .split(',')
-                        .map((value) => value.trim())
-                        .filter(Boolean);
-
-                    console.log('Allowed services:', allowedServices);
-                    console.log('Allowed request types:', allowedRequestTypes);
-
-                    const matchesService = allowedServices.length === 0 || allowedServices.includes(selectedService);
-                    const matchesRequestType = allowedRequestTypes.length === 0 || allowedRequestTypes.includes(selectedRequestType);
-
-                    console.log('Matches service:', matchesService);
-                    console.log('Matches request type:', matchesRequestType);
-
-                    element.classList.toggle('is-condition-hidden', !(matchesService && matchesRequestType));
-                });
-            }
-
-            serviceInputs.forEach((input) => {
-                const card = input.closest('.option-card');
-
-                if (card) {
-                    card.addEventListener('click', () => {
-                        forceInputSelection(input);
-                        updateOptionCardStates(serviceInputs);
-                        updateConditionalSteps();
-                    });
-                }
-
-                input.addEventListener('change', () => {
-                    updateOptionCardStates(serviceInputs);
-                    updateConditionalSteps();
-                });
-            });
-
-            requestTypeInputs.forEach((input) => {
-                const card = input.closest('.option-card');
-
-                if (card) {
-                    card.addEventListener('click', () => {
-                        forceInputSelection(input);
-                        updateOptionCardStates(requestTypeInputs);
-                        updateConditionalSteps();
-                    });
-                }
-
-                input.addEventListener('change', () => {
-                    updateOptionCardStates(requestTypeInputs);
-                    updateConditionalSteps();
-                });
-            });
-
-            updateOptionCardStates(serviceInputs);
-            updateOptionCardStates(requestTypeInputs);
-            updateConditionalSteps();
+        function getCheckedValue(inputs) {
+            const checked = Array.from(inputs).find(function (i) { return i.checked; });
+            return checked ? checked.value : '';
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initConditionalRequestSteps);
-        } else {
-            initConditionalRequestSteps();
+        function updateConditionalSteps() {
+            const selectedCategory = getCheckedValue(categoryInputs);
+
+            conditionalElements.forEach(function (element) {
+                const allowed = (element.dataset.conditionServiceCategories || '')
+                    .split(',')
+                    .map(function (v) { return v.trim(); })
+                    .filter(Boolean);
+
+                const matches = allowed.length === 0 || allowed.indexOf(selectedCategory) !== -1;
+                element.classList.toggle('is-condition-hidden', !matches);
+            });
         }
-    })();
+
+        categoryInputs.forEach(function (input) {
+            const card = input.closest('.option-card');
+            if (card) {
+                card.addEventListener('click', updateConditionalSteps);
+            }
+            input.addEventListener('change', updateConditionalSteps);
+        });
+
+        updateConditionalSteps();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initConditionalRequestSteps);
+    } else {
+        initConditionalRequestSteps();
+    }
+})();
 </script>

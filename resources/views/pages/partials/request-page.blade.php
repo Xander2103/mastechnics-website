@@ -50,6 +50,7 @@
             'summary_title' => 'Samenvatting',
             'summary_text' => 'De aanvraag wordt opgeslagen zodat ze later opgevolgd kan worden in het admin panel.',
             'choose_option' => 'Kies een optie',
+            'privacy_notice' => 'Uw gegevens en eventuele foto\'s worden enkel gebruikt voor de opvolging van uw aanvraag en worden niet gedeeld met derden.',
         ],
         'fr' => [
             'hero_badge' => 'Demande intelligente',
@@ -64,6 +65,7 @@
             'summary_title' => 'Résumé',
             'summary_text' => 'La demande sera enregistrée afin de pouvoir être suivie plus tard dans le panneau d\'administration.',
             'choose_option' => 'Choisissez une option',
+            'privacy_notice' => 'Vos données et éventuelles photos sont utilisées uniquement pour le traitement de votre demande et ne sont pas partagées avec des tiers.',
         ],
         'en' => [
             'hero_badge' => 'Smart request',
@@ -78,6 +80,7 @@
             'summary_title' => 'Summary',
             'summary_text' => 'The request will be stored so it can later be followed up in an admin panel.',
             'choose_option' => 'Choose an option',
+            'privacy_notice' => 'Your data and any photos are used solely to process your request and are not shared with third parties.',
         ],
     ];
 
@@ -338,6 +341,8 @@
                                 {{ $text['submit'] }}
                             </button>
                         </div>
+
+                        <p class="form-privacy-notice">{{ $text['privacy_notice'] }}</p>
                     </div>
                 </div>
             </form>

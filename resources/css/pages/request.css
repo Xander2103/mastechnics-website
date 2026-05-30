@@ -491,6 +491,18 @@ textarea {
 }
 
 /* ================================
+   Privacy notice
+================================ */
+
+.form-privacy-notice {
+    margin-top: 14px;
+    font-size: 0.83rem;
+    color: var(--color-muted);
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* ================================
    Request scroll offset
 ================================ */
 

@@ -64,12 +64,52 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="@yield('meta_description', '')">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="@yield('meta_description', '')">
 
     <title>@yield('title', $siteName)</title>
 
+    {{-- Canonical URL --}}
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- Open Graph --}}
+    <meta property="og:title" content="@yield('title', $siteName)">
+    <meta property="og:description" content="@yield('meta_description', '')">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:locale" content="{{ $currentLocale === 'fr' ? 'fr_BE' : ($currentLocale === 'en' ? 'en_GB' : 'nl_BE') }}">
+
+    {{-- Hreflang alternates (only on public page views) --}}
+    @if (isset($page))
+        @foreach ($page->translations as $alt)
+            @php
+                $altUrl = $page->type === 'home'
+                    ? route('pages.home', ['locale' => $alt->locale])
+                    : route('pages.show', ['locale' => $alt->locale, 'slug' => $alt->slug]);
+            @endphp
+            <link rel="alternate" hreflang="{{ $alt->locale }}" href="{{ $altUrl }}">
+        @endforeach
+        <link rel="alternate" hreflang="x-default" href="{{ route('pages.home', ['locale' => 'nl']) }}">
+    @endif
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- LocalBusiness schema (public pages only) --}}
+    @if (isset($page))
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "{{ config('site.name') }}",
+        "telephone": "{{ config('site.contact.phone_display') }}",
+        "email": "{{ config('site.contact.email') }}",
+        "url": "{{ url('/nl') }}",
+        "priceRange": "€€",
+        "areaServed": "Belgium"
+    }
+    </script>
+    @endif
 </head>
 
 <body>
@@ -174,7 +214,19 @@
         </div>
 
         <div class="container footer-bottom">
-            <p>&copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.</p>
+            <p>
+                &copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.
+                &nbsp;&middot;&nbsp;
+                <span class="footer-privacy-note">
+                    @if ($currentLocale === 'fr')
+                        Données traitées conformément au RGPD.
+                    @elseif ($currentLocale === 'en')
+                        Data handled in accordance with GDPR.
+                    @else
+                        Gegevens verwerkt conform de AVG/GDPR.
+                    @endif
+                </span>
+            </p>
 
             @if (session()->has('admin_user_email'))
                 <div class="footer-admin-actions">

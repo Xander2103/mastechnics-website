@@ -104,8 +104,8 @@
                         <div>
                             <dt>Urgentie</dt>
                             <dd>
-                                <span class="admin-urgency admin-urgency-{{ $urgency ?: 'none' }}">
-                                    {{ $urgencyLabels[$urgency] ?? '-' }}
+                                <span class="admin-urgency admin-urgency-{{ $urgencyLevel ?: 'none' }}">
+                                    {{ $urgencyLabel ?? '-' }}
                                 </span>
                             </dd>
                         </div>

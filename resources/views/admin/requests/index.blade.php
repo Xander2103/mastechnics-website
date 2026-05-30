@@ -142,8 +142,7 @@
                                     <th>Naam</th>
                                     <th>E-mail</th>
                                     <th>Telefoon</th>
-                                    <th>Dienst</th>
-                                    <th>Type</th>
+                                    <th>Aanvraag</th>
                                     <th>Urgentie</th>
                                     <th>Status</th>
                                     <th></th>
@@ -154,19 +153,30 @@
                                 @foreach ($customerRequests as $request)
                                     @php
                                         $metadata = $request->metadata ?? [];
-                                        $answers = $metadata['answers'] ?? [];
+                                        $answers  = $metadata['answers'] ?? [];
 
-                                        $serviceTitle = $metadata['service']['title'] ?? $request->service_slug;
-                                        $requestTypeLabel =
-                                            $metadata['request_type']['label'] ?? $request->request_type;
+                                        // Service category label: prefer new DB column, fall back to old metadata
+                                        $categoryLabel = null;
+                                        if ($request->service_category) {
+                                            $categoryLabel = $serviceCategoryLabels[$request->service_category] ?? $request->service_category;
+                                        } else {
+                                            $categoryLabel = $metadata['service']['title'] ?? $request->service_slug;
+                                        }
 
-                                        $urgencyLabels = [
-                                            'urgent' => 'Dringend',
-                                            'within_days' => 'Enkele dagen',
-                                            'not_urgent' => 'Niet dringend',
+                                        // Urgency: prefer new urgency_level column, fall back to old answers.urgency
+                                        $urgencyLevel = $request->urgency_level ?? ($answers['urgency'] ?? null);
+
+                                        $urgencyLevelLabels = [
+                                            'water_leaking' => 'Water / lek',
+                                            'small_leak'    => 'Klein lek',
+                                            'no_heating'    => 'Geen verwarming',
+                                            'no_hot_water'  => 'Geen warm water',
+                                            'other'         => 'Andere urgentie',
+                                            'urgent'        => 'Dringend',
+                                            'within_days'   => 'Enkele dagen',
+                                            'not_urgent'    => 'Niet dringend',
                                         ];
-
-                                        $urgency = $answers['urgency'] ?? null;
+                                        $urgencyLabel = $urgencyLevelLabels[$urgencyLevel] ?? null;
                                     @endphp
 
                                     <tr>
@@ -174,12 +184,15 @@
                                         <td data-label="Naam">{{ $request->customer_name }}</td>
                                         <td data-label="E-mail">{{ $request->customer_email }}</td>
                                         <td data-label="Telefoon">{{ $request->customer_phone ?: '-' }}</td>
-                                        <td data-label="Dienst">{{ $serviceTitle }}</td>
-                                        <td data-label="Type">{{ $requestTypeLabel }}</td>
+                                        <td data-label="Aanvraag">{{ $categoryLabel }}</td>
                                         <td data-label="Urgentie">
-                                            <span class="admin-urgency admin-urgency-{{ $urgency ?: 'none' }}">
-                                                {{ $urgencyLabels[$urgency] ?? '-' }}
-                                            </span>
+                                            @if ($urgencyLevel)
+                                                <span class="admin-urgency admin-urgency-{{ $urgencyLevel }}">
+                                                    {{ $urgencyLabel }}
+                                                </span>
+                                            @else
+                                                <span class="admin-urgency admin-urgency-none">-</span>
+                                            @endif
                                         </td>
                                         <td data-label="Status">
                                             <span class="admin-status admin-status-{{ $request->status }}">

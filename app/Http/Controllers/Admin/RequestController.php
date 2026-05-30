@@ -40,6 +40,12 @@ class RequestController extends Controller
             'business' => 'Bedrijf',
         ];
 
+        $serviceCategoryLabels = collect(config('request-flow.service_categories', []))
+            ->mapWithKeys(fn (array $cat): array => [
+                $cat['value'] => $cat['labels']['nl'] ?? $cat['value'],
+            ])
+            ->toArray();
+
         $customerRequests = CustomerRequest::query()
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
@@ -82,6 +88,7 @@ class RequestController extends Controller
             'requestTypes' => $requestTypes,
             'urgencies' => $urgencies,
             'customerTypes' => $customerTypes,
+            'serviceCategoryLabels' => $serviceCategoryLabels,
             'filters' => [
                 'search' => $request->string('search')->toString(),
                 'status' => $request->string('status')->toString(),
@@ -99,9 +106,16 @@ class RequestController extends Controller
     {
         $customerRequest->load(['attachments', 'notes']);
 
+        $serviceCategoryLabels = collect(config('request-flow.service_categories', []))
+            ->mapWithKeys(fn (array $cat): array => [
+                $cat['value'] => $cat['labels']['nl'] ?? $cat['value'],
+            ])
+            ->toArray();
+
         return view('admin.requests.show', [
-            'customerRequest' => $customerRequest,
-            'statuses' => $this->getStatuses(),
+            'customerRequest'       => $customerRequest,
+            'statuses'              => $this->getStatuses(),
+            'serviceCategoryLabels' => $serviceCategoryLabels,
         ]);
     }
 

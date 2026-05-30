@@ -23,6 +23,25 @@
 
         $customerType = $answers['customer_type'] ?? null;
         $urgency = $answers['urgency'] ?? null;
+
+        $serviceCategoryLabel = null;
+        if ($customerRequest->service_category) {
+            $serviceCategoryLabel = $serviceCategoryLabels[$customerRequest->service_category]
+                ?? $customerRequest->service_category;
+        }
+
+        $urgencyLevelLabels = [
+            'water_leaking' => 'Er staat water / ernstig lek',
+            'small_leak'    => 'Klein lek',
+            'no_heating'    => 'Geen verwarming',
+            'no_hot_water'  => 'Geen warm water',
+            'other'         => 'Andere urgentie',
+            'urgent'        => 'Dringend (algemeen)',
+            'within_days'   => 'Binnen enkele dagen',
+            'not_urgent'    => 'Niet dringend',
+        ];
+        $urgencyLevel = $customerRequest->urgency_level ?? ($answers['urgency'] ?? null);
+        $urgencyLabel = $urgencyLevelLabels[$urgencyLevel] ?? null;
     @endphp
 
     <section class="admin-hero">
@@ -148,6 +167,31 @@
                                 <dt>Type aanvraag</dt>
                                 <dd>{{ $requestTypeLabel }}</dd>
                             </div>
+
+                            @if ($serviceCategoryLabel)
+                                <div>
+                                    <dt>Aanvraagcategorie</dt>
+                                    <dd>{{ $serviceCategoryLabel }}</dd>
+                                </div>
+                            @endif
+
+                            @if ($urgencyLevel)
+                                <div>
+                                    <dt>Urgentieniveau</dt>
+                                    <dd>
+                                        <span class="admin-urgency admin-urgency-{{ $urgencyLevel }}">
+                                            {{ $urgencyLabel }}
+                                        </span>
+                                    </dd>
+                                </div>
+                            @endif
+
+                            @if ($customerRequest->preferred_time)
+                                <div>
+                                    <dt>Gewenst moment</dt>
+                                    <dd>{{ $customerRequest->preferred_time }}</dd>
+                                </div>
+                            @endif
 
                             <div>
                                 <dt>Beschrijving</dt>

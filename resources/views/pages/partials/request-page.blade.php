@@ -166,6 +166,10 @@
                                 @endif
 
                                 @if (($step['type'] ?? '') === 'service_category_selection')
+                                    @if (isset($step['helper_text']))
+                                        <p class="step-helper-text">{{ $step['helper_text'][$locale] ?? $step['helper_text']['nl'] }}</p>
+                                    @endif
+
                                     <div class="option-grid">
                                         @foreach ($step['options'] ?? [] as $option)
                                             <label class="option-card {{ old('service_category', '') === $option['value'] ? 'is-selected' : '' }}">
@@ -175,7 +179,10 @@
                                                     value="{{ $option['value'] }}"
                                                     {{ old('service_category', '') === $option['value'] ? 'checked' : '' }}
                                                 >
-                                                <span>{{ $getLabel($option) }}</span>
+                                                <span class="option-card-label">{{ $getLabel($option) }}</span>
+                                                @if (isset($option['description']))
+                                                    <span class="option-card-desc">{{ $option['description'][$locale] ?? $option['description']['nl'] }}</span>
+                                                @endif
                                             </label>
                                         @endforeach
                                     </div>

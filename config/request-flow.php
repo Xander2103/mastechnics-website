@@ -22,89 +22,144 @@ return [
             'code'   => 'service_category_selection',
             'type'   => 'service_category_selection',
             'labels' => [
-                'nl' => 'Waarvoor wenst u een aanvraag te doen?',
-                'fr' => 'Pour quoi souhaitez-vous une demande ?',
-                'en' => 'What would you like to request?',
+                'nl' => 'Waarmee kunnen we u helpen?',
+                'fr' => 'Comment pouvons-nous vous aider ?',
+                'en' => 'How can we help you?',
+            ],
+            'helper_text' => [
+                'nl' => 'Kies wat het best past. Twijfelt u? Kies \'Ik weet het niet\', dan bekijken we het voor u.',
+                'fr' => 'Choisissez ce qui correspond le mieux. Vous hésitez ? Choisissez \'Je ne sais pas\', nous verrons cela pour vous.',
+                'en' => 'Choose what fits best. Not sure? Choose \'I\'m not sure\', we will look into it for you.',
             ],
             'options' => [
                 [
-                    'value'  => 'airco_offerte',
-                    'labels' => [
-                        'nl' => 'Airco offerte',
-                        'fr' => 'Offre climatisation',
-                        'en' => 'Air conditioning quote',
+                    'value'       => 'airco_offerte',
+                    'labels'      => [
+                        'nl' => 'Airco laten plaatsen',
+                        'fr' => 'Faire installer une climatisation',
+                        'en' => 'Install air conditioning',
+                    ],
+                    'description' => [
+                        'nl' => 'Voor een nieuwe airco-installatie of offerte.',
+                        'fr' => 'Pour une nouvelle installation de climatisation ou un devis.',
+                        'en' => 'For a new air conditioning installation or quote.',
                     ],
                 ],
                 [
-                    'value'  => 'airco_onderhoud',
-                    'labels' => [
-                        'nl' => 'Airco onderhoud',
-                        'fr' => 'Entretien climatisation',
+                    'value'       => 'airco_onderhoud',
+                    'labels'      => [
+                        'nl' => 'Onderhoud van airco',
+                        'fr' => 'Entretien de votre climatisation',
                         'en' => 'Air conditioning maintenance',
                     ],
-                ],
-                [
-                    'value'  => 'onderhoud_cv',
-                    'labels' => [
-                        'nl' => 'Onderhoud verwarming',
-                        'fr' => 'Entretien chauffage central',
-                        'en' => 'Central heating service',
+                    'description' => [
+                        'nl' => 'Voor reiniging, controle of periodiek onderhoud.',
+                        'fr' => 'Pour nettoyage, contrôle ou entretien périodique.',
+                        'en' => 'For cleaning, inspection or periodic maintenance.',
                     ],
                 ],
                 [
-                    'value'  => 'herstelling_cv',
-                    'labels' => [
-                        'nl' => 'Herstelling verwarming',
-                        'fr' => 'Réparation chauffage',
-                        'en' => 'Heating repair',
+                    'value'       => 'onderhoud_cv',
+                    'labels'      => [
+                        'nl' => 'Onderhoud van verwarming',
+                        'fr' => 'Entretien du chauffage',
+                        'en' => 'Heating maintenance',
+                    ],
+                    'description' => [
+                        'nl' => 'Voor onderhoud van uw ketel of centrale verwarming.',
+                        'fr' => 'Pour l\'entretien de votre chaudière ou chauffage central.',
+                        'en' => 'For maintenance of your boiler or central heating.',
                     ],
                 ],
                 [
-                    'value'  => 'dringend_lek',
-                    'labels' => [
-                        'nl' => 'Lek of dringend probleem',
-                        'fr' => 'Fuite ou problème urgent',
-                        'en' => 'Leak or urgent issue',
+                    'value'       => 'herstelling_cv',
+                    'labels'      => [
+                        'nl' => 'Verwarming herstellen',
+                        'fr' => 'Réparer le chauffage',
+                        'en' => 'Fix heating system',
+                    ],
+                    'description' => [
+                        'nl' => 'Voor storingen, geen warm water of verwarming die niet werkt.',
+                        'fr' => 'Pour pannes, pas d\'eau chaude ou chauffage qui ne fonctionne pas.',
+                        'en' => 'For breakdowns, no hot water or heating that doesn\'t work.',
                     ],
                 ],
                 [
-                    'value'  => 'sanitair',
-                    'labels' => [
-                        'nl' => 'Sanitair / loodgieterij',
-                        'fr' => 'Sanitaire / plomberie',
-                        'en' => 'Plumbing',
+                    'value'       => 'dringend_lek',
+                    'labels'      => [
+                        'nl' => 'Dringend probleem of lek',
+                        'fr' => 'Problème urgent ou fuite',
+                        'en' => 'Urgent issue or leak',
+                    ],
+                    'description' => [
+                        'nl' => 'Bij waterlek, verlies van druk of dringende panne.',
+                        'fr' => 'En cas de fuite d\'eau, perte de pression ou panne urgente.',
+                        'en' => 'For water leaks, pressure loss or urgent breakdowns.',
                     ],
                 ],
                 [
-                    'value'  => 'ventilatie',
-                    'labels' => [
+                    'value'       => 'sanitair',
+                    'labels'      => [
+                        'nl' => 'Sanitair of loodgieterij',
+                        'fr' => 'Sanitaire ou plomberie',
+                        'en' => 'Plumbing or sanitary',
+                    ],
+                    'description' => [
+                        'nl' => 'Voor kranen, leidingen, afvoer, toilet of badkamer.',
+                        'fr' => 'Pour robinets, tuyauterie, évacuation, toilette ou salle de bain.',
+                        'en' => 'For taps, pipes, drains, toilet or bathroom work.',
+                    ],
+                ],
+                [
+                    'value'       => 'ventilatie',
+                    'labels'      => [
                         'nl' => 'Ventilatie',
                         'fr' => 'Ventilation',
                         'en' => 'Ventilation',
                     ],
+                    'description' => [
+                        'nl' => 'Voor plaatsing, onderhoud of problemen met ventilatie.',
+                        'fr' => 'Pour installation, entretien ou problèmes de ventilation.',
+                        'en' => 'For installation, maintenance or ventilation issues.',
+                    ],
                 ],
                 [
-                    'value'  => 'waterverzachter',
-                    'labels' => [
+                    'value'       => 'waterverzachter',
+                    'labels'      => [
                         'nl' => 'Waterverzachter',
                         'fr' => 'Adoucisseur d\'eau',
                         'en' => 'Water softener',
                     ],
-                ],
-                [
-                    'value'  => 'koeling',
-                    'labels' => [
-                        'nl' => 'Koeling / koelcel',
-                        'fr' => 'Réfrigération / chambre froide',
-                        'en' => 'Cooling / cold room',
+                    'description' => [
+                        'nl' => 'Voor installatie, onderhoud of controle.',
+                        'fr' => 'Pour installation, entretien ou contrôle.',
+                        'en' => 'For installation, maintenance or inspection.',
                     ],
                 ],
                 [
-                    'value'  => 'andere',
-                    'labels' => [
-                        'nl' => 'Andere aanvraag',
-                        'fr' => 'Autre demande',
-                        'en' => 'Other request',
+                    'value'       => 'koeling',
+                    'labels'      => [
+                        'nl' => 'Koeling of koelcel',
+                        'fr' => 'Réfrigération ou chambre froide',
+                        'en' => 'Cooling or cold room',
+                    ],
+                    'description' => [
+                        'nl' => 'Voor commerciële of industriële koeling.',
+                        'fr' => 'Pour la réfrigération commerciale ou industrielle.',
+                        'en' => 'For commercial or industrial refrigeration.',
+                    ],
+                ],
+                [
+                    'value'       => 'andere',
+                    'labels'      => [
+                        'nl' => 'Ik weet het niet / andere vraag',
+                        'fr' => 'Je ne sais pas / autre question',
+                        'en' => 'I\'m not sure / other question',
+                    ],
+                    'description' => [
+                        'nl' => 'Niet zeker? Beschrijf uw situatie en wij bekijken het.',
+                        'fr' => 'Pas sûr ? Décrivez votre situation et nous verrons cela pour vous.',
+                        'en' => 'Not sure? Describe your situation and we\'ll look into it.',
                     ],
                 ],
             ],
@@ -912,103 +967,103 @@ return [
     // ─────────────────────────────────────────────────────────────────────────
     'service_categories' => [
         [
-            'value'       => 'airco_offerte',
-            'service_key' => 'airco',
+            'value'        => 'airco_offerte',
+            'service_key'  => 'airco',
             'request_type' => 'installation',
-            'labels'      => [
-                'nl' => 'Airco offerte',
-                'fr' => 'Offre climatisation',
-                'en' => 'Air conditioning quote',
+            'labels'       => [
+                'nl' => 'Airco laten plaatsen',
+                'fr' => 'Faire installer une climatisation',
+                'en' => 'Install air conditioning',
             ],
         ],
         [
-            'value'       => 'airco_onderhoud',
-            'service_key' => 'airco',
+            'value'        => 'airco_onderhoud',
+            'service_key'  => 'airco',
             'request_type' => 'maintenance',
-            'labels'      => [
-                'nl' => 'Airco onderhoud',
-                'fr' => 'Entretien climatisation',
+            'labels'       => [
+                'nl' => 'Onderhoud van airco',
+                'fr' => 'Entretien de votre climatisation',
                 'en' => 'Air conditioning maintenance',
             ],
         ],
         [
-            'value'       => 'onderhoud_cv',
-            'service_key' => 'heating',
+            'value'        => 'onderhoud_cv',
+            'service_key'  => 'heating',
             'request_type' => 'maintenance',
-            'labels'      => [
-                'nl' => 'Onderhoud verwarming',
-                'fr' => 'Entretien chauffage central',
-                'en' => 'Central heating service',
+            'labels'       => [
+                'nl' => 'Onderhoud van verwarming',
+                'fr' => 'Entretien du chauffage',
+                'en' => 'Heating maintenance',
             ],
         ],
         [
-            'value'       => 'herstelling_cv',
-            'service_key' => 'heating',
+            'value'        => 'herstelling_cv',
+            'service_key'  => 'heating',
             'request_type' => 'repair',
-            'labels'      => [
-                'nl' => 'Herstelling verwarming',
-                'fr' => 'Réparation chauffage',
-                'en' => 'Heating repair',
+            'labels'       => [
+                'nl' => 'Verwarming herstellen',
+                'fr' => 'Réparer le chauffage',
+                'en' => 'Fix heating system',
             ],
         ],
         [
-            'value'       => 'dringend_lek',
-            'service_key' => 'plumbing',
+            'value'        => 'dringend_lek',
+            'service_key'  => 'plumbing',
             'request_type' => 'repair',
-            'labels'      => [
-                'nl' => 'Lek of dringend probleem',
-                'fr' => 'Fuite ou problème urgent',
-                'en' => 'Leak or urgent issue',
+            'labels'       => [
+                'nl' => 'Dringend probleem of lek',
+                'fr' => 'Problème urgent ou fuite',
+                'en' => 'Urgent issue or leak',
             ],
         ],
         [
-            'value'       => 'sanitair',
-            'service_key' => 'plumbing',
+            'value'        => 'sanitair',
+            'service_key'  => 'plumbing',
             'request_type' => 'repair',
-            'labels'      => [
-                'nl' => 'Sanitair / loodgieterij',
-                'fr' => 'Sanitaire / plomberie',
-                'en' => 'Plumbing',
+            'labels'       => [
+                'nl' => 'Sanitair of loodgieterij',
+                'fr' => 'Sanitaire ou plomberie',
+                'en' => 'Plumbing or sanitary',
             ],
         ],
         [
-            'value'       => 'ventilatie',
-            'service_key' => 'ventilation',
+            'value'        => 'ventilatie',
+            'service_key'  => 'ventilation',
             'request_type' => 'new_project',
-            'labels'      => [
+            'labels'       => [
                 'nl' => 'Ventilatie',
                 'fr' => 'Ventilation',
                 'en' => 'Ventilation',
             ],
         ],
         [
-            'value'       => 'waterverzachter',
-            'service_key' => 'water-softeners',
+            'value'        => 'waterverzachter',
+            'service_key'  => 'water-softeners',
             'request_type' => 'installation',
-            'labels'      => [
+            'labels'       => [
                 'nl' => 'Waterverzachter',
                 'fr' => 'Adoucisseur d\'eau',
                 'en' => 'Water softener',
             ],
         ],
         [
-            'value'       => 'koeling',
-            'service_key' => 'cold-rooms',
+            'value'        => 'koeling',
+            'service_key'  => 'cold-rooms',
             'request_type' => 'installation',
-            'labels'      => [
-                'nl' => 'Koeling / koelcel',
-                'fr' => 'Réfrigération / chambre froide',
-                'en' => 'Cooling / cold room',
+            'labels'       => [
+                'nl' => 'Koeling of koelcel',
+                'fr' => 'Réfrigération ou chambre froide',
+                'en' => 'Cooling or cold room',
             ],
         ],
         [
-            'value'       => 'andere',
-            'service_key' => 'heating',
+            'value'        => 'andere',
+            'service_key'  => 'heating',
             'request_type' => 'repair',
-            'labels'      => [
-                'nl' => 'Andere aanvraag',
-                'fr' => 'Autre demande',
-                'en' => 'Other request',
+            'labels'       => [
+                'nl' => 'Ik weet het niet / andere vraag',
+                'fr' => 'Je ne sais pas / autre question',
+                'en' => 'I\'m not sure / other question',
             ],
         ],
     ],

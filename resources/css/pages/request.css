@@ -78,9 +78,16 @@
 }
 
 .form-section h2 {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     font-size: 1.55rem;
     color: var(--color-primary-dark);
+}
+
+.step-helper-text {
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    color: var(--color-muted);
+    line-height: 1.5;
 }
 
 .is-condition-hidden {
@@ -132,9 +139,11 @@
     position: relative;
     cursor: pointer;
     display: flex;
-    align-items: center;
-    min-height: 74px;
-    padding: 16px 44px 16px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 86px;
+    padding: 14px 44px 14px 16px;
     border: 1px solid var(--color-border);
     border-radius: 18px;
     background: #f8fbff;
@@ -171,11 +180,23 @@
     pointer-events: none;
 }
 
-.option-card span {
+.option-card-label {
     min-width: 0;
     max-width: 100%;
     overflow-wrap: break-word;
     line-height: 1.25;
+    font-weight: 800;
+}
+
+.option-card-desc {
+    margin-top: 5px;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-muted);
+    line-height: 1.35;
+    overflow-wrap: break-word;
 }
 
 .option-card:hover,
@@ -553,20 +574,24 @@ textarea {
     }
 
     .option-card {
-        min-height: 76px;
-        padding: 14px 36px 14px 12px;
+        min-height: 80px;
+        padding: 12px 36px 12px 12px;
         border-radius: 18px;
     }
 
     .option-card::after {
-        top: 14px;
+        top: 12px;
         right: 12px;
     }
 
-    .option-card span {
-        font-size: 0.9rem;
+    .option-card-label {
+        font-size: 0.87rem;
         line-height: 1.2;
         hyphens: auto;
+    }
+
+    .option-card-desc {
+        font-size: 0.75rem;
     }
 
     .form-grid,

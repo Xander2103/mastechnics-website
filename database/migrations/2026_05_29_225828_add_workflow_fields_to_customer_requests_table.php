@@ -8,8 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // source was partially added by a prior failed migration run; skip if it already exists
+        if (!Schema::hasColumn('customer_requests', 'source')) {
+            Schema::table('customer_requests', function (Blueprint $table) {
+                $table->string('source')->default('website')->after('id');
+            });
+        }
+
         Schema::table('customer_requests', function (Blueprint $table) {
-            $table->string('source')->default('website')->after('id');
             $table->string('service_category')->nullable()->after('source');
             $table->string('urgency_level')->nullable()->after('service_category');
             $table->string('preferred_time')->nullable()->after('urgency_level');
@@ -21,16 +27,23 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('customer_requests', function (Blueprint $table) {
-            $table->dropColumn([
-                'source',
-                'service_category',
-                'urgency_level',
-                'preferred_time',
-                'customer_message',
-                'ai_summary',
-                'ai_detected_missing_fields',
-            ]);
+        $columns = [
+            'service_category',
+            'urgency_level',
+            'preferred_time',
+            'customer_message',
+            'ai_summary',
+            'ai_detected_missing_fields',
+        ];
+
+        Schema::table('customer_requests', function (Blueprint $table) use ($columns) {
+            $table->dropColumn($columns);
         });
+
+        if (Schema::hasColumn('customer_requests', 'source')) {
+            Schema::table('customer_requests', function (Blueprint $table) {
+                $table->dropColumn('source');
+            });
+        }
     }
 };

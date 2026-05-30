@@ -46,7 +46,7 @@ return [
                 [
                     'value'  => 'onderhoud_cv',
                     'labels' => [
-                        'nl' => 'Onderhoud CV',
+                        'nl' => 'Onderhoud verwarming',
                         'fr' => 'Entretien chauffage central',
                         'en' => 'Central heating service',
                     ],
@@ -936,7 +936,7 @@ return [
             'service_key' => 'heating',
             'request_type' => 'maintenance',
             'labels'      => [
-                'nl' => 'Onderhoud CV',
+                'nl' => 'Onderhoud verwarming',
                 'fr' => 'Entretien chauffage central',
                 'en' => 'Central heating service',
             ],

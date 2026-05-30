@@ -46,7 +46,7 @@
             'success_text' => 'We hebben je aanvraag goed ontvangen en nemen zo snel mogelijk contact op.',
             'error_title' => 'Controleer de ingevulde informatie.',
             'estimate_title' => 'Richtprijs mogelijk na volledige info',
-            'estimate_text' => 'Op basis van de gekozen dienst, technische gegevens en foto's kan ' . $siteName . ' sneller inschatten wat nodig is en indien mogelijk een richtprijs of duidelijke vervolgstap voorstellen.',
+            'estimate_text' => 'Op basis van de gekozen dienst, technische gegevens en foto\'s kan ' . $siteName . ' sneller inschatten wat nodig is en indien mogelijk een richtprijs of duidelijke vervolgstap voorstellen.',
             'summary_title' => 'Samenvatting',
             'summary_text' => 'De aanvraag wordt opgeslagen zodat ze later opgevolgd kan worden in het admin panel.',
             'choose_option' => 'Kies een optie',
@@ -62,7 +62,7 @@
             'estimate_title' => 'Estimation possible après informations complètes',
             'estimate_text' => 'Sur la base du service choisi, des informations techniques et des photos, ' . $siteName . ' peut évaluer plus rapidement la situation et proposer une estimation ou une prochaine étape claire si possible.',
             'summary_title' => 'Résumé',
-            'summary_text' => 'La demande sera enregistrée afin de pouvoir être suivie plus tard dans le panneau d'administration.',
+            'summary_text' => 'La demande sera enregistrée afin de pouvoir être suivie plus tard dans le panneau d\'administration.',
             'choose_option' => 'Choisissez une option',
         ],
         'en' => [

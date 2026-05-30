@@ -88,6 +88,32 @@
 }
 
 /* ================================
+   Urgent warning box
+================================ */
+
+.urgent-warning-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 22px;
+    padding: 16px 20px;
+    border: 1.5px solid rgba(220, 38, 38, 0.35);
+    border-radius: 16px;
+    background: #fff1f2;
+    color: #991b1b;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.urgent-warning-box::before {
+    content: "⚠";
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+/* ================================
    Options
 ================================ */
 
@@ -251,6 +277,12 @@ textarea {
 .upload-box.field-has-error {
     border-color: #ef4444;
     background: #fff7f7;
+}
+
+.upload-box--info-only {
+    border-style: solid;
+    border-color: rgba(15, 102, 194, 0.2);
+    background: #f0f7ff;
 }
 
 .upload-file-control {
@@ -570,54 +602,54 @@ textarea {
         min-height: 140px;
     }
 
-    /* Step 3: customer type + urgency onder elkaar */
-    .form-section[data-step="2"] .form-grid,
-    .form-section[data-step="2"] .field-grid {
+    /* Step 6 (customer_context): customer type + urgency onder elkaar */
+    .form-section[data-step="5"] .form-grid,
+    .form-section[data-step="5"] .field-grid {
         grid-template-columns: 1fr !important;
     }
 
-    .form-section[data-step="2"] .form-grid label,
-    .form-section[data-step="2"] .field-grid label {
+    .form-section[data-step="5"] .form-grid label,
+    .form-section[data-step="5"] .field-grid label {
         grid-column: 1 / -1;
     }
 
-    /* Step 5: checkbox volle breedte */
-    .form-section[data-step="4"] .checkbox-field {
+    /* Step 8 (technical_details): checkbox volle breedte */
+    .form-section[data-step="7"] .checkbox-field {
         grid-column: 1 / -1;
     }
 
-    /* Step 6: locatie */
-    .form-section[data-step="5"] .form-grid,
-    .form-section[data-step="5"] .field-grid {
+    /* Step 9 (location_availability): locatie */
+    .form-section[data-step="8"] .form-grid,
+    .form-section[data-step="8"] .field-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
-    .form-section[data-step="5"] .form-grid label:nth-child(1),
-    .form-section[data-step="5"] .form-grid label:nth-child(4),
-    .form-section[data-step="5"] .field-grid label:nth-child(1),
-    .form-section[data-step="5"] .field-grid label:nth-child(4) {
+    .form-section[data-step="8"] .form-grid label:nth-child(1),
+    .form-section[data-step="8"] .form-grid label:nth-child(4),
+    .form-section[data-step="8"] .field-grid label:nth-child(1),
+    .form-section[data-step="8"] .field-grid label:nth-child(4) {
         grid-column: 1 / -1;
     }
 
-    /* Step 7: contact */
-    .form-section[data-step="6"] .form-grid,
-    .form-section[data-step="6"] .field-grid {
+    /* Step 10 (contact_details): contact */
+    .form-section[data-step="9"] .form-grid,
+    .form-section[data-step="9"] .field-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 
-    .form-section[data-step="6"] .form-grid label:nth-child(1),
-    .form-section[data-step="6"] .field-grid label:nth-child(1) {
+    .form-section[data-step="9"] .form-grid label:nth-child(1),
+    .form-section[data-step="9"] .field-grid label:nth-child(1) {
         order: 1;
     }
 
-    .form-section[data-step="6"] .form-grid label:nth-child(2),
-    .form-section[data-step="6"] .field-grid label:nth-child(2) {
+    .form-section[data-step="9"] .form-grid label:nth-child(2),
+    .form-section[data-step="9"] .field-grid label:nth-child(2) {
         order: 3;
         grid-column: 1 / -1;
     }
 
-    .form-section[data-step="6"] .form-grid label:nth-child(3),
-    .form-section[data-step="6"] .field-grid label:nth-child(3) {
+    .form-section[data-step="9"] .form-grid label:nth-child(3),
+    .form-section[data-step="9"] .field-grid label:nth-child(3) {
         order: 2;
     }
 
@@ -693,17 +725,17 @@ textarea {
         grid-template-columns: 1fr !important;
     }
 
-    .form-section[data-step="5"] .form-grid,
-    .form-section[data-step="5"] .field-grid,
-    .form-section[data-step="6"] .form-grid,
-    .form-section[data-step="6"] .field-grid {
+    .form-section[data-step="8"] .form-grid,
+    .form-section[data-step="8"] .field-grid,
+    .form-section[data-step="9"] .form-grid,
+    .form-section[data-step="9"] .field-grid {
         grid-template-columns: 1fr !important;
     }
 
-    .form-section[data-step="5"] .form-grid label,
-    .form-section[data-step="5"] .field-grid label,
-    .form-section[data-step="6"] .form-grid label,
-    .form-section[data-step="6"] .field-grid label {
+    .form-section[data-step="8"] .form-grid label,
+    .form-section[data-step="8"] .field-grid label,
+    .form-section[data-step="9"] .form-grid label,
+    .form-section[data-step="9"] .field-grid label {
         grid-column: 1 / -1;
     }
 }

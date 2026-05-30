@@ -303,6 +303,32 @@
     color: #374151;
 }
 
+.admin-urgency-water_leaking {
+    background: #fee2e2;
+    color: #7f1d1d;
+    font-weight: 900;
+}
+
+.admin-urgency-small_leak {
+    background: #fef3c7;
+    color: #78350f;
+}
+
+.admin-urgency-no_heating {
+    background: #fef3c7;
+    color: #78350f;
+}
+
+.admin-urgency-no_hot_water {
+    background: #fef3c7;
+    color: #78350f;
+}
+
+.admin-urgency-other {
+    background: #e5e7eb;
+    color: #374151;
+}
+
 /* ================================
    Admin detail layout
 ================================ */

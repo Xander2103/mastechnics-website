@@ -19,7 +19,7 @@
             'contact' => 'Contact',
             'request' => 'Démarrer ma demande',
             'footer_services_text' =>
-                'Service technique pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d’eau et réfrigération.',
+                ‘Service technique pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d\’eau et réfrigération.’,
             'footer_request_title' => 'Demande',
             'footer_request_text' =>
                 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',

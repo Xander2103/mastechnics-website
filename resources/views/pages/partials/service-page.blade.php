@@ -21,7 +21,7 @@
                 [
                     'title' => 'Duidelijke technische intake',
                     'description' =>
-                        'Belangrijke informatie zoals type installatie, merk, model en foto’s kan later via het formulier verzameld worden.',
+                        'Belangrijke informatie zoals type installatie, merk, model en foto's kan later via het formulier verzameld worden.',
                 ],
             ],
         ],
@@ -44,7 +44,7 @@
                 [
                     'title' => 'Prise en charge technique claire',
                     'description' =>
-                        'Les informations importantes comme le type d’installation, la marque, le modèle et les photos pourront être collectées via le formulaire.',
+                        'Les informations importantes comme le type d'installation, la marque, le modèle et les photos pourront être collectées via le formulaire.',
                 ],
             ],
         ],

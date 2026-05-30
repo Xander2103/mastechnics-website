@@ -62,7 +62,7 @@
             'attachments' => 'Nombre de pièces jointes',
             'files' => 'fichier(s)',
             'description' => 'Description',
-            'next' => 'Vous n’avez rien d’autre à faire pour le moment. S’il manque des informations, nous vous contacterons.',
+            'next' => 'Vous n'avez rien d'autre à faire pour le moment. S'il manque des informations, nous vous contacterons.',
             'automatic' => 'Cette confirmation a été envoyée automatiquement par',
             'yes' => 'Oui',
             'no' => 'Non',

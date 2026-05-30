@@ -20,7 +20,7 @@
             'panel_points' => [
                 'Kies de juiste dienst',
                 'Vul technische info in over je installatie of probleem',
-                'Voeg later foto’s toe indien nodig',
+                'Voeg later foto's toe indien nodig',
                 'Ontvang sneller een richtprijs of oplossing',
             ],
 
@@ -46,7 +46,7 @@
                 ],
                 [
                     'title' => '3. Voeg technische info toe',
-                    'description' => 'Denk aan type toestel, merk, model, serienummer of foto’s van het typeplaatje.',
+                    'description' => 'Denk aan type toestel, merk, model, serienummer of foto's van het typeplaatje.',
                 ],
                 [
                     'title' => '4. Snellere inschatting',
@@ -58,7 +58,7 @@
             'cta_label' => 'Start slim',
             'cta_title' => 'Beschrijf je probleem of project meteen duidelijk.',
             'cta_text' =>
-                'Beantwoord enkele gerichte vragen en voeg later foto’s toe. Zo komt je aanvraag gestructureerd binnen en kan er sneller ingeschat worden wat nodig is.',
+                'Beantwoord enkele gerichte vragen en voeg later foto's toe. Zo komt je aanvraag gestructureerd binnen en kan er sneller ingeschat worden wat nodig is.',
             'cta_button' => 'Start aanvraag',
         ],
 
@@ -81,7 +81,7 @@
             'services_intro' =>
                 $siteName .
                 ' se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
-            'more_info' => 'Plus d’infos',
+            'more_info' => 'Plus d'infos',
 
             'process_label' => 'Prise en charge intelligente',
             'process_title' => 'Pas de messages incomplets, mais les bonnes informations dès le départ.',
@@ -95,12 +95,12 @@
                 [
                     'title' => '2. Décrivez votre situation',
                     'description' =>
-                        'Indiquez s’il s’agit d’une panne, d’un entretien, d’une installation ou d’un nouveau projet.',
+                        'Indiquez s'il s'agit d'une panne, d'un entretien, d'une installation ou d'un nouveau projet.',
                 ],
                 [
                     'title' => '3. Ajoutez les infos techniques',
                     'description' =>
-                        'Type d’appareil, marque, modèle, numéro de série ou photo de la plaque signalétique.',
+                        'Type d'appareil, marque, modèle, numéro de série ou photo de la plaque signalétique.',
                 ],
                 [
                     'title' => '4. Estimation plus rapide',

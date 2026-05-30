@@ -14,34 +14,16 @@ class CustomerRequestController extends Controller
 {
     public function store(Request $request, string $locale): RedirectResponse
     {
-        $services = collect(config('services'))
-            ->filter(fn(array $service): bool => $service['is_active'] ?? false)
-            ->map(function (array $service) use ($locale): array {
-                return $service['translations'][$locale] ?? $service['translations']['nl'];
-            })
-            ->values();
-
-        $serviceSlugs = $services
-            ->pluck('slug')
-            ->toArray();
-
-        $requestTypes = collect(config('request-flow.request_types', []));
-        $requestTypeValues = $requestTypes
-            ->pluck('value')
-            ->toArray();
+        $serviceCategories = collect(config('request-flow.service_categories', []));
+        $allowedCategoryValues = $serviceCategories->pluck('value')->toArray();
 
         $dynamicFields = $this->getDynamicFields();
 
         $rules = [
-            'service_slug' => [
+            'service_category' => [
                 'required',
                 'string',
-                Rule::in($serviceSlugs),
-            ],
-            'request_type' => [
-                'required',
-                'string',
-                Rule::in($requestTypeValues),
+                Rule::in($allowedCategoryValues),
             ],
             'attachments' => [
                 'nullable',
@@ -61,14 +43,30 @@ class CustomerRequestController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        $selectedService = $services->firstWhere('slug', $validatedData['service_slug']);
-        $selectedRequestType = $requestTypes->firstWhere('value', $validatedData['request_type']);
+        // Derive service_slug and request_type from the selected service_category
+        $submittedCategory = $validatedData['service_category'];
+        $categoryConfig = $serviceCategories->firstWhere('value', $submittedCategory);
+
+        $serviceKey = $categoryConfig['service_key'] ?? 'heating';
+        $derivedRequestType = $categoryConfig['request_type'] ?? 'repair';
+
+        $allServices = config('services', []);
+        $serviceConfig = $allServices[$serviceKey] ?? null;
+        $serviceSlug = $serviceConfig['translations'][$locale]['slug']
+            ?? $serviceConfig['translations']['nl']['slug']
+            ?? $serviceKey;
+        $serviceTitle = $serviceConfig['translations'][$locale]['title']
+            ?? $serviceConfig['translations']['nl']['title']
+            ?? $serviceKey;
+        $categoryLabels = $categoryConfig['labels'] ?? [];
+        $categoryLabel = $categoryLabels[$locale] ?? $categoryLabels['nl'] ?? $submittedCategory;
 
         $answers = [
-            'service_slug' => $validatedData['service_slug'],
-            'service_title' => $selectedService['title'] ?? $validatedData['service_slug'],
-            'request_type' => $validatedData['request_type'],
-            'request_type_label' => $this->getTranslatedLabel($selectedRequestType ?? [], $locale),
+            'service_category'       => $submittedCategory,
+            'service_category_label' => $categoryLabel,
+            'service_slug'           => $serviceSlug,
+            'service_title'          => $serviceTitle,
+            'request_type'           => $derivedRequestType,
         ];
 
         foreach ($dynamicFields as $field) {
@@ -83,33 +81,39 @@ class CustomerRequestController extends Controller
         }
 
         $customerRequest = CustomerRequest::create([
-            'locale' => $locale,
-            'service_slug' => $validatedData['service_slug'],
-            'request_type' => $validatedData['request_type'],
+            'locale'       => $locale,
+            'service_slug' => $serviceSlug,
+            'request_type' => $derivedRequestType,
+            'source'       => 'website',
 
-            'customer_name' => $answers['customer_name'] ?? '',
+            // New workflow fields
+            'service_category' => $submittedCategory,
+            'urgency_level'    => $answers['urgency_level'] ?? null,
+            'preferred_time'   => $answers['preferred_time'] ?? $answers['availability'] ?? null,
+            'customer_message' => $answers['description'] ?? null,
+            'ai_summary'                => null,
+            'ai_detected_missing_fields' => null,
+
+            // Customer info
+            'customer_name'  => $answers['customer_name'] ?? '',
             'customer_email' => $answers['customer_email'] ?? '',
             'customer_phone' => $answers['customer_phone'] ?? null,
 
-            'brand' => $answers['brand'] ?? null,
-            'device_model' => $answers['device_model'] ?? null,
-            'serial_number' => $answers['serial_number'] ?? null,
+            // Technical (from general technical_details step)
+            'brand'                  => $answers['brand'] ?? null,
+            'device_model'           => $answers['device_model'] ?? null,
+            'serial_number'          => $answers['serial_number'] ?? null,
             'unknown_device_details' => $answers['unknown_device_details'] ?? false,
 
             'description' => $answers['description'] ?? '',
-            'status' => 'new',
+            'status'      => 'new',
 
             'metadata' => [
-                'source' => 'smart_request_form',
-                'service' => [
-                    'slug' => $validatedData['service_slug'],
-                    'title' => $selectedService['title'] ?? $validatedData['service_slug'],
-                ],
-                'request_type' => [
-                    'value' => $validatedData['request_type'],
-                    'label' => $this->getTranslatedLabel($selectedRequestType ?? [], $locale),
-                ],
-                'answers' => $answers,
+                'source'           => 'smart_request_form',
+                'service_category' => $submittedCategory,
+                'service'          => ['slug' => $serviceSlug, 'title' => $serviceTitle],
+                'request_type'     => ['value' => $derivedRequestType],
+                'answers'          => $answers,
             ],
         ]);
 
@@ -119,9 +123,9 @@ class CustomerRequestController extends Controller
 
                 $customerRequest->attachments()->create([
                     'original_name' => $uploadedFile->getClientOriginalName(),
-                    'path' => $path,
-                    'mime_type' => $uploadedFile->getMimeType(),
-                    'size' => $uploadedFile->getSize(),
+                    'path'          => $path,
+                    'mime_type'     => $uploadedFile->getMimeType(),
+                    'size'          => $uploadedFile->getSize(),
                 ]);
             }
         }
@@ -145,10 +149,19 @@ class CustomerRequestController extends Controller
     {
         $steps = config('request-flow.steps', []);
         $fields = [];
+        $selectedCategory = request()->input('service_category', '');
 
         foreach ($steps as $step) {
             if (($step['type'] ?? '') !== 'fields') {
                 continue;
+            }
+
+            $condition = $step['condition'] ?? null;
+            if ($condition !== null) {
+                $allowedCategories = $condition['service_categories'] ?? [];
+                if (!empty($allowedCategories) && !in_array($selectedCategory, $allowedCategories, true)) {
+                    continue; // Skip this conditional step — doesn't match submitted category
+                }
             }
 
             foreach (($step['fields'] ?? []) as $field) {
@@ -180,6 +193,7 @@ class CustomerRequestController extends Controller
 
             return $rules;
         }
+
         if ($type === 'select') {
             $rules[] = 'string';
 
@@ -222,17 +236,17 @@ class CustomerRequestController extends Controller
             return $rules;
         }
 
+        if ($type === 'number') {
+            $rules[] = 'integer';
+            $rules[] = 'min:0';
+
+            return $rules;
+        }
+
         $rules[] = 'string';
         $rules[] = 'max:255';
 
         return $rules;
     }
 
-    private function getTranslatedLabel(array $item, string $locale): string
-    {
-        return $item['labels'][$locale]
-            ?? $item['labels']['nl']
-            ?? $item['value']
-            ?? '';
-    }
 }

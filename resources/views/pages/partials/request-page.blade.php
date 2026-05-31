@@ -56,6 +56,17 @@
             'choose_option'  => 'Kies een optie',
             'privacy_notice' => 'Uw gegevens en eventuele foto\'s worden enkel gebruikt voor de opvolging van uw aanvraag en worden niet gedeeld met derden.',
             'choose_files'   => 'Bestanden kiezen',
+            'yes'                   => 'Ja',
+            'no'                    => 'Nee',
+            'room_label'            => 'Kamer',
+            'room_add'              => 'Kamer toevoegen',
+            'room_remove'           => 'Verwijder kamer',
+            'room_type_label'       => 'Type ruimte',
+            'room_width_label'      => 'Breedte (m)',
+            'room_length_label'     => 'Lengte (m)',
+            'room_surface_label'    => 'Oppervlakte (m²)',
+            'room_attic_label'      => 'Zolderkamer of onder plat dak?',
+            'room_windows_label'    => 'Veel grote ramen?',
         ],
         'fr' => [
             'hero_badge'     => 'Demande intelligente',
@@ -76,6 +87,17 @@
             'choose_option'  => 'Choisissez une option',
             'privacy_notice' => 'Vos données et éventuelles photos sont utilisées uniquement pour le traitement de votre demande et ne sont pas partagées avec des tiers.',
             'choose_files'   => 'Choisir des fichiers',
+            'yes'                   => 'Oui',
+            'no'                    => 'Non',
+            'room_label'            => 'Pièce',
+            'room_add'              => 'Ajouter une pièce',
+            'room_remove'           => 'Supprimer la pièce',
+            'room_type_label'       => 'Type de pièce',
+            'room_width_label'      => 'Largeur (m)',
+            'room_length_label'     => 'Longueur (m)',
+            'room_surface_label'    => 'Surface (m²)',
+            'room_attic_label'      => 'Chambre mansardée ou sous toit plat ?',
+            'room_windows_label'    => 'Beaucoup de grandes fenêtres ?',
         ],
         'en' => [
             'hero_badge'     => 'Smart request',
@@ -96,10 +118,24 @@
             'choose_option'  => 'Choose an option',
             'privacy_notice' => 'Your data and any photos are used solely to process your request and are not shared with third parties.',
             'choose_files'   => 'Choose files',
+            'yes'                   => 'Yes',
+            'no'                    => 'No',
+            'room_label'            => 'Room',
+            'room_add'              => 'Add room',
+            'room_remove'           => 'Remove room',
+            'room_type_label'       => 'Room type',
+            'room_width_label'      => 'Width (m)',
+            'room_length_label'     => 'Length (m)',
+            'room_surface_label'    => 'Area (m²)',
+            'room_attic_label'      => 'Attic or flat roof?',
+            'room_windows_label'    => 'Many large windows?',
         ],
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
+
+    $hasErrors       = $errors->any();
+    $errorFieldNames = $hasErrors ? $errors->keys() : [];
 @endphp
 
 <div class="request-page-wrapper">
@@ -174,12 +210,28 @@
                             @foreach ($steps as $stepIndex => $step)
                                 @php
                                     $conditionCategories = $getConditionCategories($step);
-                                    $isVisibleByDefault = $stepMatchesOldInput($step);
+                                    $isVisibleByDefault  = $stepMatchesOldInput($step);
+                                    $stepType = $step['type'] ?? '';
+                                    if ($stepType === 'service_category_selection') {
+                                        $sectionFields = 'service_category';
+                                    } elseif ($stepType === 'summary') {
+                                        $sectionFields = '';
+                                    } else {
+                                        // airco_rooms type will use 'rooms' prefix; standard fields use their name
+                                        $sectionFields = collect($step['fields'] ?? [])
+                                            ->pluck('name')
+                                            ->filter()
+                                            ->prepend($stepType === 'airco_rooms' ? 'rooms' : null)
+                                            ->filter()
+                                            ->unique()
+                                            ->implode(',');
+                                    }
                                 @endphp
 
                                 <section
                                     class="form-section {{ $isVisibleByDefault ? '' : 'is-condition-hidden' }}"
                                     data-step="{{ $stepIndex }}"
+                                    data-fields="{{ $sectionFields }}"
                                     @if (!empty($conditionCategories))
                                         data-condition-service-categories="{{ implode(',', $conditionCategories) }}"
                                     @endif
@@ -213,6 +265,134 @@
                                         @error('service_category')
                                             <p class="field-error-text">{{ $message }}</p>
                                         @enderror
+                                    @elseif (($step['type'] ?? '') === 'airco_rooms')
+                                        @php
+                                            $roomTypes = $step['room_types'] ?? [];
+                                            $oldRooms  = old('rooms', [
+                                                ['type' => '', 'width' => '', 'length' => '', 'surface' => '', 'attic_or_flat_roof' => '', 'large_windows' => ''],
+                                            ]);
+                                            $yesNoOptions = [
+                                                ['value' => 'yes', 'label' => $text['yes'] ?? 'Ja'],
+                                                ['value' => 'no',  'label' => $text['no']  ?? 'Nee'],
+                                            ];
+                                        @endphp
+
+                                        <div class="room-manager" id="roomManager"
+                                             data-room-label="{{ $text['room_label'] }}"
+                                             data-room-add-label="{{ $text['room_add'] }}"
+                                             data-room-remove-label="{{ $text['room_remove'] }}">
+
+                                            @foreach ($oldRooms as $ri => $room)
+                                                <div class="room-entry" data-room-index="{{ $ri }}">
+                                                    <div class="room-entry-header">
+                                                        <h4 class="room-entry-title">{{ $text['room_label'] }} {{ $ri + 1 }}</h4>
+                                                        @if ($ri > 0)
+                                                            <button type="button" class="room-remove-btn button button-ghost button-small">{{ $text['room_remove'] }}</button>
+                                                        @endif
+                                                    </div>
+                                                    <div class="form-grid room-fields">
+                                                        <label>
+                                                            <span>{{ $text['room_type_label'] }}</span>
+                                                            <select name="rooms[{{ $ri }}][type]">
+                                                                <option value="">{{ $text['choose_option'] }}</option>
+                                                                @foreach ($roomTypes as $rt)
+                                                                    <option value="{{ $rt['value'] }}"
+                                                                        {{ ($room['type'] ?? '') === $rt['value'] ? 'selected' : '' }}>
+                                                                        {{ $rt['labels'][$locale] ?? $rt['labels']['nl'] }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </label>
+                                                        <label>
+                                                            <span>{{ $text['room_width_label'] }}</span>
+                                                            <input type="number" name="rooms[{{ $ri }}][width]"
+                                                                   value="{{ $room['width'] ?? '' }}"
+                                                                   min="1" max="50" step="0.1"
+                                                                   class="room-dim-input room-width">
+                                                        </label>
+                                                        <label>
+                                                            <span>{{ $text['room_length_label'] }}</span>
+                                                            <input type="number" name="rooms[{{ $ri }}][length]"
+                                                                   value="{{ $room['length'] ?? '' }}"
+                                                                   min="1" max="50" step="0.1"
+                                                                   class="room-dim-input room-length">
+                                                        </label>
+                                                        <label>
+                                                            <span>{{ $text['room_surface_label'] }}</span>
+                                                            <input type="number" name="rooms[{{ $ri }}][surface]"
+                                                                   value="{{ ($room['width'] ?? '') !== '' && ($room['length'] ?? '') !== '' ? round((float)$room['width'] * (float)$room['length'], 1) : '' }}"
+                                                                   readonly class="room-surface">
+                                                        </label>
+                                                        <label>
+                                                            <span>{{ $text['room_attic_label'] }}</span>
+                                                            <select name="rooms[{{ $ri }}][attic_or_flat_roof]">
+                                                                <option value="">{{ $text['choose_option'] }}</option>
+                                                                @foreach ($yesNoOptions as $opt)
+                                                                    <option value="{{ $opt['value'] }}"
+                                                                        {{ ($room['attic_or_flat_roof'] ?? '') === $opt['value'] ? 'selected' : '' }}>
+                                                                        {{ $opt['label'] }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </label>
+                                                        <label>
+                                                            <span>{{ $text['room_windows_label'] }}</span>
+                                                            <select name="rooms[{{ $ri }}][large_windows]">
+                                                                <option value="">{{ $text['choose_option'] }}</option>
+                                                                @foreach ($yesNoOptions as $opt)
+                                                                    <option value="{{ $opt['value'] }}"
+                                                                        {{ ($room['large_windows'] ?? '') === $opt['value'] ? 'selected' : '' }}>
+                                                                        {{ $opt['label'] }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+
+                                            <button type="button" id="addRoomBtn" class="button button-ghost room-add-btn">
+                                                + {{ $text['room_add'] }}
+                                            </button>
+                                        </div>
+
+                                        {{-- Regular fields for this step: outdoor unit, house age, timing --}}
+                                        @if (!empty($step['fields']))
+                                            <div class="form-grid" style="margin-top: 24px;">
+                                                @foreach ($step['fields'] as $field)
+                                                    <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
+                                                        <span>{{ $getLabel($field) }}</span>
+                                                        @if (($field['type'] ?? '') === 'select')
+                                                            <select name="{{ $field['name'] }}">
+                                                                <option value="">{{ $text['choose_option'] }}</option>
+                                                                @foreach ($field['options'] ?? [] as $option)
+                                                                    <option value="{{ $option['value'] }}"
+                                                                        {{ old($field['name']) === $option['value'] ? 'selected' : '' }}>
+                                                                        {{ $getLabel($option) }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        @else
+                                                            <input type="{{ $field['type'] ?? 'text' }}"
+                                                                   name="{{ $field['name'] }}"
+                                                                   value="{{ old($field['name']) }}"
+                                                                   placeholder="{{ $getPlaceholder($field) }}">
+                                                        @endif
+                                                        @error($field['name'])
+                                                            <p class="field-error-text">{{ $message }}</p>
+                                                        @enderror
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        @if (isset($step['helper_box']))
+                                            <div class="upload-box upload-box--info-only" style="margin-top: 18px;">
+                                                <strong>{{ $step['helper_box']['title'][$locale] ?? $step['helper_box']['title']['nl'] }}</strong>
+                                                <p>{{ $step['helper_box']['text'][$locale] ?? $step['helper_box']['text']['nl'] }}</p>
+                                            </div>
+                                        @endif
+
                                     @elseif (($step['type'] ?? '') === 'fields')
                                         @if (isset($step['urgent_warning']))
                                             <div class="urgent-warning-box">
@@ -358,6 +538,13 @@
                             @endforeach
                         </div>
 
+                        {{-- Wizard error state: JS reads this to jump to the first error step --}}
+                        <div id="wizardErrorState"
+                             data-has-errors="{{ $hasErrors ? 'true' : 'false' }}"
+                             data-error-fields='@json($errorFieldNames)'
+                             aria-hidden="true"
+                             style="display:none"></div>
+
                         <div class="wizard-nav-bar">
                             <button type="button" id="wizardTerug" class="button button-ghost wizard-nav-back is-wizard-hidden">
                                 &larr; {{ $text['terug'] }}
@@ -440,7 +627,13 @@
         // Sidebar active
         var activeDomStep = sections[index] ? parseInt(sections[index].dataset.step, 10) : -1;
         sidebarItems.forEach(function (item) {
-            item.classList.toggle('is-active', parseInt(item.dataset.stepNav, 10) === activeDomStep);
+            var isActive = parseInt(item.dataset.stepNav, 10) === activeDomStep;
+            item.classList.toggle('is-active', isActive);
+            if (isActive) {
+                item.setAttribute('aria-current', 'step');
+            } else {
+                item.removeAttribute('aria-current');
+            }
         });
 
         // Step count text
@@ -573,13 +766,137 @@
         }
     }
 
+    // ── Room manager ─────────────────────────────────────────────────────────
+    function initRoomManager() {
+        var manager = document.getElementById('roomManager');
+        if (!manager) return;
+
+        var addBtn = document.getElementById('addRoomBtn');
+
+        function getEntries() {
+            return Array.from(manager.querySelectorAll('.room-entry'));
+        }
+
+        function calcSurface(entry) {
+            var wInput = entry.querySelector('.room-width');
+            var lInput = entry.querySelector('.room-length');
+            var sInput = entry.querySelector('.room-surface');
+            if (!wInput || !lInput || !sInput) return;
+            var w = parseFloat(wInput.value.replace(',', '.')) || 0;
+            var l = parseFloat(lInput.value.replace(',', '.')) || 0;
+            sInput.value = (w > 0 && l > 0) ? (Math.round(w * l * 10) / 10) : '';
+        }
+
+        function renumber() {
+            var roomLabel = manager.dataset.roomLabel || 'Kamer';
+            var removeLabel = manager.dataset.roomRemoveLabel || 'Verwijder kamer';
+            getEntries().forEach(function (entry, idx) {
+                entry.dataset.roomIndex = idx;
+
+                // Update name attributes
+                entry.querySelectorAll('[name]').forEach(function (el) {
+                    el.name = el.name.replace(/rooms\[\d+\]/, 'rooms[' + idx + ']');
+                });
+
+                // Update title via textContent (safe — idx is an integer, roomLabel is a PHP-rendered string)
+                var title = entry.querySelector('.room-entry-title');
+                if (title) title.textContent = roomLabel + ' ' + (idx + 1);
+
+                // Show/hide remove button
+                var removeBtn = entry.querySelector('.room-remove-btn');
+                if (removeBtn) {
+                    removeBtn.style.display = idx === 0 ? 'none' : '';
+                    removeBtn.textContent = removeLabel;
+                }
+            });
+        }
+
+        // Surface calculation — delegated to manager
+        manager.addEventListener('input', function (e) {
+            if (e.target.classList.contains('room-dim-input')) {
+                calcSurface(e.target.closest('.room-entry'));
+            }
+        });
+
+        // Remove room — delegated
+        manager.addEventListener('click', function (e) {
+            var btn = e.target.closest('.room-remove-btn');
+            if (!btn) return;
+            var entry = btn.closest('.room-entry');
+            if (!entry || getEntries().length <= 1) return;
+            entry.remove();
+            renumber();
+        });
+
+        // Add room
+        if (addBtn) {
+            addBtn.addEventListener('click', function () {
+                var entries = getEntries();
+                var newIdx  = entries.length;
+
+                // Build new room entry via createElement (never innerHTML with user data)
+                var clone = entries[entries.length - 1].cloneNode(true);
+                clone.dataset.roomIndex = newIdx;
+
+                // Clear all input/select values
+                clone.querySelectorAll('input, select').forEach(function (el) {
+                    el.value = '';
+                });
+
+                // Fix name attributes to new index
+                clone.querySelectorAll('[name]').forEach(function (el) {
+                    el.name = el.name.replace(/rooms\[\d+\]/, 'rooms[' + newIdx + ']');
+                });
+
+                // Title and remove button updated by renumber()
+                manager.insertBefore(clone, addBtn);
+                renumber();
+
+                // Scroll new room into view
+                clone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        }
+
+        // Init: renumber and calculate surface for server-rendered rooms (old input)
+        renumber();
+        getEntries().forEach(calcSurface);
+    }
+
+    // ── Validation error recovery ─────────────────────────────────────────────
+    function findErrorStep(sections, errorFields) {
+        if (!errorFields || errorFields.length === 0) return 0;
+        for (var i = 0; i < sections.length; i++) {
+            var sectionFields = (sections[i].dataset.fields || '').split(',').filter(Boolean);
+            for (var f = 0; f < sectionFields.length; f++) {
+                var name = sectionFields[f];
+                for (var e = 0; e < errorFields.length; e++) {
+                    // Exact match OR prefix match for array fields (e.g. 'rooms' matches 'rooms.0.type')
+                    if (errorFields[e] === name || errorFields[e].indexOf(name + '.') === 0) {
+                        return i;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
     // ── Init ──────────────────────────────────────────────────────────────────
     function init() {
         formCard.classList.add('is-wizard-active');
+        initRoomManager();
         var initialCategory = getSelectedCategory();
         visibleSections     = computeVisible(initialCategory);
         updateConditionalVisibility(initialCategory);
-        showStep(visibleSections, 0);
+
+        var errorEl    = document.getElementById('wizardErrorState');
+        var hasErrors  = errorEl && errorEl.dataset.hasErrors === 'true';
+        var errorFields = [];
+        if (hasErrors && errorEl.dataset.errorFields) {
+            try { errorFields = JSON.parse(errorEl.dataset.errorFields); } catch (e) {}
+        }
+
+        var startIndex = hasErrors ? findErrorStep(visibleSections, errorFields) : 0;
+        showStep(visibleSections, startIndex);
     }
 
     if (document.readyState === 'loading') {

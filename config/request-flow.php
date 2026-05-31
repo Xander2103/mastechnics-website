@@ -462,46 +462,42 @@ return [
         // ── Step 3 (conditional) ─────────────────────────────────────────────
         [
             'code'      => 'airco_offerte_details',
-            'type'      => 'fields',
+            'type'      => 'airco_rooms',
             'condition' => [
                 'service_categories' => ['airco_offerte'],
             ],
             'labels' => [
-                'nl' => 'Details voor uw airco-offerte',
-                'fr' => 'Détails pour votre offre climatisation',
-                'en' => 'Details for your air conditioning quote',
+                'nl' => 'Kamers en installatie',
+                'fr' => 'Pièces et installation',
+                'en' => 'Rooms and installation',
+            ],
+            'room_types' => [
+                [
+                    'value'  => 'slaapkamer',
+                    'labels' => ['nl' => 'Slaapkamer', 'fr' => 'Chambre', 'en' => 'Bedroom'],
+                ],
+                [
+                    'value'  => 'woonkamer',
+                    'labels' => ['nl' => 'Woonkamer', 'fr' => 'Salon', 'en' => 'Living room'],
+                ],
+                [
+                    'value'  => 'bureau',
+                    'labels' => ['nl' => 'Bureau', 'fr' => 'Bureau', 'en' => 'Office'],
+                ],
+                [
+                    'value'  => 'keuken',
+                    'labels' => ['nl' => 'Keuken', 'fr' => 'Cuisine', 'en' => 'Kitchen'],
+                ],
+                [
+                    'value'  => 'zolderkamer',
+                    'labels' => ['nl' => 'Zolderkamer', 'fr' => 'Chambre mansardée', 'en' => 'Attic room'],
+                ],
+                [
+                    'value'  => 'andere',
+                    'labels' => ['nl' => 'Andere ruimte', 'fr' => 'Autre pièce', 'en' => 'Other room'],
+                ],
             ],
             'fields' => [
-                [
-                    'name'        => 'airco_rooms_count',
-                    'type'        => 'number',
-                    'required'    => false,
-                    'labels'      => [
-                        'nl' => 'Aantal ruimtes',
-                        'fr' => 'Nombre de pièces',
-                        'en' => 'Number of rooms',
-                    ],
-                    'placeholder' => [
-                        'nl' => '1',
-                        'fr' => '1',
-                        'en' => '1',
-                    ],
-                ],
-                [
-                    'name'        => 'airco_room_types',
-                    'type'        => 'text',
-                    'required'    => false,
-                    'labels'      => [
-                        'nl' => 'Type ruimtes',
-                        'fr' => 'Type de pièces',
-                        'en' => 'Room types',
-                    ],
-                    'placeholder' => [
-                        'nl' => 'Slaapkamer, living, bureau...',
-                        'fr' => 'Chambre, salon, bureau...',
-                        'en' => 'Bedroom, living room, office...',
-                    ],
-                ],
                 [
                     'name'     => 'airco_has_outdoor_unit',
                     'type'     => 'select',
@@ -514,27 +510,39 @@ return [
                     'options' => [
                         [
                             'value'  => 'yes',
-                            'labels' => [
-                                'nl' => 'Ja',
-                                'fr' => 'Oui',
-                                'en' => 'Yes',
-                            ],
+                            'labels' => ['nl' => 'Ja', 'fr' => 'Oui', 'en' => 'Yes'],
                         ],
                         [
                             'value'  => 'no',
-                            'labels' => [
-                                'nl' => 'Nee',
-                                'fr' => 'Non',
-                                'en' => 'No',
-                            ],
+                            'labels' => ['nl' => 'Nee', 'fr' => 'Non', 'en' => 'No'],
                         ],
                         [
                             'value'  => 'unknown',
-                            'labels' => [
-                                'nl' => 'Ik weet het niet',
-                                'fr' => 'Je ne sais pas',
-                                'en' => 'I don\'t know',
-                            ],
+                            'labels' => ['nl' => 'Ik weet het niet', 'fr' => 'Je ne sais pas', 'en' => 'I don\'t know'],
+                        ],
+                    ],
+                ],
+                [
+                    'name'     => 'airco_house_age',
+                    'type'     => 'select',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Is de woning ouder dan 10 jaar?',
+                        'fr' => 'Le logement a-t-il plus de 10 ans ?',
+                        'en' => 'Is the property older than 10 years?',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'yes',
+                            'labels' => ['nl' => 'Ja', 'fr' => 'Oui', 'en' => 'Yes'],
+                        ],
+                        [
+                            'value'  => 'no',
+                            'labels' => ['nl' => 'Nee', 'fr' => 'Non', 'en' => 'No'],
+                        ],
+                        [
+                            'value'  => 'unknown',
+                            'labels' => ['nl' => 'Ik weet het niet', 'fr' => 'Je ne sais pas', 'en' => 'I don\'t know'],
                         ],
                     ],
                 ],
@@ -562,9 +570,9 @@ return [
                     'en' => 'Add photos (optional)',
                 ],
                 'text'          => [
-                    'nl' => 'Foto\'s van de ruimtes of de geplande buitenunit-locatie helpen bij de offerte. Upload via \'Probleem of project\' hieronder.',
-                    'fr' => 'Des photos des pièces ou de l\'emplacement prévu pour l\'unité extérieure facilitent l\'établissement de l\'offre. Téléchargez via \'Problème ou projet\' ci-dessous.',
-                    'en' => 'Photos of the rooms or the planned outdoor unit location help with the quote. Upload via \'Issue or project\' below.',
+                    'nl' => 'Foto\'s van de ruimtes of de geplande buitenunit-locatie helpen bij de offerte. Upload ze bij \'Probleem of project\' verderop.',
+                    'fr' => 'Des photos des pièces ou de l\'emplacement prévu pour l\'unité extérieure facilitent le devis. Téléchargez-les via \'Problème ou projet\' plus bas.',
+                    'en' => 'Photos of the rooms or the planned outdoor unit location help with the quote. Upload them via \'Issue or project\' below.',
                 ],
             ],
         ],

@@ -41,6 +41,17 @@ class CustomerRequestController extends Controller
             $rules[$field['name']] = $this->buildRulesForField($field);
         }
 
+        // Rooms validation (only for airco_offerte)
+        $categoryForRooms = $request->input('service_category', '');
+        if ($categoryForRooms === 'airco_offerte') {
+            $rules['rooms']                          = ['required', 'array', 'min:1', 'max:10'];
+            $rules['rooms.*.type']                   = ['required', 'string', 'in:slaapkamer,woonkamer,bureau,keuken,zolderkamer,andere'];
+            $rules['rooms.*.width']                  = ['required', 'numeric', 'min:1', 'max:50'];
+            $rules['rooms.*.length']                 = ['required', 'numeric', 'min:1', 'max:50'];
+            $rules['rooms.*.attic_or_flat_roof']     = ['nullable', 'string', 'in:yes,no'];
+            $rules['rooms.*.large_windows']          = ['nullable', 'string', 'in:yes,no'];
+        }
+
         $validatedData = $request->validate($rules);
 
         // Derive service_slug and request_type from the selected service_category
@@ -78,6 +89,24 @@ class CustomerRequestController extends Controller
             }
 
             $answers[$fieldName] = $validatedData[$fieldName] ?? null;
+        }
+
+        // Store rooms for airco_offerte with server-side surface calculation
+        if ($submittedCategory === 'airco_offerte' && $request->has('rooms')) {
+            $processedRooms = [];
+            foreach ($request->input('rooms', []) as $room) {
+                $w = round((float) ($room['width']  ?? 0), 2);
+                $l = round((float) ($room['length'] ?? 0), 2);
+                $processedRooms[] = [
+                    'type'               => $room['type']               ?? null,
+                    'width'              => $w,
+                    'length'             => $l,
+                    'surface'            => ($w > 0 && $l > 0) ? round($w * $l, 1) : null,
+                    'attic_or_flat_roof' => $room['attic_or_flat_roof'] ?? null,
+                    'large_windows'      => $room['large_windows']      ?? null,
+                ];
+            }
+            $answers['rooms'] = $processedRooms;
         }
 
         $customerRequest = CustomerRequest::create([
@@ -152,7 +181,24 @@ class CustomerRequestController extends Controller
         $selectedCategory = request()->input('service_category', '');
 
         foreach ($steps as $step) {
-            if (($step['type'] ?? '') !== 'fields') {
+            $stepType = $step['type'] ?? '';
+
+            // airco_rooms: process its regular fields (outdoor unit, house age, timing)
+            if ($stepType === 'airco_rooms') {
+                $condition = $step['condition'] ?? null;
+                if ($condition !== null) {
+                    $allowedCategories = $condition['service_categories'] ?? [];
+                    if (!empty($allowedCategories) && !in_array($selectedCategory, $allowedCategories, true)) {
+                        continue;
+                    }
+                }
+                foreach (($step['fields'] ?? []) as $field) {
+                    $fields[] = $field;
+                }
+                continue;
+            }
+
+            if ($stepType !== 'fields') {
                 continue;
             }
 

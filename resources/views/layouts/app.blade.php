@@ -99,7 +99,7 @@
     @if (isset($page))
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
+        "@@context": "https://schema.org",
         "@type": "LocalBusiness",
         "name": "{{ config('site.name') }}",
         "telephone": "{{ config('site.contact.phone_display') }}",
@@ -248,6 +248,7 @@
                 </a>
             @endif
         </div>
+    </footer>
 </body>
 
 </html>

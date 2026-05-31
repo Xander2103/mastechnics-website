@@ -82,9 +82,16 @@
     font-size: 0.9rem;
 }
 
-.footer-privacy-note {
-    opacity: 0.75;
+.footer-privacy-link {
+    color: #9fb5ca;
     font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.footer-privacy-link:hover {
+    color: var(--color-white);
 }
 
 .footer-admin-link {

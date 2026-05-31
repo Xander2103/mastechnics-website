@@ -42,6 +42,14 @@
     gap: 10px;
 }
 
+/* ================================
+   Wizard form area
+================================ */
+
+.request-form-area {
+    min-width: 0;
+}
+
 .request-step {
     cursor: pointer;
     padding: 15px 16px;
@@ -92,6 +100,81 @@
 
 .is-condition-hidden {
     display: none !important;
+}
+
+/* ================================
+   Wizard step visibility
+================================ */
+
+/* When JS activates wizard mode, all steps hidden by default */
+.request-form-card.is-wizard-active .form-section {
+    display: none;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
+}
+
+/* Show only the current wizard step */
+.request-form-card.is-wizard-active .form-section.wizard-current {
+    display: block;
+}
+
+/* Used by JS to toggle Terug / Submit / Verder visibility */
+.is-wizard-hidden {
+    display: none !important;
+}
+
+/* ================================
+   Wizard progress bar
+================================ */
+
+.wizard-progress-wrap {
+    height: 4px;
+    margin-bottom: 16px;
+    border-radius: 999px;
+    background: rgba(15, 102, 194, 0.12);
+    overflow: hidden;
+}
+
+.wizard-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--color-primary);
+    transition: width 0.35s ease;
+    width: 0%;
+}
+
+/* ================================
+   Wizard navigation bar
+================================ */
+
+.wizard-nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.wizard-step-count {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-muted);
+    white-space: nowrap;
+}
+
+.wizard-nav-forward {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Disabled Verder state */
+.wizard-nav-bar .button[disabled],
+.wizard-nav-bar .button[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* ================================
@@ -747,6 +830,32 @@ textarea {
 
     .button-row .button,
     .request-form-card .button {
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* Wizard nav bar — stack cleanly on mobile */
+    .wizard-nav-bar {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .wizard-step-count {
+        order: -1;
+        width: 100%;
+        text-align: center;
+    }
+
+    .wizard-nav-back {
+        flex: 1;
+    }
+
+    .wizard-nav-forward {
+        flex: 1;
+        justify-content: flex-end;
+    }
+
+    .wizard-nav-forward .button {
         justify-content: center;
         width: 100%;
     }

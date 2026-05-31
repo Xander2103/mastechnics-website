@@ -35,9 +35,9 @@ return [
                 [
                     'value'       => 'airco_offerte',
                     'labels'      => [
-                        'nl' => 'Airco laten plaatsen',
-                        'fr' => 'Faire installer une climatisation',
-                        'en' => 'Install air conditioning',
+                        'nl' => 'Ik wil een airco laten plaatsen',
+                        'fr' => 'Je veux faire installer une climatisation',
+                        'en' => 'I want to install air conditioning',
                     ],
                     'description' => [
                         'nl' => 'Voor een nieuwe airco-installatie of offerte.',
@@ -48,9 +48,9 @@ return [
                 [
                     'value'       => 'airco_onderhoud',
                     'labels'      => [
-                        'nl' => 'Onderhoud van airco',
-                        'fr' => 'Entretien de votre climatisation',
-                        'en' => 'Air conditioning maintenance',
+                        'nl' => 'Mijn airco heeft onderhoud nodig',
+                        'fr' => 'Ma climatisation a besoin d\'entretien',
+                        'en' => 'My air conditioning needs maintenance',
                     ],
                     'description' => [
                         'nl' => 'Voor reiniging, controle of periodiek onderhoud.',
@@ -61,9 +61,9 @@ return [
                 [
                     'value'       => 'onderhoud_cv',
                     'labels'      => [
-                        'nl' => 'Onderhoud van verwarming',
-                        'fr' => 'Entretien du chauffage',
-                        'en' => 'Heating maintenance',
+                        'nl' => 'Mijn verwarming heeft onderhoud nodig',
+                        'fr' => 'Mon chauffage a besoin d\'entretien',
+                        'en' => 'My heating needs maintenance',
                     ],
                     'description' => [
                         'nl' => 'Voor onderhoud van uw ketel of centrale verwarming.',
@@ -74,9 +74,9 @@ return [
                 [
                     'value'       => 'herstelling_cv',
                     'labels'      => [
-                        'nl' => 'Verwarming herstellen',
-                        'fr' => 'Réparer le chauffage',
-                        'en' => 'Fix heating system',
+                        'nl' => 'Mijn verwarming werkt niet goed',
+                        'fr' => 'Mon chauffage ne fonctionne pas bien',
+                        'en' => 'My heating is not working properly',
                     ],
                     'description' => [
                         'nl' => 'Voor storingen, geen warm water of verwarming die niet werkt.',
@@ -87,9 +87,9 @@ return [
                 [
                     'value'       => 'dringend_lek',
                     'labels'      => [
-                        'nl' => 'Dringend probleem of lek',
-                        'fr' => 'Problème urgent ou fuite',
-                        'en' => 'Urgent issue or leak',
+                        'nl' => 'Ik heb een lek of dringend probleem',
+                        'fr' => 'J\'ai une fuite ou un problème urgent',
+                        'en' => 'I have a leak or urgent problem',
                     ],
                     'description' => [
                         'nl' => 'Bij waterlek, verlies van druk of dringende panne.',
@@ -100,9 +100,9 @@ return [
                 [
                     'value'       => 'sanitair',
                     'labels'      => [
-                        'nl' => 'Sanitair of loodgieterij',
-                        'fr' => 'Sanitaire ou plomberie',
-                        'en' => 'Plumbing or sanitary',
+                        'nl' => 'Ik heb hulp nodig met sanitair',
+                        'fr' => 'J\'ai besoin d\'aide pour la plomberie',
+                        'en' => 'I need help with plumbing',
                     ],
                     'description' => [
                         'nl' => 'Voor kranen, leidingen, afvoer, toilet of badkamer.',
@@ -113,9 +113,9 @@ return [
                 [
                     'value'       => 'ventilatie',
                     'labels'      => [
-                        'nl' => 'Ventilatie',
-                        'fr' => 'Ventilation',
-                        'en' => 'Ventilation',
+                        'nl' => 'Ik zoek hulp met ventilatie',
+                        'fr' => 'J\'ai besoin d\'aide pour la ventilation',
+                        'en' => 'I need help with ventilation',
                     ],
                     'description' => [
                         'nl' => 'Voor plaatsing, onderhoud of problemen met ventilatie.',
@@ -126,9 +126,9 @@ return [
                 [
                     'value'       => 'waterverzachter',
                     'labels'      => [
-                        'nl' => 'Waterverzachter',
-                        'fr' => 'Adoucisseur d\'eau',
-                        'en' => 'Water softener',
+                        'nl' => 'Ik zoek een waterverzachter',
+                        'fr' => 'Je cherche un adoucisseur d\'eau',
+                        'en' => 'I\'m looking for a water softener',
                     ],
                     'description' => [
                         'nl' => 'Voor installatie, onderhoud of controle.',
@@ -139,9 +139,9 @@ return [
                 [
                     'value'       => 'koeling',
                     'labels'      => [
-                        'nl' => 'Koeling of koelcel',
-                        'fr' => 'Réfrigération ou chambre froide',
-                        'en' => 'Cooling or cold room',
+                        'nl' => 'Ik heb een vraag over koeling / koelcel',
+                        'fr' => 'J\'ai une question sur la réfrigération',
+                        'en' => 'I have a question about cooling / cold room',
                     ],
                     'description' => [
                         'nl' => 'Voor commerciële of industriële koeling.',
@@ -152,9 +152,9 @@ return [
                 [
                     'value'       => 'andere',
                     'labels'      => [
-                        'nl' => 'Ik weet het niet / andere vraag',
-                        'fr' => 'Je ne sais pas / autre question',
-                        'en' => 'I\'m not sure / other question',
+                        'nl' => 'Ik weet het niet goed',
+                        'fr' => 'Je ne suis pas sûr(e)',
+                        'en' => 'I\'m not sure',
                     ],
                     'description' => [
                         'nl' => 'Niet zeker? Beschrijf uw situatie en wij bekijken het.',

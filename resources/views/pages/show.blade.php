@@ -12,6 +12,8 @@
         @include('pages.partials.request-page')
     @elseif ($page->type === 'contact')
         @include('pages.partials.contact-page')
+    @elseif ($page->type === 'privacy')
+        @include('pages.partials.privacy-page')
     @else
         @include('pages.partials.default-page')
     @endif

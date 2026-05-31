@@ -53,10 +53,24 @@
         'en' => 'contact',
     ];
 
+    $privacySlugs = [
+        'nl' => 'privacybeleid',
+        'fr' => 'politique-confidentialite',
+        'en' => 'privacy-policy',
+    ];
+
+    $privacyLabels = [
+        'nl' => 'Privacybeleid',
+        'fr' => 'Politique de confidentialite',
+        'en' => 'Privacy Policy',
+    ];
+
     $nav = $navLabels[$currentLocale] ?? $navLabels['nl'];
-    $serviceSlug = $serviceSlugs[$currentLocale] ?? $serviceSlugs['nl'];
-    $requestSlug = $requestSlugs[$currentLocale] ?? $requestSlugs['nl'];
-    $contactSlug = $contactSlugs[$currentLocale] ?? $contactSlugs['nl'];
+    $serviceSlug  = $serviceSlugs[$currentLocale]  ?? $serviceSlugs['nl'];
+    $requestSlug  = $requestSlugs[$currentLocale]  ?? $requestSlugs['nl'];
+    $contactSlug  = $contactSlugs[$currentLocale]  ?? $contactSlugs['nl'];
+    $privacySlug  = $privacySlugs[$currentLocale]  ?? $privacySlugs['nl'];
+    $privacyLabel = $privacyLabels[$currentLocale] ?? $privacyLabels['nl'];
 @endphp
 
 <!DOCTYPE html>
@@ -217,15 +231,9 @@
             <p>
                 &copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.
                 &nbsp;&middot;&nbsp;
-                <span class="footer-privacy-note">
-                    @if ($currentLocale === 'fr')
-                        Données traitées conformément au RGPD.
-                    @elseif ($currentLocale === 'en')
-                        Data handled in accordance with GDPR.
-                    @else
-                        Gegevens verwerkt conform de AVG/GDPR.
-                    @endif
-                </span>
+                <a class="footer-privacy-link" href="{{ route('pages.show', ['locale' => $currentLocale, 'slug' => $privacySlug]) }}">
+                    {{ $privacyLabel }}
+                </a>
             </p>
 
             @if (session()->has('admin_user_email'))

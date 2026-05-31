@@ -6,6 +6,9 @@ use App\Http\Controllers\CustomerRequestController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])
+    ->name('sitemap');
+
 Route::redirect('/', '/nl');
 
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])

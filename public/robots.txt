@@ -1,2 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+
+# After deploying to production, uncomment the Sitemap line below
+# and replace the domain with the actual production domain.
+# Sitemap: https://mastechnics.be/sitemap.xml

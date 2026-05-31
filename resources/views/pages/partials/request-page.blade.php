@@ -488,14 +488,34 @@
 
     // ── Category change ───────────────────────────────────────────────────────
     function onCategoryChange() {
-        var category    = getSelectedCategory();
+        var category = getSelectedCategory();
+
+        // Sync .is-selected visual class on all option cards
+        document.querySelectorAll('.option-card').forEach(function (card) {
+            var inp = card.querySelector('input[type="radio"]');
+            card.classList.toggle('is-selected', !!(inp && inp.checked));
+        });
+
         visibleSections = computeVisible(category);
         updateConditionalVisibility(category);
         if (currentIndex === 0) { showStep(visibleSections, 0); }
     }
 
+    // change listener handles keyboard navigation (arrow keys between radios)
     categoryInputs.forEach(function (input) {
         input.addEventListener('change', onCategoryChange);
+    });
+
+    // click listener on the card is required because pointer-events:none on the
+    // hidden radio may prevent the label's synthetic click from firing 'change'
+    // reliably. Explicitly set checked before reading so getSelectedCategory()
+    // returns the right value at call time.
+    document.querySelectorAll('.option-card').forEach(function (card) {
+        card.addEventListener('click', function () {
+            var inp = card.querySelector('input[type="radio"]');
+            if (inp) { inp.checked = true; }
+            onCategoryChange();
+        });
     });
 
     // ── Nav buttons ───────────────────────────────────────────────────────────

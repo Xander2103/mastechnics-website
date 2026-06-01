@@ -184,17 +184,17 @@ class RequestController extends Controller
                 $category = $serviceCategoryLabels[$req->service_category] ?? $req->service_slug;
 
                 fputcsv($handle, [
-                    $req->created_at->format('d/m/Y H:i'),
-                    $req->customer_name,
-                    $req->customer_email,
-                    $req->customer_phone,
-                    $category,
+                    $req->created_at?->format('d/m/Y H:i') ?? '',
+                    $this->sanitizeCsvCell($req->customer_name),
+                    $this->sanitizeCsvCell($req->customer_email),
+                    $this->sanitizeCsvCell($req->customer_phone),
+                    $this->sanitizeCsvCell($category),
                     $statuses[$req->status] ?? $req->status,
-                    $urgencyLevelLabels[$urgency] ?? $urgency,
-                    $req->preferred_time,
-                    $answers['city'] ?? '',
-                    $answers['postal_code'] ?? '',
-                    $req->source,
+                    $this->sanitizeCsvCell($urgencyLevelLabels[$urgency] ?? ($urgency ?? '')),
+                    $this->sanitizeCsvCell($req->preferred_time),
+                    $this->sanitizeCsvCell($answers['city'] ?? ''),
+                    $this->sanitizeCsvCell($answers['postal_code'] ?? ''),
+                    $this->sanitizeCsvCell($req->source),
                 ], ';');
             }
 
@@ -237,6 +237,15 @@ class RequestController extends Controller
                 $query->whereDate('created_at', '<=', $request->string('date_to')->toString());
             })
             ->latest();
+    }
+
+    private function sanitizeCsvCell(mixed $value): string
+    {
+        $str = (string) ($value ?? '');
+        if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+            $str = "'" . $str;
+        }
+        return $str;
     }
 
     private function getStatuses(): array

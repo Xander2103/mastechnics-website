@@ -286,9 +286,8 @@
                                                 <div class="room-entry" data-room-index="{{ $ri }}">
                                                     <div class="room-entry-header">
                                                         <h4 class="room-entry-title">{{ $text['room_label'] }} {{ $ri + 1 }}</h4>
-                                                        @if ($ri > 0)
-                                                            <button type="button" class="room-remove-btn button button-ghost button-small">{{ $text['room_remove'] }}</button>
-                                                        @endif
+                                                        <button type="button" class="room-remove-btn button button-ghost button-small"
+                                                            style="{{ $ri === 0 ? 'display:none' : '' }}">{{ $text['room_remove'] }}</button>
                                                     </div>
                                                     <div class="form-grid room-fields">
                                                         <label>

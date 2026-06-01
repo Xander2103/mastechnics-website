@@ -46,6 +46,16 @@ class RequestController extends Controller
             ])
             ->toArray();
 
+        $stats = [
+            'new'       => CustomerRequest::where('status', 'new')->count(),
+            'urgent'    => CustomerRequest::where(function ($q) {
+                                $q->where('service_category', 'dringend_lek')
+                                  ->orWhereIn('urgency_level', ['water_leaking', 'small_leak', 'no_heating', 'no_hot_water', 'urgent']);
+                            })->count(),
+            'contacted' => CustomerRequest::where('status', 'contacted')->count(),
+            'planned'   => CustomerRequest::where('status', 'planned')->count(),
+        ];
+
         $customerRequests = CustomerRequest::query()
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
@@ -82,6 +92,7 @@ class RequestController extends Controller
             ->get();
 
         return view('admin.requests.index', [
+            'stats'            => $stats,
             'customerRequests' => $customerRequests,
             'statuses' => $statuses,
             'services' => $services,

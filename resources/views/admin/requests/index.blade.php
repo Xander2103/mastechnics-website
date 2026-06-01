@@ -3,6 +3,49 @@
 @section('title', 'Admin | Aanvragen')
 
 @section('content')
+    <style>
+    .admin-stats-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .admin-stat-card {
+        flex: 1 1 140px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.25rem 1rem;
+        text-decoration: none;
+        text-align: center;
+        color: inherit;
+        transition: box-shadow 0.15s;
+    }
+    .admin-stat-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .admin-stat-card-urgent {
+        border-color: #fca5a5;
+        background: #fff7f7;
+    }
+    .admin-stat-number {
+        display: block;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.1;
+        color: #111827;
+    }
+    .admin-stat-card-urgent .admin-stat-number {
+        color: #dc2626;
+    }
+    .admin-stat-label {
+        display: block;
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    </style>
+
     <section class="admin-hero">
         <div class="container">
             <span class="eyebrow">Admin</span>
@@ -13,6 +56,25 @@
 
     <section class="section section-white">
         <div class="container">
+            <div class="admin-stats-row">
+                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'new']) }}">
+                    <span class="admin-stat-number">{{ $stats['new'] }}</span>
+                    <span class="admin-stat-label">Nieuwe aanvragen</span>
+                </a>
+                <div class="admin-stat-card admin-stat-card-urgent">
+                    <span class="admin-stat-number">{{ $stats['urgent'] }}</span>
+                    <span class="admin-stat-label">Dringend</span>
+                </div>
+                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'contacted']) }}">
+                    <span class="admin-stat-number">{{ $stats['contacted'] }}</span>
+                    <span class="admin-stat-label">Te contacteren</span>
+                </a>
+                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'planned']) }}">
+                    <span class="admin-stat-number">{{ $stats['planned'] }}</span>
+                    <span class="admin-stat-label">Ingepland</span>
+                </a>
+            </div>
+
             <div class="admin-panel">
                 <div class="admin-panel-header">
                     <div>

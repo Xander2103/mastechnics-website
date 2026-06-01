@@ -90,15 +90,10 @@
             'business' => 'Bedrijf',
         ];
 
-        $urgencyLabels = [
-            'urgent' => 'Dringend',
-            'within_days' => 'Binnen enkele dagen',
-            'not_urgent' => 'Niet dringend',
-        ];
-
         $customerType = $answers['customer_type'] ?? null;
         $urgency = $answers['urgency'] ?? null;
 
+        $serviceCategoryLabels = $serviceCategoryLabels ?? [];
         $serviceCategoryLabel = null;
         if ($customerRequest->service_category) {
             $serviceCategoryLabel = $serviceCategoryLabels[$customerRequest->service_category]
@@ -208,7 +203,6 @@
                         </form>
 
                         @php
-                            $serviceCategoryLabels = $serviceCategoryLabels ?? [];
                             $snelBerichtCat = $serviceCategoryLabels[$customerRequest->service_category] ?? null;
                             $snelBericht = 'Dag ' . $customerRequest->customer_name . ', bedankt voor uw aanvraag via Mastechnics. Ik contacteer u even over uw aanvraag'
                                 . ($snelBerichtCat ? ' voor ' . $snelBerichtCat . '.' : '.');

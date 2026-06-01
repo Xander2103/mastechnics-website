@@ -27,6 +27,10 @@
     .admin-stat-card-urgent {
         border-color: #fca5a5;
         background: #fff7f7;
+        cursor: default;
+    }
+    .admin-stat-card-urgent:hover {
+        box-shadow: none;
     }
     .admin-stat-number {
         display: block;

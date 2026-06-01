@@ -46,14 +46,21 @@ class RequestController extends Controller
             ])
             ->toArray();
 
+        $statusCounts = CustomerRequest::query()
+            ->selectRaw('status, count(*) as total')
+            ->whereIn('status', ['new', 'contacted', 'planned'])
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
         $stats = [
-            'new'       => CustomerRequest::where('status', 'new')->count(),
-            'urgent'    => CustomerRequest::where(function ($q) {
-                                $q->where('service_category', 'dringend_lek')
-                                  ->orWhereIn('urgency_level', ['water_leaking', 'small_leak', 'no_heating', 'no_hot_water', 'urgent']);
-                            })->count(),
-            'contacted' => CustomerRequest::where('status', 'contacted')->count(),
-            'planned'   => CustomerRequest::where('status', 'planned')->count(),
+            'new'       => $statusCounts->get('new', 0),
+            'contacted' => $statusCounts->get('contacted', 0),
+            'planned'   => $statusCounts->get('planned', 0),
+            'urgent'    => CustomerRequest::whereNotIn('status', ['done', 'cancelled'])
+                                ->where(function ($q): void {
+                                    $q->where('service_category', 'dringend_lek')
+                                      ->orWhereIn('urgency_level', ['water_leaking', 'small_leak', 'no_heating', 'no_hot_water', 'urgent']);
+                                })->count(),
         ];
 
         $customerRequests = CustomerRequest::query()

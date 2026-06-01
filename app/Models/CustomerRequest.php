@@ -101,7 +101,7 @@ class CustomerRequest extends Model
         }
 
         // 10. Airco offerte — incomplete rooms (add once even if multiple rooms are incomplete)
-        if ($this->service_category === 'airco_offerte' && ! empty($answers['rooms'])) {
+        if ($this->service_category === 'airco_offerte' && is_array($answers['rooms'] ?? null) && ! empty($answers['rooms'])) {
             $roomIncomplete = false;
             foreach ($answers['rooms'] as $room) {
                 if (

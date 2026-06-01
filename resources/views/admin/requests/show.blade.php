@@ -28,6 +28,34 @@
     .admin-missing-info-card h2 {
         margin-bottom: 0.5rem;
     }
+    .admin-snel-bericht {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    .admin-snel-bericht h3 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+    .admin-snel-bericht-content {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        white-space: pre-wrap;
+    }
+    .admin-copy-btn {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.75rem;
+    }
+    .admin-copy-feedback {
+        margin-left: 0.5rem;
+        font-size: 0.8rem;
+        color: #059669;
+    }
     </style>
     @php
         $metadata = $customerRequest->metadata ?? [];
@@ -207,6 +235,27 @@
                             Status opslaan
                         </button>
                     </form>
+
+                    @php
+                        $serviceCategoryLabels = $serviceCategoryLabels ?? [];
+                        $snelBerichtCat = $serviceCategoryLabels[$customerRequest->service_category] ?? null;
+                        $snelBericht = 'Dag ' . $customerRequest->customer_name . ', bedankt voor uw aanvraag via Mastechnics. Ik contacteer u even over uw aanvraag'
+                            . ($snelBerichtCat ? ' voor ' . $snelBerichtCat . '.' : '.');
+                    @endphp
+
+                    <div class="admin-snel-bericht">
+                        <h3>Snel bericht</h3>
+                        <p id="admin-snel-bericht-text" class="admin-snel-bericht-content">{{ $snelBericht }}</p>
+                        <button
+                            type="button"
+                            class="button button-secondary admin-copy-btn"
+                            data-copy-target="admin-snel-bericht-text"
+                            aria-label="Bericht kopiëren"
+                        >
+                            Kopiëren
+                        </button>
+                        <span class="admin-copy-feedback" aria-live="polite"></span>
+                    </div>
                 </aside>
 
                 <div class="admin-detail-main">
@@ -413,4 +462,39 @@
             </div>
         </div>
     </section>
+    <script>
+    (function () {
+        var btn = document.querySelector('[data-copy-target="admin-snel-bericht-text"]');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            var targetId = btn.getAttribute('data-copy-target');
+            var el = document.getElementById(targetId);
+            if (!el) return;
+            var text = el.textContent || el.innerText || '';
+            var feedback = btn.parentElement.querySelector('.admin-copy-feedback');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                    if (feedback) { feedback.textContent = 'Gekopieerd!'; setTimeout(function () { feedback.textContent = ''; }, 2500); }
+                }).catch(function () {
+                    fallbackCopy(el, feedback);
+                });
+            } else {
+                fallbackCopy(el, feedback);
+            }
+        });
+
+        function fallbackCopy(el, feedback) {
+            el.focus();
+            var range = document.createRange();
+            range.selectNodeContents(el);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            var ok = false;
+            try { ok = document.execCommand('copy'); } catch (e) {}
+            sel.removeAllRanges();
+            if (feedback) { feedback.textContent = ok ? 'Gekopieerd!' : 'Selecteer handmatig.'; setTimeout(function () { feedback.textContent = ''; }, 2500); }
+        }
+    }());
+    </script>
 @endsection

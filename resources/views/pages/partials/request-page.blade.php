@@ -1106,24 +1106,29 @@
     }
 
     // ── Summary labels (PHP-rendered) ─────────────────────────────────────────
-    var summaryLabels = @json([
-        'category'      => $text['summary_category'],
-        'rooms'         => $text['summary_rooms'],
-        'room'          => $text['summary_room'],
-        'attic'         => $text['summary_attic'],
-        'largeWindows'  => $text['summary_large_windows'],
-        'houseAge'      => $text['summary_house_age'],
-        'outdoorUnit'   => $text['summary_outdoor_unit'],
-        'timing'        => $text['summary_timing'],
-        'customer'      => $text['summary_customer'],
-        'problem'       => $text['summary_problem'],
-        'technical'     => $text['summary_technical'],
-        'unknownDevice' => $text['summary_unknown_device'],
-        'location'      => $text['summary_location'],
-        'contact'       => $text['summary_contact'],
-        'uploads'       => $text['summary_uploads'],
-        'empty'         => $text['summary_empty'],
-    ]);
+    // @json([...]) with $text['key'] inside confuses Blade's bracket-tracker;
+    // assign to a @php variable first, then encode the simple variable reference.
+    @php
+        $_sl = [
+            'category'      => $text['summary_category'],
+            'rooms'         => $text['summary_rooms'],
+            'room'          => $text['summary_room'],
+            'attic'         => $text['summary_attic'],
+            'largeWindows'  => $text['summary_large_windows'],
+            'houseAge'      => $text['summary_house_age'],
+            'outdoorUnit'   => $text['summary_outdoor_unit'],
+            'timing'        => $text['summary_timing'],
+            'customer'      => $text['summary_customer'],
+            'problem'       => $text['summary_problem'],
+            'technical'     => $text['summary_technical'],
+            'unknownDevice' => $text['summary_unknown_device'],
+            'location'      => $text['summary_location'],
+            'contact'       => $text['summary_contact'],
+            'uploads'       => $text['summary_uploads'],
+            'empty'         => $text['summary_empty'],
+        ];
+    @endphp
+    var summaryLabels = @json($_sl);
 
     // ── Summary renderer ──────────────────────────────────────────────────────
     function updateSummary() {

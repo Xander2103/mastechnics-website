@@ -648,6 +648,115 @@ textarea {
 }
 
 /* ================================
+   Unknown device helper card
+================================ */
+
+.checkbox-helper-card {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 16px;
+    background: #f0f7ff;
+    cursor: pointer;
+    grid-column: 1 / -1;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.checkbox-helper-card:hover {
+    border-color: rgba(15, 102, 194, 0.35);
+    background: #e8f2ff;
+}
+
+.checkbox-helper-card input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+    accent-color: var(--color-primary);
+}
+
+.checkbox-helper-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-weight: 800;
+    color: var(--color-primary-dark);
+}
+
+.checkbox-helper-hint {
+    display: block;
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--color-muted);
+    line-height: 1.45;
+}
+
+/* ================================
+   Wizard summary overview
+================================ */
+
+.summary-submit-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0 0 20px;
+}
+
+.wizard-summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.summary-section {
+    padding: 16px 18px;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: #f8fbff;
+}
+
+.summary-section h4 {
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-primary);
+}
+
+.summary-row {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    line-height: 1.45;
+}
+
+.summary-row:last-child {
+    margin-bottom: 0;
+}
+
+.summary-row-label {
+    font-weight: 800;
+    color: var(--color-primary-dark);
+}
+
+.summary-row-value {
+    color: var(--color-text);
+}
+
+@media (max-width: 680px) {
+    .summary-submit-wrap {
+        justify-content: stretch;
+    }
+
+    .summary-submit-wrap .button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ================================
    Tablet
 ================================ */
 

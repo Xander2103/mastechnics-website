@@ -67,6 +67,26 @@
             'room_surface_label'    => 'Oppervlakte (m²)',
             'room_attic_label'      => 'Zolderkamer of onder plat dak?',
             'room_windows_label'    => 'Veel grote ramen?',
+            'unknown_device_helper'   => 'Geen probleem, dan bekijken we dit op basis van uw beschrijving en foto\'s.',
+            'brand_model_error'       => 'Vul merk en model in, of vink aan dat u dit niet weet.',
+            'summary_category'        => 'Gekozen dienst',
+            'summary_rooms'           => 'Kamers',
+            'summary_room'            => 'Kamer',
+            'summary_dimensions'      => 'Afmetingen',
+            'summary_surface'         => 'Oppervlakte',
+            'summary_attic'           => 'Zolder/plat dak',
+            'summary_large_windows'   => 'Grote ramen',
+            'summary_house_age'       => 'Woning ouder dan 10 jaar',
+            'summary_outdoor_unit'    => 'Buitenunit aanwezig',
+            'summary_timing'          => 'Gewenste timing',
+            'summary_customer'        => 'Klant en urgentie',
+            'summary_problem'         => 'Probleem of project',
+            'summary_technical'       => 'Technische gegevens',
+            'summary_unknown_device'  => 'Merk/model/serienummer niet gekend',
+            'summary_location'        => 'Locatie',
+            'summary_contact'         => 'Contactgegevens',
+            'summary_uploads'         => 'Bijlagen',
+            'summary_empty'           => '(niet ingevuld)',
         ],
         'fr' => [
             'hero_badge'     => 'Demande intelligente',
@@ -98,6 +118,26 @@
             'room_surface_label'    => 'Surface (m²)',
             'room_attic_label'      => 'Chambre mansardée ou sous toit plat ?',
             'room_windows_label'    => 'Beaucoup de grandes fenêtres ?',
+            'unknown_device_helper'   => 'Pas de problème, nous l\'évaluerons sur base de votre description et de vos photos.',
+            'brand_model_error'       => 'Indiquez la marque et le modèle, ou cochez que vous ne les connaissez pas.',
+            'summary_category'        => 'Service choisi',
+            'summary_rooms'           => 'Pièces',
+            'summary_room'            => 'Pièce',
+            'summary_dimensions'      => 'Dimensions',
+            'summary_surface'         => 'Surface',
+            'summary_attic'           => 'Mansardée/toit plat',
+            'summary_large_windows'   => 'Grandes fenêtres',
+            'summary_house_age'       => 'Logement de plus de 10 ans',
+            'summary_outdoor_unit'    => 'Unité extérieure présente',
+            'summary_timing'          => 'Timing souhaité',
+            'summary_customer'        => 'Client et urgence',
+            'summary_problem'         => 'Problème ou projet',
+            'summary_technical'       => 'Informations techniques',
+            'summary_unknown_device'  => 'Marque/modèle/numéro de série inconnus',
+            'summary_location'        => 'Lieu',
+            'summary_contact'         => 'Coordonnées',
+            'summary_uploads'         => 'Pièces jointes',
+            'summary_empty'           => '(non renseigné)',
         ],
         'en' => [
             'hero_badge'     => 'Smart request',
@@ -129,6 +169,26 @@
             'room_surface_label'    => 'Area (m²)',
             'room_attic_label'      => 'Attic or flat roof?',
             'room_windows_label'    => 'Many large windows?',
+            'unknown_device_helper'   => 'No problem, we will review it based on your description and photos.',
+            'brand_model_error'       => 'Enter the brand and model, or check that you don\'t know them.',
+            'summary_category'        => 'Chosen service',
+            'summary_rooms'           => 'Rooms',
+            'summary_room'            => 'Room',
+            'summary_dimensions'      => 'Dimensions',
+            'summary_surface'         => 'Area',
+            'summary_attic'           => 'Attic/flat roof',
+            'summary_large_windows'   => 'Large windows',
+            'summary_house_age'       => 'Property older than 10 years',
+            'summary_outdoor_unit'    => 'Outdoor unit present',
+            'summary_timing'          => 'Desired timing',
+            'summary_customer'        => 'Customer and urgency',
+            'summary_problem'         => 'Issue or project',
+            'summary_technical'       => 'Technical details',
+            'summary_unknown_device'  => 'Brand/model/serial number unknown',
+            'summary_location'        => 'Location',
+            'summary_contact'         => 'Contact details',
+            'summary_uploads'         => 'Attachments',
+            'summary_empty'           => '(not filled in)',
         ],
     ];
 
@@ -411,7 +471,7 @@
                                         <div class="form-grid">
                                             @foreach ($step['fields'] ?? [] as $field)
                                                 @if (($field['type'] ?? '') === 'checkbox')
-                                                    <label class="checkbox-field {{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
+                                                    <label class="{{ $field['name'] === 'unknown_device_details' ? 'checkbox-helper-card' : 'checkbox-field' }} {{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
                                                         <input
                                                             type="checkbox"
                                                             name="{{ $field['name'] }}"
@@ -419,7 +479,12 @@
                                                             {{ old($field['name']) ? 'checked' : '' }}
                                                         >
 
-                                                        <span>{{ $getLabel($field) }}</span>
+                                                        <span class="{{ $field['name'] === 'unknown_device_details' ? 'checkbox-helper-card-text' : '' }}">
+                                                            {{ $getLabel($field) }}
+                                                            @if ($field['name'] === 'unknown_device_details')
+                                                                <small class="checkbox-helper-hint">{{ $text['unknown_device_helper'] }}</small>
+                                                            @endif
+                                                        </span>
 
                                                         @error($field['name'])
                                                             <p class="field-error-text">{{ $message }}</p>
@@ -534,14 +599,22 @@
                                             </div>
                                         @endif
                                     @elseif (($step['type'] ?? '') === 'summary')
-                                        <div class="request-summary-box">
-                                            <h2>{{ $text['estimate_title'] }}</h2>
-                                            <p>{{ $text['estimate_text'] }}</p>
+                                        <h2>{{ $text['summary_title'] }}</h2>
+
+                                        <div class="summary-submit-wrap">
+                                            <button type="submit" id="wizardSubmitTop"
+                                                    class="button button-primary button-large"
+                                                    data-label-general="{{ $text['submit'] }}"
+                                                    data-label-offerte="{{ $text['submit_offerte'] }}">
+                                                {{ $text['submit'] }}
+                                            </button>
                                         </div>
 
-                                        <div class="summary-card">
-                                            <h3>{{ $text['summary_title'] }}</h3>
-                                            <p>{{ $text['summary_text'] }}</p>
+                                        <div id="wizardSummaryContent" class="wizard-summary-content"></div>
+
+                                        <div class="request-summary-box" style="margin-top: 20px;">
+                                            <h3>{{ $text['estimate_title'] }}</h3>
+                                            <p>{{ $text['estimate_text'] }}</p>
                                         </div>
                                     @endif
                                 </section>
@@ -591,6 +664,7 @@
     var wizardTerug    = document.getElementById('wizardTerug');
     var wizardVerder   = document.getElementById('wizardVerder');
     var wizardSubmit   = document.getElementById('wizardSubmit');
+    var wizardSubmitTop = document.getElementById('wizardSubmitTop');
     var wizardCount    = document.getElementById('wizardStepCount');
     var progressFill   = document.getElementById('wizardProgressFill');
     var sidebarItems   = document.querySelectorAll('.request-step[data-step-nav]');
@@ -679,9 +753,16 @@
 
         // Submit label (airco offerte → different CTA)
         var cat = getSelectedCategory();
-        wizardSubmit.textContent = (cat === 'airco_offerte')
+        var submitLabel = (cat === 'airco_offerte')
             ? (wizardSubmit.dataset.labelOfferte || 'Vraag mijn offerte aan')
             : (wizardSubmit.dataset.labelGeneral || 'Verstuur mijn aanvraag');
+        wizardSubmit.textContent = submitLabel;
+        if (wizardSubmitTop) {
+            wizardSubmitTop.textContent = submitLabel;
+        }
+
+        // Populate live summary when landing on the final step
+        if (isLast) { updateSummary(); }
 
         // Scroll form into view when advancing (not on init)
         if (index > 0 && formCard) {
@@ -756,6 +837,25 @@
         });
         formCard.addEventListener('change', function (e) {
             var field = e.target;
+            // When unknown_device_details is checked, clear brand/model JS errors immediately
+            if (field.name === 'unknown_device_details') {
+                if (field.checked) {
+                    var sec = field.closest('.form-section');
+                    if (sec) {
+                        ['input[name="brand"]', 'input[name="device_model"]'].forEach(function (sel) {
+                            var inp = sec.querySelector(sel);
+                            if (!inp) return;
+                            var lbl = inp.closest('label');
+                            if (!lbl) return;
+                            var err = lbl.querySelector('.js-field-error');
+                            if (err) err.remove();
+                            lbl.classList.remove('js-has-error', 'field-has-error');
+                        });
+                    }
+                }
+                return;
+            }
+            // Auto-clear JS error for any data-required field when user fills it
             if (!field.dataset || field.dataset.required !== 'true') return;
             if (!isFieldFilled(field)) return;
             var label = field.closest('label');
@@ -929,6 +1029,8 @@
         'Vul dit veld in om verder te gaan.')
     );
 
+    var brandModelErrorMsg = @json($text['brand_model_error']);
+
     function isFieldFilled(field) {
         var tag = field.tagName.toLowerCase();
         if (tag === 'select') return field.value !== '';
@@ -941,14 +1043,14 @@
         return field.value.trim() !== '';
     }
 
-    function addFieldError(field) {
+    function addFieldError(field, message) {
         var label = field.closest('label');
         if (!label) return;
         label.classList.add('field-has-error', 'js-has-error');
         if (!label.querySelector('.js-field-error')) {
             var msg = document.createElement('p');
             msg.className = 'field-error-text js-field-error';
-            msg.textContent = stepFieldErrorMsg;
+            msg.textContent = message || stepFieldErrorMsg;
             label.appendChild(msg);
         }
     }
@@ -978,12 +1080,212 @@
             }
         });
 
+        // Brand/model OR unknown check (technical_details step)
+        var unknownCb = section.querySelector('input[name="unknown_device_details"]');
+        if (unknownCb && !unknownCb.checked) {
+            var brandInput = section.querySelector('input[name="brand"]');
+            var modelInput = section.querySelector('input[name="device_model"]');
+            if (brandInput && !isFieldFilled(brandInput)) {
+                addFieldError(brandInput, brandModelErrorMsg);
+                if (!firstInvalid) firstInvalid = brandInput;
+                valid = false;
+            }
+            if (modelInput && !isFieldFilled(modelInput)) {
+                addFieldError(modelInput, brandModelErrorMsg);
+                if (!firstInvalid) firstInvalid = modelInput;
+                valid = false;
+            }
+        }
+
         if (firstInvalid) {
             firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
             try { firstInvalid.focus(); } catch (e) {}
         }
 
         return valid;
+    }
+
+    // ── Summary labels (PHP-rendered) ─────────────────────────────────────────
+    var summaryLabels = @json([
+        'category'      => $text['summary_category'],
+        'rooms'         => $text['summary_rooms'],
+        'room'          => $text['summary_room'],
+        'attic'         => $text['summary_attic'],
+        'largeWindows'  => $text['summary_large_windows'],
+        'houseAge'      => $text['summary_house_age'],
+        'outdoorUnit'   => $text['summary_outdoor_unit'],
+        'timing'        => $text['summary_timing'],
+        'customer'      => $text['summary_customer'],
+        'problem'       => $text['summary_problem'],
+        'technical'     => $text['summary_technical'],
+        'unknownDevice' => $text['summary_unknown_device'],
+        'location'      => $text['summary_location'],
+        'contact'       => $text['summary_contact'],
+        'uploads'       => $text['summary_uploads'],
+        'empty'         => $text['summary_empty'],
+    ]);
+
+    // ── Summary renderer ──────────────────────────────────────────────────────
+    function updateSummary() {
+        var container = document.getElementById('wizardSummaryContent');
+        if (!container) return;
+
+        // Clear existing content safely
+        while (container.firstChild) { container.removeChild(container.firstChild); }
+
+        var form = container.closest('form');
+        var category = getSelectedCategory();
+
+        // Get a text input/textarea value by name (searches full form)
+        function qVal(name) {
+            var el = form ? form.querySelector('[name="' + name + '"]') : null;
+            return el ? el.value.trim() : '';
+        }
+
+        // Get the displayed text of a selected option (not raw value)
+        function qSelectText(name) {
+            var el = form ? form.querySelector('select[name="' + name + '"]') : null;
+            if (!el || !el.value) return '';
+            var opt = Array.from(el.options).find(function (o) { return o.value === el.value; });
+            return opt ? opt.text : '';
+        }
+
+        // Get a value from the first filled field across all visible sections (for repeated names like preferred_time)
+        function qAnyVal(name) {
+            var all = form ? Array.from(form.querySelectorAll('[name="' + name + '"]')) : [];
+            for (var i = 0; i < all.length; i++) {
+                if (all[i].value && all[i].value.trim()) return all[i].value.trim();
+            }
+            return '';
+        }
+
+        // Render a summary section with title and item rows; skips sections with no filled items
+        function addSection(titleText, items) {
+            var filled = items.filter(function (it) { return it.value && it.value.trim(); });
+            if (!filled.length) return;
+
+            var sec = document.createElement('div');
+            sec.className = 'summary-section';
+
+            var h = document.createElement('h4');
+            h.textContent = titleText;
+            sec.appendChild(h);
+
+            filled.forEach(function (it) {
+                var row = document.createElement('p');
+                row.className = 'summary-row';
+                if (it.label) {
+                    var lbl = document.createElement('span');
+                    lbl.className = 'summary-row-label';
+                    lbl.textContent = it.label + ': ';
+                    row.appendChild(lbl);
+                }
+                var val = document.createElement('span');
+                val.className = 'summary-row-value';
+                val.textContent = it.value;
+                row.appendChild(val);
+                sec.appendChild(row);
+            });
+
+            container.appendChild(sec);
+        }
+
+        // 1. Service category (from selected radio option card)
+        var catRadio = form ? form.querySelector('input[name="service_category"]:checked') : null;
+        if (catRadio) {
+            var catCardLabel = catRadio.closest('label');
+            var catSpan = catCardLabel ? catCardLabel.querySelector('.option-card-label') : null;
+            var catText = catSpan ? catSpan.textContent.trim() : catRadio.value;
+            addSection(summaryLabels.category, [{ value: catText }]);
+        }
+
+        // 2. Airco rooms (only for airco_offerte)
+        if (category === 'airco_offerte') {
+            var roomEntries = document.querySelectorAll('.room-entry');
+            var roomItems = [];
+
+            roomEntries.forEach(function (entry, i) {
+                var typeEl    = entry.querySelector('select[name*="[type]"]');
+                var surfaceEl = entry.querySelector('.room-surface');
+                var atticEl   = entry.querySelector('select[name*="[attic_or_flat_roof]"]');
+                var windowsEl = entry.querySelector('select[name*="[large_windows]"]');
+
+                var parts = [];
+                if (typeEl && typeEl.value) {
+                    var tOpt = Array.from(typeEl.options).find(function (o) { return o.value === typeEl.value; });
+                    if (tOpt) parts.push(tOpt.text);
+                }
+                if (surfaceEl && surfaceEl.value) {
+                    parts.push(surfaceEl.value + ' m²');
+                }
+                if (atticEl && atticEl.value) {
+                    var aOpt = Array.from(atticEl.options).find(function (o) { return o.value === atticEl.value; });
+                    if (aOpt) parts.push(summaryLabels.attic + ': ' + aOpt.text);
+                }
+                if (windowsEl && windowsEl.value) {
+                    var wOpt = Array.from(windowsEl.options).find(function (o) { return o.value === windowsEl.value; });
+                    if (wOpt) parts.push(summaryLabels.largeWindows + ': ' + wOpt.text);
+                }
+
+                if (parts.length) {
+                    roomItems.push({ label: summaryLabels.room + ' ' + (i + 1), value: parts.join(' · ') });
+                }
+            });
+
+            var houseAgeText  = qSelectText('airco_house_age');
+            var outdoorText   = qSelectText('airco_has_outdoor_unit');
+            var timingText    = qAnyVal('preferred_time');
+            if (houseAgeText) roomItems.push({ label: summaryLabels.houseAge, value: houseAgeText });
+            if (outdoorText)  roomItems.push({ label: summaryLabels.outdoorUnit, value: outdoorText });
+            if (timingText)   roomItems.push({ label: summaryLabels.timing, value: timingText });
+
+            addSection(summaryLabels.rooms, roomItems);
+        }
+
+        // 3. Customer / urgency
+        addSection(summaryLabels.customer, [
+            { label: 'Type', value: qSelectText('customer_type') },
+            { label: 'Urgentie', value: qSelectText('urgency') },
+        ]);
+
+        // 4. Problem / project description (truncate at 300 chars for display)
+        var descVal = qVal('description');
+        if (descVal) {
+            var displayDesc = descVal.length > 300 ? descVal.slice(0, 297) + '…' : descVal;
+            addSection(summaryLabels.problem, [{ value: displayDesc }]);
+        }
+
+        // 5. Technical details
+        var unknownCb = form ? form.querySelector('input[name="unknown_device_details"]') : null;
+        if (unknownCb && unknownCb.checked) {
+            addSection(summaryLabels.technical, [{ value: summaryLabels.unknownDevice }]);
+        } else {
+            addSection(summaryLabels.technical, [
+                { label: 'Merk',        value: qVal('brand') },
+                { label: 'Model',       value: qVal('device_model') },
+                { label: 'Serienummer', value: qVal('serial_number') },
+            ]);
+        }
+
+        // 6. Location and availability
+        var address = [qVal('street'), qVal('postal_code'), qVal('city')].filter(Boolean).join(', ');
+        addSection(summaryLabels.location, [
+            { value: address },
+            { label: 'Beschikbaarheid', value: qVal('availability') },
+        ]);
+
+        // 7. Contact details
+        addSection(summaryLabels.contact, [
+            { value: qVal('customer_name') },
+            { value: qVal('customer_email') },
+            { value: qVal('customer_phone') },
+        ]);
+
+        // 8. Uploaded files — count rendered attachment items (textContent only, no filenames)
+        var fileCount = document.querySelectorAll('.selected-attachment-item').length;
+        if (fileCount > 0) {
+            addSection(summaryLabels.uploads, [{ value: String(fileCount) }]);
+        }
     }
 
     // ── Init ──────────────────────────────────────────────────────────────────

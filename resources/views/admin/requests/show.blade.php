@@ -17,6 +17,17 @@
     .admin-whatsapp-link:hover {
         text-decoration: underline;
     }
+    .admin-missing-list {
+        margin: 0;
+        padding: 0 0 0 1.25rem;
+        color: #b45309;
+    }
+    .admin-missing-list li {
+        margin-bottom: 0.25rem;
+    }
+    .admin-missing-info-card h2 {
+        margin-bottom: 0.5rem;
+    }
     </style>
     @php
         $metadata = $customerRequest->metadata ?? [];
@@ -199,6 +210,20 @@
                 </aside>
 
                 <div class="admin-detail-main">
+                    @php $missingItems = $customerRequest->getMissingInfoChecklist(); @endphp
+                    <div class="admin-detail-card admin-missing-info-card">
+                        <h2>Ontbrekende informatie</h2>
+                        @if (empty($missingItems))
+                            <p class="admin-muted-text">Geen belangrijke ontbrekende informatie gevonden.</p>
+                        @else
+                            <ul class="admin-missing-list">
+                                @foreach ($missingItems as $item)
+                                    <li>{{ $item }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+
                     <div class="admin-detail-card">
                         <h2>Aanvraag</h2>
 

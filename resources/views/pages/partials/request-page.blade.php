@@ -1106,8 +1106,6 @@
     }
 
     // ── Summary labels (PHP-rendered) ─────────────────────────────────────────
-    // @json([...]) with $text['key'] inside confuses Blade's bracket-tracker;
-    // assign to a @php variable first, then encode the simple variable reference.
     @php
         $_sl = [
             'category'      => $text['summary_category'],

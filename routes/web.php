@@ -24,6 +24,9 @@ Route::middleware('admin')
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
+        Route::get('/requests/export', [AdminRequestController::class, 'exportCsv'])
+            ->name('requests.export');
+
         Route::get('/requests', [AdminRequestController::class, 'index'])
             ->name('requests.index');
 

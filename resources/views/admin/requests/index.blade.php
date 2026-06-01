@@ -85,6 +85,13 @@
                         <h2>Nieuwe aanvragen</h2>
                         <p>{{ $customerRequests->count() }} aanvraag/aanvragen gevonden.</p>
                     </div>
+                    <div>
+                        <a class="button button-secondary"
+                           href="{{ route('admin.requests.export', request()->query()) }}"
+                           title="Exporteer huidige weergave als CSV">
+                            ↓ CSV exporteren
+                        </a>
+                    </div>
                 </div>
 
                 <details class="admin-filter-details" {{ collect($filters)->filter()->isNotEmpty() ? 'open' : '' }}>

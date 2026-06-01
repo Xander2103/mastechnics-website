@@ -7,6 +7,7 @@ use App\Models\CustomerRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RequestController extends Controller
 {
@@ -63,40 +64,7 @@ class RequestController extends Controller
                                 })->count(),
         ];
 
-        $customerRequests = CustomerRequest::query()
-            ->when($request->filled('search'), function ($query) use ($request): void {
-                $search = $request->string('search')->toString();
-
-                $query->where(function ($query) use ($search): void {
-                    $query
-                        ->where('customer_name', 'LIKE', "%{$search}%")
-                        ->orWhere('customer_email', 'LIKE', "%{$search}%")
-                        ->orWhere('customer_phone', 'LIKE', "%{$search}%");
-                });
-            })
-            ->when($request->filled('status'), function ($query) use ($request): void {
-                $query->where('status', $request->string('status')->toString());
-            })
-            ->when($request->filled('service_slug'), function ($query) use ($request): void {
-                $query->where('service_slug', $request->string('service_slug')->toString());
-            })
-            ->when($request->filled('request_type'), function ($query) use ($request): void {
-                $query->where('request_type', $request->string('request_type')->toString());
-            })
-            ->when($request->filled('urgency'), function ($query) use ($request): void {
-                $query->where('metadata->answers->urgency', $request->string('urgency')->toString());
-            })
-            ->when($request->filled('customer_type'), function ($query) use ($request): void {
-                $query->where('metadata->answers->customer_type', $request->string('customer_type')->toString());
-            })
-            ->when($request->filled('date_from'), function ($query) use ($request): void {
-                $query->whereDate('created_at', '>=', $request->string('date_from')->toString());
-            })
-            ->when($request->filled('date_to'), function ($query) use ($request): void {
-                $query->whereDate('created_at', '<=', $request->string('date_to')->toString());
-            })
-            ->latest()
-            ->get();
+        $customerRequests = $this->buildFilteredQuery($request)->get();
 
         return view('admin.requests.index', [
             'stats'            => $stats,
@@ -162,6 +130,113 @@ class RequestController extends Controller
         ]);
 
         return back()->with('success', 'note_created');
+    }
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $statuses = $this->getStatuses();
+
+        $serviceCategoryLabels = collect(config('request-flow.service_categories', []))
+            ->mapWithKeys(fn (array $cat): array => [
+                $cat['value'] => $cat['labels']['nl'] ?? $cat['value'],
+            ])
+            ->toArray();
+
+        $urgencyLevelLabels = [
+            'water_leaking' => 'Er staat water / ernstig lek',
+            'small_leak'    => 'Klein lek',
+            'no_heating'    => 'Geen verwarming',
+            'no_hot_water'  => 'Geen warm water',
+            'other'         => 'Andere urgentie',
+            'urgent'        => 'Dringend (algemeen)',
+            'within_days'   => 'Binnen enkele dagen',
+            'not_urgent'    => 'Niet dringend',
+        ];
+
+        $filename = 'mastechnics-aanvragen-' . now()->format('Y-m-d') . '.csv';
+
+        $requests = $this->buildFilteredQuery($request)->get();
+
+        return response()->streamDownload(function () use ($requests, $statuses, $serviceCategoryLabels, $urgencyLevelLabels): void {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM so Excel opens the file correctly
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            // Header row
+            fputcsv($handle, [
+                'Datum',
+                'Naam',
+                'E-mail',
+                'Telefoon',
+                'Categorie',
+                'Status',
+                'Urgentie',
+                'Gewenste timing',
+                'Gemeente',
+                'Postcode',
+                'Bron',
+            ], ';');
+
+            foreach ($requests as $req) {
+                $answers  = ($req->metadata['answers'] ?? []);
+                $urgency  = $req->urgency_level ?? ($answers['urgency'] ?? null);
+                $category = $serviceCategoryLabels[$req->service_category] ?? $req->service_slug;
+
+                fputcsv($handle, [
+                    $req->created_at->format('d/m/Y H:i'),
+                    $req->customer_name,
+                    $req->customer_email,
+                    $req->customer_phone,
+                    $category,
+                    $statuses[$req->status] ?? $req->status,
+                    $urgencyLevelLabels[$urgency] ?? $urgency,
+                    $req->preferred_time,
+                    $answers['city'] ?? '',
+                    $answers['postal_code'] ?? '',
+                    $req->source,
+                ], ';');
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    private function buildFilteredQuery(Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        return CustomerRequest::query()
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = $request->string('search')->toString();
+                $query->where(function ($q) use ($search): void {
+                    $q->where('customer_name', 'LIKE', "%{$search}%")
+                      ->orWhere('customer_email', 'LIKE', "%{$search}%")
+                      ->orWhere('customer_phone', 'LIKE', "%{$search}%");
+                });
+            })
+            ->when($request->filled('status'), function ($query) use ($request): void {
+                $query->where('status', $request->string('status')->toString());
+            })
+            ->when($request->filled('service_slug'), function ($query) use ($request): void {
+                $query->where('service_slug', $request->string('service_slug')->toString());
+            })
+            ->when($request->filled('request_type'), function ($query) use ($request): void {
+                $query->where('request_type', $request->string('request_type')->toString());
+            })
+            ->when($request->filled('urgency'), function ($query) use ($request): void {
+                $query->where('metadata->answers->urgency', $request->string('urgency')->toString());
+            })
+            ->when($request->filled('customer_type'), function ($query) use ($request): void {
+                $query->where('metadata->answers->customer_type', $request->string('customer_type')->toString());
+            })
+            ->when($request->filled('date_from'), function ($query) use ($request): void {
+                $query->whereDate('created_at', '>=', $request->string('date_from')->toString());
+            })
+            ->when($request->filled('date_to'), function ($query) use ($request): void {
+                $query->whereDate('created_at', '<=', $request->string('date_to')->toString());
+            })
+            ->latest();
     }
 
     private function getStatuses(): array

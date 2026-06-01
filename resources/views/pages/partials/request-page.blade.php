@@ -46,8 +46,14 @@
             'submit'         => 'Verstuur mijn aanvraag',
             'submit_offerte' => 'Vraag mijn offerte aan',
             'step_indicator' => 'Stap {1} van {2}',
-            'success_title'  => 'Je aanvraag werd verzonden.',
-            'success_text'   => 'We hebben je aanvraag goed ontvangen en nemen zo snel mogelijk contact op.',
+            'success_title'       => 'Je aanvraag werd verzonden.',
+            'success_text'        => 'We hebben je aanvraag goed ontvangen en nemen zo snel mogelijk contact op.',
+            'success_steps_title' => 'Wat gebeurt er nu?',
+            'success_step_1'      => 'Uw aanvraag is veilig ontvangen en opgeslagen.',
+            'success_step_2'      => 'Mastechnics neemt zo snel mogelijk contact op via telefoon of e-mail.',
+            'success_step_3'      => 'Heeft u een dringend probleem? Bel ons of stuur een WhatsApp-bericht.',
+            'success_cta_home'    => 'Terug naar de startpagina',
+            'success_cta_new'     => 'Nieuwe aanvraag indienen',
             'error_title'    => 'Controleer de ingevulde informatie.',
             'estimate_title' => 'Richtprijs mogelijk na volledige info',
             'estimate_text'  => 'Op basis van de gekozen dienst, technische gegevens en foto\'s kan ' . $siteName . ' sneller inschatten wat nodig is en indien mogelijk een richtprijs of duidelijke vervolgstap voorstellen.',
@@ -97,8 +103,14 @@
             'submit'         => 'Envoyer ma demande',
             'submit_offerte' => 'Demander mon devis',
             'step_indicator' => 'Étape {1} sur {2}',
-            'success_title'  => 'Votre demande a été envoyée.',
-            'success_text'   => 'Nous avons bien reçu votre demande et nous vous contacterons dès que possible.',
+            'success_title'       => 'Votre demande a été envoyée.',
+            'success_text'        => 'Nous avons bien reçu votre demande et nous vous contacterons dès que possible.',
+            'success_steps_title' => 'Que se passe-t-il maintenant ?',
+            'success_step_1'      => 'Votre demande a été reçue et enregistrée en toute sécurité.',
+            'success_step_2'      => 'Mastechnics vous contactera dès que possible par téléphone ou e-mail.',
+            'success_step_3'      => 'Vous avez un problème urgent ? Appelez-nous ou envoyez un message WhatsApp.',
+            'success_cta_home'    => 'Retour à la page d\'accueil',
+            'success_cta_new'     => 'Soumettre une nouvelle demande',
             'error_title'    => 'Veuillez vérifier les informations saisies.',
             'estimate_title' => 'Estimation possible après informations complètes',
             'estimate_text'  => 'Sur la base du service choisi, des informations techniques et des photos, ' . $siteName . ' peut évaluer plus rapidement la situation et proposer une estimation ou une prochaine étape claire si possible.',
@@ -148,8 +160,14 @@
             'submit'         => 'Send my request',
             'submit_offerte' => 'Request my quote',
             'step_indicator' => 'Step {1} of {2}',
-            'success_title'  => 'Your request has been sent.',
-            'success_text'   => 'We have received your request and will contact you as soon as possible.',
+            'success_title'       => 'Your request has been sent.',
+            'success_text'        => 'We have received your request and will contact you as soon as possible.',
+            'success_steps_title' => 'What happens next?',
+            'success_step_1'      => 'Your request has been safely received and saved.',
+            'success_step_2'      => 'Mastechnics will contact you as soon as possible by phone or email.',
+            'success_step_3'      => 'Do you have an urgent problem? Call us or send a WhatsApp message.',
+            'success_cta_home'    => 'Back to the homepage',
+            'success_cta_new'     => 'Submit a new request',
             'error_title'    => 'Please check the entered information.',
             'estimate_title' => 'Estimate possible after complete information',
             'estimate_text'  => 'Based on the selected service, technical details and photos, ' . $siteName . ' can estimate what is needed faster and provide an estimate or clear next step when possible.',
@@ -216,9 +234,38 @@
     <section class="section section-white">
         <div class="container">
             @if (session('success') === 'request_created')
-                <div class="form-success">
-                    <strong>{{ $text['success_title'] }}</strong>
-                    <p>{{ $text['success_text'] }}</p>
+            <style>
+            .form-success-expanded { text-align: left; }
+            .form-success-icon { font-size: 2rem; margin-bottom: 0.5rem; color: #059669; }
+            .form-success-title { font-size: 1.25rem; display: block; margin-bottom: 0.5rem; }
+            .form-success-steps { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #bbf7d0; }
+            .form-success-steps strong { display: block; margin-bottom: 0.5rem; }
+            .form-success-steps ol { margin: 0; padding-left: 1.25rem; }
+            .form-success-steps li { margin-bottom: 0.35rem; }
+            .form-success-ctas { margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.75rem; }
+            </style>
+                <div class="form-success form-success-expanded">
+                    <div class="form-success-icon">&#10003;</div>
+                    <strong class="form-success-title">{{ $text['success_title'] }}</strong>
+                    <p class="form-success-text">{{ $text['success_text'] }}</p>
+
+                    <div class="form-success-steps">
+                        <strong>{{ $text['success_steps_title'] }}</strong>
+                        <ol>
+                            <li>{{ $text['success_step_1'] }}</li>
+                            <li>{{ $text['success_step_2'] }}</li>
+                            <li>{{ $text['success_step_3'] }}</li>
+                        </ol>
+                    </div>
+
+                    <div class="form-success-ctas">
+                        <a class="button button-primary" href="{{ route('pages.home', ['locale' => $locale]) }}">
+                            {{ $text['success_cta_home'] }}
+                        </a>
+                        <a class="button button-secondary" href="{{ route('pages.show', ['locale' => $locale, 'slug' => $translation->slug]) }}">
+                            {{ $text['success_cta_new'] }}
+                        </a>
+                    </div>
                 </div>
             @endif
 

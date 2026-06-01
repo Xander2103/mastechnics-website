@@ -106,6 +106,15 @@
     display: none;
 }
 
+/* Mobile right action group */
+.header-mobile-right {
+    display: contents;
+}
+
+.header-whatsapp-btn {
+    display: none;
+}
+
 /* ================================
    Mobile header
 ================================ */
@@ -152,6 +161,33 @@
         height: 2px;
         border-radius: 999px;
         background: var(--color-primary-dark);
+    }
+
+    .header-mobile-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-whatsapp-btn {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 42px;
+        height: 42px;
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        background: #f0fdf4;
+        color: #16a34a;
+        box-shadow: 0 8px 22px rgba(15, 53, 87, 0.06);
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+
+    .header-whatsapp-btn:hover,
+    .header-whatsapp-btn:focus {
+        background: #dcfce7;
+        color: #15803d;
     }
 
     .header-menu {

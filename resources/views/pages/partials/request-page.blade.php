@@ -178,6 +178,7 @@
                 method="POST"
                 action="{{ route('customer-requests.store', ['locale' => $locale]) }}"
                 enctype="multipart/form-data"
+                novalidate
             >
                 @csrf
 
@@ -932,6 +933,11 @@
         var tag = field.tagName.toLowerCase();
         if (tag === 'select') return field.value !== '';
         if (field.type === 'checkbox') return field.checked;
+        if (field.type === 'number') {
+            var n = Number(field.value);
+            var min = field.min !== '' ? Number(field.min) : null;
+            return field.value.trim() !== '' && (min === null || n >= min);
+        }
         return field.value.trim() !== '';
     }
 

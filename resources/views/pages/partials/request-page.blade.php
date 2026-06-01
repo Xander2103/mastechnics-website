@@ -292,7 +292,7 @@
                                                     <div class="form-grid room-fields">
                                                         <label>
                                                             <span>{{ $text['room_type_label'] }}</span>
-                                                            <select name="rooms[{{ $ri }}][type]">
+                                                            <select name="rooms[{{ $ri }}][type]" data-required="true">
                                                                 <option value="">{{ $text['choose_option'] }}</option>
                                                                 @foreach ($roomTypes as $rt)
                                                                     <option value="{{ $rt['value'] }}"
@@ -307,14 +307,16 @@
                                                             <input type="number" name="rooms[{{ $ri }}][width]"
                                                                    value="{{ $room['width'] ?? '' }}"
                                                                    min="1" max="50" step="0.1"
-                                                                   class="room-dim-input room-width">
+                                                                   class="room-dim-input room-width"
+                                                                   data-required="true">
                                                         </label>
                                                         <label>
                                                             <span>{{ $text['room_length_label'] }}</span>
                                                             <input type="number" name="rooms[{{ $ri }}][length]"
                                                                    value="{{ $room['length'] ?? '' }}"
                                                                    min="1" max="50" step="0.1"
-                                                                   class="room-dim-input room-length">
+                                                                   class="room-dim-input room-length"
+                                                                   data-required="true">
                                                         </label>
                                                         <label>
                                                             <span>{{ $text['room_surface_label'] }}</span>
@@ -324,7 +326,7 @@
                                                         </label>
                                                         <label>
                                                             <span>{{ $text['room_attic_label'] }}</span>
-                                                            <select name="rooms[{{ $ri }}][attic_or_flat_roof]">
+                                                            <select name="rooms[{{ $ri }}][attic_or_flat_roof]" data-required="true">
                                                                 <option value="">{{ $text['choose_option'] }}</option>
                                                                 @foreach ($yesNoOptions as $opt)
                                                                     <option value="{{ $opt['value'] }}"
@@ -336,7 +338,7 @@
                                                         </label>
                                                         <label>
                                                             <span>{{ $text['room_windows_label'] }}</span>
-                                                            <select name="rooms[{{ $ri }}][large_windows]">
+                                                            <select name="rooms[{{ $ri }}][large_windows]" data-required="true">
                                                                 <option value="">{{ $text['choose_option'] }}</option>
                                                                 @foreach ($yesNoOptions as $opt)
                                                                     <option value="{{ $opt['value'] }}"
@@ -360,9 +362,14 @@
                                             <div class="form-grid" style="margin-top: 24px;">
                                                 @foreach ($step['fields'] as $field)
                                                     <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
-                                                        <span>{{ $getLabel($field) }}</span>
+                                                        <span>
+                                                            {{ $getLabel($field) }}
+                                                            @if ($isRequiredField($field))
+                                                                <span class="required-star">*</span>
+                                                            @endif
+                                                        </span>
                                                         @if (($field['type'] ?? '') === 'select')
-                                                            <select name="{{ $field['name'] }}">
+                                                            <select name="{{ $field['name'] }}" @if ($isRequiredField($field)) data-required="true" @endif>
                                                                 <option value="">{{ $text['choose_option'] }}</option>
                                                                 @foreach ($field['options'] ?? [] as $option)
                                                                     <option value="{{ $option['value'] }}"
@@ -375,7 +382,8 @@
                                                             <input type="{{ $field['type'] ?? 'text' }}"
                                                                    name="{{ $field['name'] }}"
                                                                    value="{{ old($field['name']) }}"
-                                                                   placeholder="{{ $getPlaceholder($field) }}">
+                                                                   placeholder="{{ $getPlaceholder($field) }}"
+                                                                   @if ($isRequiredField($field)) data-required="true" @endif>
                                                         @endif
                                                         @error($field['name'])
                                                             <p class="field-error-text">{{ $message }}</p>
@@ -429,6 +437,7 @@
                                                         <textarea
                                                             name="{{ $field['name'] }}"
                                                             placeholder="{{ $getPlaceholder($field) }}"
+                                                            @if ($isRequiredField($field)) data-required="true" @endif
                                                         >{{ old($field['name']) }}</textarea>
 
                                                         @error($field['name'])
@@ -445,7 +454,7 @@
                                                             @endif
                                                         </span>
 
-                                                        <select name="{{ $field['name'] }}">
+                                                        <select name="{{ $field['name'] }}" @if ($isRequiredField($field)) data-required="true" @endif>
                                                             <option value="">{{ $text['choose_option'] }}</option>
 
                                                             @foreach ($field['options'] ?? [] as $option)
@@ -474,6 +483,7 @@
                                                             name="{{ $field['name'] }}"
                                                             value="{{ old($field['name']) }}"
                                                             placeholder="{{ $getPlaceholder($field) }}"
+                                                            @if ($isRequiredField($field)) data-required="true" @endif
                                                         >
 
                                                         @error($field['name'])
@@ -712,6 +722,14 @@
 
     // ── Nav buttons ───────────────────────────────────────────────────────────
     wizardVerder.addEventListener('click', function () {
+        if (currentIndex === 0) {
+            // Step 0: category selection — Verder disabled until selection; no field validation
+            if (currentIndex < visibleSections.length - 1) {
+                showStep(visibleSections, currentIndex + 1);
+            }
+            return;
+        }
+        if (!validateCurrentStep()) return;
         if (currentIndex < visibleSections.length - 1) {
             showStep(visibleSections, currentIndex + 1);
         }
@@ -722,6 +740,30 @@
             showStep(visibleSections, currentIndex - 1);
         }
     });
+
+    // Auto-clear JS field error when user corrects the field
+    if (formCard) {
+        formCard.addEventListener('input', function (e) {
+            var field = e.target;
+            if (!field.dataset || field.dataset.required !== 'true') return;
+            if (!isFieldFilled(field)) return;
+            var label = field.closest('label');
+            if (!label) return;
+            var err = label.querySelector('.js-field-error');
+            if (err) err.remove();
+            label.classList.remove('js-has-error', 'field-has-error');
+        });
+        formCard.addEventListener('change', function (e) {
+            var field = e.target;
+            if (!field.dataset || field.dataset.required !== 'true') return;
+            if (!isFieldFilled(field)) return;
+            var label = field.closest('label');
+            if (!label) return;
+            var err = label.querySelector('.js-field-error');
+            if (err) err.remove();
+            label.classList.remove('js-has-error', 'field-has-error');
+        });
+    }
 
     // ── File attachment preview ────────────────────────────────────────────────
     // SECURITY: file.name is rendered via textContent only — never innerHTML
@@ -877,6 +919,65 @@
             }
         }
         return 0;
+    }
+
+    // ── Client-side step validation ───────────────────────────────────────────
+    var stepFieldErrorMsg = @json(
+        $locale === 'fr' ? 'Veuillez remplir ce champ pour continuer.' :
+        ($locale === 'en' ? 'Please fill in this field to continue.' :
+        'Vul dit veld in om verder te gaan.')
+    );
+
+    function isFieldFilled(field) {
+        var tag = field.tagName.toLowerCase();
+        if (tag === 'select') return field.value !== '';
+        if (field.type === 'checkbox') return field.checked;
+        return field.value.trim() !== '';
+    }
+
+    function addFieldError(field) {
+        var label = field.closest('label');
+        if (!label) return;
+        label.classList.add('field-has-error', 'js-has-error');
+        if (!label.querySelector('.js-field-error')) {
+            var msg = document.createElement('p');
+            msg.className = 'field-error-text js-field-error';
+            msg.textContent = stepFieldErrorMsg;
+            label.appendChild(msg);
+        }
+    }
+
+    function clearStepErrors(section) {
+        section.querySelectorAll('.js-field-error').forEach(function (el) { el.remove(); });
+        section.querySelectorAll('.js-has-error').forEach(function (el) {
+            el.classList.remove('js-has-error', 'field-has-error');
+        });
+    }
+
+    function validateCurrentStep() {
+        var section = visibleSections[currentIndex];
+        if (!section) return true;
+
+        clearStepErrors(section);
+
+        var requiredFields = Array.from(section.querySelectorAll('[data-required="true"]'));
+        var firstInvalid = null;
+        var valid = true;
+
+        requiredFields.forEach(function (field) {
+            if (!isFieldFilled(field)) {
+                addFieldError(field);
+                if (!firstInvalid) firstInvalid = field;
+                valid = false;
+            }
+        });
+
+        if (firstInvalid) {
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            try { firstInvalid.focus(); } catch (e) {}
+        }
+
+        return valid;
     }
 
     // ── Init ──────────────────────────────────────────────────────────────────

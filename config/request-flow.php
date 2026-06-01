@@ -525,7 +525,7 @@ return [
                 [
                     'name'     => 'airco_house_age',
                     'type'     => 'select',
-                    'required' => false,
+                    'required' => true,
                     'labels'   => [
                         'nl' => 'Is de woning ouder dan 10 jaar?',
                         'fr' => 'Le logement a-t-il plus de 10 ans ?',

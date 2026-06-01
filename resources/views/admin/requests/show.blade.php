@@ -56,6 +56,23 @@
         font-size: 0.8rem;
         color: #059669;
     }
+    .admin-detail-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .admin-quick-actions-card {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.25rem;
+    }
+    .admin-quick-actions-card .admin-back-button {
+        display: block;
+        margin-bottom: 1rem;
+        width: 100%;
+        text-align: center;
+    }
     </style>
     @php
         $metadata = $customerRequest->metadata ?? [];
@@ -108,11 +125,6 @@
 
     <section class="section section-white">
         <div class="container">
-            <div class="admin-back-row">
-                <a class="button button-secondary admin-back-button" href="{{ route('admin.requests.index') }}">
-                    ← Terug naar overzicht
-                </a>
-            </div>
 
             @if (session('success') === 'status_updated')
                 <div class="form-success">
@@ -127,172 +139,174 @@
             @endif
 
             <div class="admin-detail-layout">
-                <aside class="admin-detail-card">
-                    <h2>Klantgegevens</h2>
 
-                    <dl class="admin-detail-list">
-                        <div>
-                            <dt>Naam</dt>
-                            <dd>{{ $customerRequest->customer_name }}</dd>
+                {{-- ===================== LEFT SIDEBAR ===================== --}}
+                <aside class="admin-detail-sidebar">
+
+                    {{-- Group 1: Snelle acties --}}
+                    <div class="admin-quick-actions-card">
+                        <a class="button button-secondary admin-back-button" href="{{ route('admin.requests.index') }}">
+                            ← Terug naar overzicht
+                        </a>
+
+                        <form class="admin-status-form" method="POST"
+                            action="{{ route('admin.requests.update-status', $customerRequest) }}">
+                            @csrf
+                            @method('PATCH')
+
+                            <label>
+                                <span>Status aanpassen</span>
+
+                                <select name="status">
+                                    @foreach ($statuses as $statusValue => $statusLabel)
+                                        <option value="{{ $statusValue }}"
+                                            {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
+                                            {{ $statusLabel }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </label>
+
+                            @error('status')
+                                <p class="field-error-text">{{ $message }}</p>
+                            @enderror
+
+                            <button class="button button-primary" type="submit">
+                                Status opslaan
+                            </button>
+                        </form>
+
+                        @php
+                            $serviceCategoryLabels = $serviceCategoryLabels ?? [];
+                            $snelBerichtCat = $serviceCategoryLabels[$customerRequest->service_category] ?? null;
+                            $snelBericht = 'Dag ' . $customerRequest->customer_name . ', bedankt voor uw aanvraag via Mastechnics. Ik contacteer u even over uw aanvraag'
+                                . ($snelBerichtCat ? ' voor ' . $snelBerichtCat . '.' : '.');
+                        @endphp
+
+                        <div class="admin-snel-bericht">
+                            <h3>Snel bericht</h3>
+                            <p id="admin-snel-bericht-text" class="admin-snel-bericht-content">{{ $snelBericht }}</p>
+                            <button
+                                type="button"
+                                class="button button-secondary admin-copy-btn"
+                                data-copy-target="admin-snel-bericht-text"
+                                aria-label="Bericht kopiëren"
+                            >
+                                Kopiëren
+                            </button>
+                            <span class="admin-copy-feedback" aria-live="polite"></span>
                         </div>
-
-                        <div>
-                            <dt>E-mail</dt>
-                            <dd>
-                                <a href="mailto:{{ $customerRequest->customer_email }}">
-                                    {{ $customerRequest->customer_email }}
-                                </a>
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt>Telefoon</dt>
-                            <dd>
-                                {{ $customerRequest->customer_phone ?: '-' }}
-                                @if ($customerRequest->customer_phone)
-                                    @php
-                                        $rawPhone = $customerRequest->customer_phone;
-                                        // Step 1: trim whitespace
-                                        $normalized = trim($rawPhone);
-                                        // Step 2: remove spaces, slashes, dots, dashes, parentheses
-                                        $normalized = preg_replace('/[\s\.\-\/\(\)]/', '', $normalized);
-                                        // Step 3–6: normalize prefix to international format
-                                        if (str_starts_with($normalized, '+')) {
-                                            $normalized = substr($normalized, 1);
-                                        } elseif (str_starts_with($normalized, '00')) {
-                                            $normalized = substr($normalized, 2);
-                                        } elseif (str_starts_with($normalized, '0')) {
-                                            $normalized = '32' . substr($normalized, 1);
-                                        }
-                                        // Step 7: strip any remaining non-digit characters
-                                        $normalized = preg_replace('/\D/', '', $normalized);
-                                        // Step 8: build URL
-                                        $waMessage = rawurlencode('Dag ' . $customerRequest->customer_name . ', bedankt voor uw aanvraag via Mastechnics. Ik contacteer u even over uw aanvraag.');
-                                        $waUrl = 'https://wa.me/' . $normalized . '?text=' . $waMessage;
-                                    @endphp
-                                    @if(strlen($normalized) > 5)
-                                    <a class="admin-whatsapp-link" href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#25d366" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                                        WhatsApp ↗
-                                    </a>
-                                    @endif
-                                @endif
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt>Klanttype</dt>
-                            <dd>{{ $customerTypeLabels[$customerType] ?? '-' }}</dd>
-                        </div>
-
-                        <div>
-                            <dt>Urgentie</dt>
-                            <dd>
-                                <span class="admin-urgency admin-urgency-{{ $urgencyLevel ?: 'none' }}">
-                                    {{ $urgencyLabel ?? '-' }}
-                                </span>
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt>Status</dt>
-                            <dd>
-                                <span class="admin-status admin-status-{{ $customerRequest->status }}">
-                                    {{ $statuses[$customerRequest->status] ?? $customerRequest->status }}
-                                </span>
-                            </dd>
-                        </div>
-
-                        <div>
-                            <dt>Datum</dt>
-                            <dd>{{ $customerRequest->created_at->format('d/m/Y H:i') }}</dd>
-                        </div>
-                    </dl>
-
-                    <form class="admin-status-form" method="POST"
-                        action="{{ route('admin.requests.update-status', $customerRequest) }}">
-                        @csrf
-                        @method('PATCH')
-
-                        <label>
-                            <span>Status aanpassen</span>
-
-                            <select name="status">
-                                @foreach ($statuses as $statusValue => $statusLabel)
-                                    <option value="{{ $statusValue }}"
-                                        {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
-                                        {{ $statusLabel }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </label>
-
-                        @error('status')
-                            <p class="field-error-text">{{ $message }}</p>
-                        @enderror
-
-                        <button class="button button-primary" type="submit">
-                            Status opslaan
-                        </button>
-                    </form>
-
-                    @php
-                        $serviceCategoryLabels = $serviceCategoryLabels ?? [];
-                        $snelBerichtCat = $serviceCategoryLabels[$customerRequest->service_category] ?? null;
-                        $snelBericht = 'Dag ' . $customerRequest->customer_name . ', bedankt voor uw aanvraag via Mastechnics. Ik contacteer u even over uw aanvraag'
-                            . ($snelBerichtCat ? ' voor ' . $snelBerichtCat . '.' : '.');
-                    @endphp
-
-                    <div class="admin-snel-bericht">
-                        <h3>Snel bericht</h3>
-                        <p id="admin-snel-bericht-text" class="admin-snel-bericht-content">{{ $snelBericht }}</p>
-                        <button
-                            type="button"
-                            class="button button-secondary admin-copy-btn"
-                            data-copy-target="admin-snel-bericht-text"
-                            aria-label="Bericht kopiëren"
-                        >
-                            Kopiëren
-                        </button>
-                        <span class="admin-copy-feedback" aria-live="polite"></span>
                     </div>
+
+                    {{-- Group 2: Klantgegevens --}}
+                    <div class="admin-detail-card">
+                        <h2>Klantgegevens</h2>
+
+                        <dl class="admin-detail-list">
+                            <div>
+                                <dt>Naam</dt>
+                                <dd>{{ $customerRequest->customer_name }}</dd>
+                            </div>
+
+                            <div>
+                                <dt>E-mail</dt>
+                                <dd>
+                                    <a href="mailto:{{ $customerRequest->customer_email }}">
+                                        {{ $customerRequest->customer_email }}
+                                    </a>
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt>Telefoon</dt>
+                                <dd>
+                                    {{ $customerRequest->customer_phone ?: '-' }}
+                                    @if ($customerRequest->customer_phone)
+                                        @php
+                                            $rawPhone = $customerRequest->customer_phone;
+                                            // Step 1: trim whitespace
+                                            $normalized = trim($rawPhone);
+                                            // Step 2: remove spaces, slashes, dots, dashes, parentheses
+                                            $normalized = preg_replace('/[\s\.\-\/\(\)]/', '', $normalized);
+                                            // Step 3–6: normalize prefix to international format
+                                            if (str_starts_with($normalized, '+')) {
+                                                $normalized = substr($normalized, 1);
+                                            } elseif (str_starts_with($normalized, '00')) {
+                                                $normalized = substr($normalized, 2);
+                                            } elseif (str_starts_with($normalized, '0')) {
+                                                $normalized = '32' . substr($normalized, 1);
+                                            }
+                                            // Step 7: strip any remaining non-digit characters
+                                            $normalized = preg_replace('/\D/', '', $normalized);
+                                            // Step 8: build URL
+                                            $waMessage = rawurlencode('Dag ' . $customerRequest->customer_name . ', bedankt voor uw aanvraag via Mastechnics. Ik contacteer u even over uw aanvraag.');
+                                            $waUrl = 'https://wa.me/' . $normalized . '?text=' . $waMessage;
+                                        @endphp
+                                        @if(strlen($normalized) > 5)
+                                        <a class="admin-whatsapp-link" href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#25d366" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                            WhatsApp ↗
+                                        </a>
+                                        @endif
+                                    @endif
+                                </dd>
+                            </div>
+
+                            @if ($customerType)
+                                <div>
+                                    <dt>Klanttype</dt>
+                                    <dd>{{ $customerTypeLabels[$customerType] ?? $customerType }}</dd>
+                                </div>
+                            @endif
+                        </dl>
+                    </div>
+
                 </aside>
 
+                {{-- ===================== MAIN AREA ===================== --}}
                 <div class="admin-detail-main">
+
+                    {{-- Ontbrekende informatie — only render if there are missing items --}}
                     @php $missingItems = $customerRequest->getMissingInfoChecklist(); @endphp
-                    <div class="admin-detail-card admin-missing-info-card">
-                        <h2>Ontbrekende informatie</h2>
-                        @if (empty($missingItems))
-                            <p class="admin-muted-text">Geen belangrijke ontbrekende informatie gevonden.</p>
-                        @else
+                    @if (!empty($missingItems))
+                        <div class="admin-detail-card admin-missing-info-card">
+                            <h2>Ontbrekende informatie</h2>
                             <ul class="admin-missing-list">
                                 @foreach ($missingItems as $item)
                                     <li>{{ $item }}</li>
                                 @endforeach
                             </ul>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
 
+                    {{-- Aanvraaggegevens --}}
                     <div class="admin-detail-card">
-                        <h2>Aanvraag</h2>
+                        <h2>Aanvraaggegevens</h2>
 
                         <dl class="admin-detail-list">
                             <div>
-                                <dt>Dienst</dt>
-                                <dd>{{ $serviceTitle }}</dd>
+                                <dt>Datum</dt>
+                                <dd>{{ $customerRequest->created_at->format('d/m/Y H:i') }}</dd>
+                            </div>
+
+                            <div>
+                                <dt>Status</dt>
+                                <dd>
+                                    <span class="admin-status admin-status-{{ $customerRequest->status }}">
+                                        {{ $statuses[$customerRequest->status] ?? $customerRequest->status }}
+                                    </span>
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt>Categorie</dt>
+                                <dd>{{ $serviceCategoryLabel ?: $serviceTitle }}</dd>
                             </div>
 
                             <div>
                                 <dt>Type aanvraag</dt>
                                 <dd>{{ $requestTypeLabel }}</dd>
                             </div>
-
-                            @if ($serviceCategoryLabel)
-                                <div>
-                                    <dt>Aanvraagcategorie</dt>
-                                    <dd>{{ $serviceCategoryLabel }}</dd>
-                                </div>
-                            @endif
 
                             @if ($urgencyLevel)
                                 <div>
@@ -312,65 +326,169 @@
                                 </div>
                             @endif
 
-                            <div>
-                                <dt>Beschrijving</dt>
-                                <dd>{{ $customerRequest->description }}</dd>
-                            </div>
+                            @if (!empty($customerRequest->source))
+                                <div>
+                                    <dt>Bron</dt>
+                                    <dd>{{ $customerRequest->source }}</dd>
+                                </div>
+                            @endif
                         </dl>
                     </div>
 
+                    {{-- Omschrijving --}}
                     <div class="admin-detail-card">
-                        <h2>Locatie en beschikbaarheid</h2>
+                        <h2>Omschrijving</h2>
 
-                        <dl class="admin-detail-list">
-                            <div>
-                                <dt>Straat</dt>
-                                <dd>{{ $answers['street'] ?? '-' }}</dd>
-                            </div>
+                        @php
+                            $descriptionText = $customerRequest->description
+                                ?: ($customerRequest->customer_message ?? null);
+                        @endphp
 
-                            <div>
-                                <dt>Postcode</dt>
-                                <dd>{{ $answers['postal_code'] ?? '-' }}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Gemeente</dt>
-                                <dd>{{ $answers['city'] ?? '-' }}</dd>
-                            </div>
-
-                            <div>
-                                <dt>Beschikbaarheid</dt>
-                                <dd>{{ $answers['availability'] ?? '-' }}</dd>
-                            </div>
-                        </dl>
+                        @if ($descriptionText)
+                            <p>{{ $descriptionText }}</p>
+                        @else
+                            <p class="admin-muted-text">Geen beschrijving ingevuld.</p>
+                        @endif
                     </div>
 
-                    <div class="admin-detail-card">
-                        <h2>Technische gegevens</h2>
+                    {{-- Locatie — only render if at least one field is filled --}}
+                    @php
+                        $hasLocation = !empty($answers['street'])
+                            || !empty($answers['postal_code'])
+                            || !empty($answers['city'])
+                            || !empty($answers['availability']);
+                    @endphp
+                    @if ($hasLocation)
+                        <div class="admin-detail-card">
+                            <h2>Locatie en beschikbaarheid</h2>
 
-                        <dl class="admin-detail-list">
-                            <div>
-                                <dt>Merk</dt>
-                                <dd>{{ $customerRequest->brand ?: '-' }}</dd>
-                            </div>
+                            <dl class="admin-detail-list">
+                                @if (!empty($answers['street']))
+                                    <div>
+                                        <dt>Straat</dt>
+                                        <dd>{{ $answers['street'] }}</dd>
+                                    </div>
+                                @endif
 
-                            <div>
-                                <dt>Model</dt>
-                                <dd>{{ $customerRequest->device_model ?: '-' }}</dd>
-                            </div>
+                                @if (!empty($answers['postal_code']))
+                                    <div>
+                                        <dt>Postcode</dt>
+                                        <dd>{{ $answers['postal_code'] }}</dd>
+                                    </div>
+                                @endif
 
-                            <div>
-                                <dt>Serienummer</dt>
-                                <dd>{{ $customerRequest->serial_number ?: '-' }}</dd>
-                            </div>
+                                @if (!empty($answers['city']))
+                                    <div>
+                                        <dt>Gemeente</dt>
+                                        <dd>{{ $answers['city'] }}</dd>
+                                    </div>
+                                @endif
 
-                            <div>
-                                <dt>Merk/model/serienummer onbekend</dt>
-                                <dd>{{ $customerRequest->unknown_device_details ? 'Ja' : 'Nee' }}</dd>
-                            </div>
-                        </dl>
-                    </div>
+                                @if (!empty($answers['availability']))
+                                    <div>
+                                        <dt>Beschikbaarheid</dt>
+                                        <dd>{{ $answers['availability'] }}</dd>
+                                    </div>
+                                @endif
+                            </dl>
+                        </div>
+                    @endif
 
+                    {{-- Technische gegevens — only render if relevant data is present --}}
+                    @php
+                        $hasTechnical = $customerRequest->brand
+                            || $customerRequest->device_model
+                            || $customerRequest->serial_number
+                            || $customerRequest->unknown_device_details;
+                        $isAircoOfferte = ($customerRequest->service_category === 'airco_offerte');
+                        $rooms = $answers['rooms'] ?? [];
+                        $aircoHouseAge = $answers['airco_house_age'] ?? null;
+                        $hasRooms = $isAircoOfferte && !empty($rooms) && is_array($rooms);
+                    @endphp
+                    @if ($hasTechnical || $hasRooms)
+                        <div class="admin-detail-card">
+                            <h2>Technische gegevens</h2>
+
+                            <dl class="admin-detail-list">
+                                @if ($customerRequest->brand)
+                                    <div>
+                                        <dt>Merk</dt>
+                                        <dd>{{ $customerRequest->brand }}</dd>
+                                    </div>
+                                @endif
+
+                                @if ($customerRequest->device_model)
+                                    <div>
+                                        <dt>Model</dt>
+                                        <dd>{{ $customerRequest->device_model }}</dd>
+                                    </div>
+                                @endif
+
+                                @if ($customerRequest->serial_number)
+                                    <div>
+                                        <dt>Serienummer</dt>
+                                        <dd>{{ $customerRequest->serial_number }}</dd>
+                                    </div>
+                                @endif
+
+                                @if ($customerRequest->unknown_device_details)
+                                    <div>
+                                        <dt>Merk/model/serienummer onbekend</dt>
+                                        <dd>Ja</dd>
+                                    </div>
+                                @endif
+                            </dl>
+
+                            @if ($hasRooms)
+                                <h3 style="margin-top:1rem;margin-bottom:0.5rem;font-size:0.9rem;font-weight:600;">Kamers</h3>
+                                @foreach ($rooms as $room)
+                                    <dl class="admin-detail-list" style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid #e5e7eb;">
+                                        @if (!empty($room['type']))
+                                            <div>
+                                                <dt>Type</dt>
+                                                <dd>{{ $room['type'] }}</dd>
+                                            </div>
+                                        @endif
+                                        @if (!empty($room['width']) || !empty($room['breedte']))
+                                            <div>
+                                                <dt>Breedte</dt>
+                                                <dd>{{ $room['width'] ?? $room['breedte'] }}</dd>
+                                            </div>
+                                        @endif
+                                        @if (!empty($room['length']) || !empty($room['lengte']))
+                                            <div>
+                                                <dt>Lengte</dt>
+                                                <dd>{{ $room['length'] ?? $room['lengte'] }}</dd>
+                                            </div>
+                                        @endif
+                                        @if (isset($room['attic_or_flat_roof']) || isset($room['zolderkamer']))
+                                            <div>
+                                                <dt>Zolderkamer / plat dak</dt>
+                                                <dd>{{ ($room['attic_or_flat_roof'] ?? $room['zolderkamer'] ?? false) ? 'Ja' : 'Nee' }}</dd>
+                                            </div>
+                                        @endif
+                                        @if (isset($room['large_windows']) || isset($room['grote_ramen']))
+                                            <div>
+                                                <dt>Grote ramen</dt>
+                                                <dd>{{ ($room['large_windows'] ?? $room['grote_ramen'] ?? false) ? 'Ja' : 'Nee' }}</dd>
+                                            </div>
+                                        @endif
+                                    </dl>
+                                @endforeach
+
+                                @if ($aircoHouseAge !== null)
+                                    <dl class="admin-detail-list">
+                                        <div>
+                                            <dt>Woning ouder dan 10 jaar</dt>
+                                            <dd>{{ $aircoHouseAge ? 'Ja' : 'Nee' }}</dd>
+                                        </div>
+                                    </dl>
+                                @endif
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Bijlagen --}}
                     <div class="admin-detail-card">
                         <h2>Bijlagen</h2>
 
@@ -396,9 +514,13 @@
                             </div>
                         @endif
                     </div>
+
                 </div>
             </div>
 
+            {{-- ===================== FULL-WIDTH BELOW LAYOUT ===================== --}}
+
+            {{-- Interne notities --}}
             <div class="admin-detail-card admin-notes-card">
                 <h2>Interne notities</h2>
 
@@ -440,26 +562,30 @@
                 @endif
             </div>
 
+            {{-- Alle antwoorden — collapsed by default --}}
             <div class="admin-detail-card admin-answers-card">
-                <h2>Alle antwoorden</h2>
+                <details>
+                    <summary style="cursor:pointer;font-size:1.1rem;font-weight:600;">Alle antwoorden tonen</summary>
 
-                <dl class="admin-answers-grid">
-                    @foreach ($answers as $key => $value)
-                        <div>
-                            <dt>{{ str_replace('_', ' ', ucfirst($key)) }}</dt>
-                            <dd>
-                                @if (is_bool($value))
-                                    {{ $value ? 'Ja' : 'Nee' }}
-                                @elseif (is_array($value))
-                                    <pre>{{ json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                                @else
-                                    {{ $value ?: '-' }}
-                                @endif
-                            </dd>
-                        </div>
-                    @endforeach
-                </dl>
+                    <dl class="admin-answers-grid" style="margin-top:1rem;">
+                        @foreach ($answers as $key => $value)
+                            <div>
+                                <dt>{{ str_replace('_', ' ', ucfirst($key)) }}</dt>
+                                <dd>
+                                    @if (is_bool($value))
+                                        {{ $value ? 'Ja' : 'Nee' }}
+                                    @elseif (is_array($value))
+                                        <pre>{{ json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                    @else
+                                        {{ $value ?: '-' }}
+                                    @endif
+                                </dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                </details>
             </div>
+
         </div>
     </section>
     <script>

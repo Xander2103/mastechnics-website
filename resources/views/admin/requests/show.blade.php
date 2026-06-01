@@ -484,7 +484,6 @@
         });
 
         function fallbackCopy(el, feedback) {
-            el.focus();
             var range = document.createRange();
             range.selectNodeContents(el);
             var sel = window.getSelection();

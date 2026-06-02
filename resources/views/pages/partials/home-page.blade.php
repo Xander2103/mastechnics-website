@@ -11,160 +11,224 @@
 
     $labels = [
         'nl' => [
-            'primary_cta' => 'Start aanvraag',
-            'secondary_cta' => 'Bekijk diensten',
-            'hero_badge' => 'Slimme technische aanvraag',
+            'primary_cta'    => 'Vraag een offerte aan',
+            'secondary_cta'  => 'Bekijk onze diensten',
+            'hero_badge'     => 'Technische service — particulieren & bedrijven',
 
-            'panel_label' => 'Hoe werkt het?',
-            'panel_title' => 'Van probleem naar duidelijke inschatting.',
+            'panel_label'  => 'Slimme intake',
+            'panel_title'  => 'Beschrijf uw situatie eenmalig duidelijk.',
             'panel_points' => [
-                'Kies de juiste dienst',
-                'Vul technische info in over je installatie of probleem',
-                'Voeg later foto\'s toe indien nodig',
-                'Ontvang sneller een richtprijs of oplossing',
+                'Kies de juiste dienst: verwarming, airco, sanitair…',
+                'Vul technische gegevens in over uw installatie of probleem',
+                'Voeg desgewenst foto\'s toe voor snellere inschatting',
+                'Ontvang sneller een richtprijs of concreet voorstel',
             ],
 
             'services_label' => 'Diensten',
-            'services_title' => 'Technische service voor particulieren en bedrijven',
+            'services_title' => 'Alle technische diensten onder één dak',
             'services_intro' =>
-                $siteName .
-                ' focust op technische diensten waar duidelijke informatie belangrijk is: van klassieke residentiële installaties tot commerciële koeling.',
-            'more_info' => 'Meer info',
+                'Van verwarmingsonderhoud en airco-installatie tot sanitaire herstellingen en koelcellen: ' .
+                $siteName . ' helpt zowel particulieren als professionele klanten snel verder.',
+            'more_info'      => 'Meer info →',
 
-            'process_label' => 'Slimme intake',
-            'process_title' => 'Geen losse berichten, maar meteen de juiste informatie.',
-            'process_intro' =>
-                'De aanvraagflow wordt opgebouwd om technische aanvragen duidelijker binnen te laten komen. Zo hoeft er minder heen-en-weer gemaild of gebeld te worden.',
-            'process_steps' => [
+            'why_label' => 'Waarom Mastechnics',
+            'why_title' => 'Snelle, duidelijke en vakkundige service.',
+            'why_items' => [
                 [
-                    'title' => '1. Kies je dienst',
-                    'description' => 'Selecteer bijvoorbeeld verwarming, airco, sanitair, ventilatie of koeling.',
+                    'title'       => 'Erkende technici',
+                    'description' => 'Gecertificeerde installateurs voor gas, F-gas en verwante disciplines. Correcte uitvoering, conform de geldende normen.',
                 ],
                 [
-                    'title' => '2. Vul je situatie in',
-                    'description' => 'Geef aan of het gaat om een storing, onderhoud, installatie of nieuw project.',
+                    'title'       => 'Snelle opvolging',
+                    'description' => 'Via de online aanvraagflow komt alle informatie gestructureerd binnen, zodat er sneller een inschatting of afspraak gemaakt kan worden.',
                 ],
                 [
-                    'title' => '3. Voeg technische info toe',
-                    'description' => 'Denk aan type toestel, merk, model, serienummer of foto\'s van het typeplaatje.',
+                    'title'       => 'Voor particulieren én bedrijven',
+                    'description' => 'Van éénmalige interventie bij een panne tot periodiek onderhoud voor vaste klanten — zowel residentieel als commercieel.',
                 ],
                 [
-                    'title' => '4. Snellere inschatting',
-                    'description' =>
-                        'Met volledige info kan er sneller een richtprijs, advies of vervolgstap voorgesteld worden.',
+                    'title'       => 'Eerlijk advies',
+                    'description' => 'Geen onnodige ingrepen. Wij geven een correcte inschatting op basis van de feiten en de technische situatie.',
                 ],
             ],
 
-            'cta_label' => 'Start slim',
-            'cta_title' => 'Beschrijf je probleem of project meteen duidelijk.',
-            'cta_text' =>
-                'Beantwoord enkele gerichte vragen en voeg later foto\'s toe. Zo komt je aanvraag gestructureerd binnen en kan er sneller ingeschat worden wat nodig is.',
+            'process_label' => 'Hoe werkt het?',
+            'process_title' => 'Van aanvraag tot oplossing — in vier stappen.',
+            'process_intro' =>
+                'De aanvraagflow verzamelt de juiste technische informatie meteen bij de eerste contactopname. ' .
+                'Dat bespaart heen-en-weer bellen en mailen, en versnelt de opvolging.',
+            'process_steps' => [
+                [
+                    'title'       => '1. Kies je dienst',
+                    'description' => 'Verwarming, airco, sanitair, ventilatie, waterverzachter of koeling — selecteer wat van toepassing is.',
+                ],
+                [
+                    'title'       => '2. Beschrijf je situatie',
+                    'description' => 'Gaat het om een storing, onderhoud, nieuwe installatie of een project? Geef de context mee.',
+                ],
+                [
+                    'title'       => '3. Voeg technische info toe',
+                    'description' => 'Type toestel, merk, model, serienummer of foto\'s van het typeplaatje helpen voor een snellere inschatting.',
+                ],
+                [
+                    'title'       => '4. Snellere inschatting',
+                    'description' => 'Met volledige info kan er sneller een richtprijs, advies of concrete afspraak voorgesteld worden.',
+                ],
+            ],
+
+            'cta_label'  => 'Direct starten',
+            'cta_title'  => 'Snel een offerte of interventie aanvragen?',
+            'cta_text'   =>
+                'Vul de slimme aanvraagflow in en beschrijf uw situatie zo concreet mogelijk. ' .
+                'Wij nemen zo snel mogelijk contact op met een voorstel of vervolgstap.',
             'cta_button' => 'Start aanvraag',
         ],
 
         'fr' => [
-            'primary_cta' => 'Démarrer ma demande',
-            'secondary_cta' => 'Voir les services',
-            'hero_badge' => 'Demande technique intelligente',
+            'primary_cta'    => 'Demander un devis',
+            'secondary_cta'  => 'Voir nos services',
+            'hero_badge'     => 'Service technique — particuliers et entreprises',
 
-            'panel_label' => 'Comment ça fonctionne ?',
-            'panel_title' => 'Du problème à une estimation claire.',
+            'panel_label'  => 'Prise en charge intelligente',
+            'panel_title'  => 'Décrivez votre situation une seule fois, clairement.',
             'panel_points' => [
-                'Choisissez le bon service',
-                'Ajoutez les informations techniques de votre installation ou problème',
-                'Ajoutez des photos si nécessaire',
-                'Recevez plus rapidement une estimation ou une solution',
+                'Choisissez le bon service : chauffage, climatisation, plomberie…',
+                'Ajoutez les données techniques de votre installation ou problème',
+                'Joignez des photos pour une estimation plus rapide',
+                'Recevez plus vite une estimation ou une proposition concrète',
             ],
 
             'services_label' => 'Services',
-            'services_title' => 'Service technique pour particuliers et entreprises',
+            'services_title' => 'Tous les services techniques sous un même toit',
             'services_intro' =>
-                $siteName .
-                ' se concentre sur les services techniques où des informations claires sont essentielles : des installations résidentielles classiques à la réfrigération commerciale.',
-            'more_info' => 'Plus d\'infos',
+                'De l\'entretien de chauffage à l\'installation de climatisation, en passant par les réparations sanitaires et les chambres froides : ' .
+                $siteName . ' aide aussi bien les particuliers que les clients professionnels.',
+            'more_info'      => 'Plus d\'infos →',
 
-            'process_label' => 'Prise en charge intelligente',
-            'process_title' => 'Pas de messages incomplets, mais les bonnes informations dès le départ.',
-            'process_intro' =>
-                'Le flux de demande est conçu pour recevoir les informations techniques de manière claire. Cela réduit les échanges inutiles par e-mail ou téléphone.',
-            'process_steps' => [
+            'why_label' => 'Pourquoi Mastechnics',
+            'why_title' => 'Un service rapide, clair et professionnel.',
+            'why_items' => [
                 [
-                    'title' => '1. Choisissez votre service',
-                    'description' => 'Par exemple chauffage, climatisation, plomberie, ventilation ou réfrigération.',
+                    'title'       => 'Techniciens certifiés',
+                    'description' => 'Installateurs certifiés pour le gaz, les fluides frigorigènes (F-gaz) et les disciplines connexes. Exécution correcte, conforme aux normes en vigueur.',
                 ],
                 [
-                    'title' => '2. Décrivez votre situation',
-                    'description' =>
-                        'Indiquez s\'il s\'agit d\'une panne, d\'un entretien, d\'une installation ou d\'un nouveau projet.',
+                    'title'       => 'Suivi rapide',
+                    'description' => 'Via le flux de demande en ligne, toutes les informations arrivent de manière structurée, ce qui permet une estimation ou une prise de rendez-vous plus rapide.',
                 ],
                 [
-                    'title' => '3. Ajoutez les infos techniques',
-                    'description' =>
-                        'Type d\'appareil, marque, modèle, numéro de série ou photo de la plaque signalétique.',
+                    'title'       => 'Pour particuliers et entreprises',
+                    'description' => 'D\'une intervention ponctuelle en cas de panne à un entretien périodique pour clients réguliers — résidentiel comme commercial.',
                 ],
                 [
-                    'title' => '4. Estimation plus rapide',
-                    'description' =>
-                        'Avec des informations complètes, il est plus facile de proposer une estimation, un conseil ou une prochaine étape.',
+                    'title'       => 'Conseil honnête',
+                    'description' => 'Pas d\'interventions inutiles. Nous donnons une estimation correcte basée sur les faits et la situation technique.',
                 ],
             ],
 
-            'cta_label' => 'Commencez clairement',
-            'cta_title' => 'Décrivez votre problème ou projet de manière structurée.',
-            'cta_text' =>
-                'Répondez à quelques questions ciblées et ajoutez des photos si nécessaire. Votre demande arrive ainsi complète et peut être estimée plus rapidement.',
+            'process_label' => 'Comment ça fonctionne ?',
+            'process_title' => 'De la demande à la solution — en quatre étapes.',
+            'process_intro' =>
+                'Le flux de demande recueille les bonnes informations techniques dès le premier contact. ' .
+                'Cela évite les allers-retours par téléphone ou e-mail et accélère le suivi.',
+            'process_steps' => [
+                [
+                    'title'       => '1. Choisissez votre service',
+                    'description' => 'Chauffage, climatisation, plomberie, ventilation, adoucisseur ou réfrigération — sélectionnez ce qui s\'applique.',
+                ],
+                [
+                    'title'       => '2. Décrivez votre situation',
+                    'description' => 'S\'agit-il d\'une panne, d\'un entretien, d\'une nouvelle installation ou d\'un projet ? Donnez le contexte.',
+                ],
+                [
+                    'title'       => '3. Ajoutez les infos techniques',
+                    'description' => 'Type d\'appareil, marque, modèle, numéro de série ou photos de la plaque signalétique pour une estimation plus rapide.',
+                ],
+                [
+                    'title'       => '4. Estimation plus rapide',
+                    'description' => 'Avec des informations complètes, il est plus facile de proposer une estimation, un conseil ou un rendez-vous concret.',
+                ],
+            ],
+
+            'cta_label'  => 'Commencer maintenant',
+            'cta_title'  => 'Besoin d\'un devis ou d\'une intervention rapide ?',
+            'cta_text'   =>
+                'Remplissez le formulaire de demande intelligent et décrivez votre situation aussi concrètement que possible. ' .
+                'Nous vous contacterons dès que possible avec une proposition ou une prochaine étape.',
             'cta_button' => 'Démarrer ma demande',
         ],
 
         'en' => [
-            'primary_cta' => 'Start request',
-            'secondary_cta' => 'View services',
-            'hero_badge' => 'Smart technical request',
+            'primary_cta'    => 'Request a quote',
+            'secondary_cta'  => 'View our services',
+            'hero_badge'     => 'Technical service — homes and businesses',
 
-            'panel_label' => 'How it works',
-            'panel_title' => 'From problem to clear estimate.',
+            'panel_label'  => 'Smart intake',
+            'panel_title'  => 'Describe your situation once, clearly.',
             'panel_points' => [
-                'Choose the right service',
-                'Add technical information about your installation or issue',
-                'Upload photos if needed',
-                'Receive a faster estimate or solution',
+                'Choose the right service: heating, air conditioning, plumbing…',
+                'Add technical details about your installation or issue',
+                'Attach photos for a faster assessment',
+                'Receive a faster estimate or concrete proposal',
             ],
 
             'services_label' => 'Services',
-            'services_title' => 'Technical service for homes and businesses',
+            'services_title' => 'All technical services under one roof',
             'services_intro' =>
-                $siteName .
-                ' focuses on technical services where clear information matters: from standard residential installations to commercial refrigeration.',
-            'more_info' => 'More info',
+                'From heating maintenance and air conditioning installation to plumbing repairs and cold rooms: ' .
+                $siteName . ' helps both homeowners and professional clients quickly.',
+            'more_info'      => 'More info →',
 
-            'process_label' => 'Smart intake',
-            'process_title' => 'No incomplete messages, but the right information from the start.',
-            'process_intro' =>
-                'The request flow is designed to collect technical information clearly. This reduces unnecessary back-and-forth by email or phone.',
-            'process_steps' => [
+            'why_label' => 'Why Mastechnics',
+            'why_title' => 'Fast, clear and professional service.',
+            'why_items' => [
                 [
-                    'title' => '1. Choose your service',
-                    'description' => 'For example heating, air conditioning, plumbing, ventilation or refrigeration.',
+                    'title'       => 'Certified technicians',
+                    'description' => 'Certified installers for gas, F-gas refrigerants and related disciplines. Correct execution, in line with applicable standards.',
                 ],
                 [
-                    'title' => '2. Describe your situation',
-                    'description' => 'Indicate whether it is a breakdown, maintenance, installation or new project.',
+                    'title'       => 'Fast follow-up',
+                    'description' => 'The online request flow collects all information in a structured way, enabling a faster estimate or appointment.',
                 ],
                 [
-                    'title' => '3. Add technical details',
-                    'description' => 'Device type, brand, model, serial number or a photo of the nameplate.',
+                    'title'       => 'For homes and businesses',
+                    'description' => 'From a one-off emergency call-out to periodic maintenance contracts — both residential and commercial.',
                 ],
                 [
-                    'title' => '4. Faster estimate',
-                    'description' =>
-                        'With complete information, it is easier to provide an estimate, advice or next step.',
+                    'title'       => 'Honest advice',
+                    'description' => 'No unnecessary work. We give a correct assessment based on the facts and the technical situation on site.',
                 ],
             ],
 
-            'cta_label' => 'Start clearly',
-            'cta_title' => 'Describe your issue or project in a structured way.',
-            'cta_text' =>
-                'Answer a few targeted questions and upload photos if needed. Your request comes in complete and can be estimated faster.',
+            'process_label' => 'How it works',
+            'process_title' => 'From request to solution — in four steps.',
+            'process_intro' =>
+                'The request flow collects the right technical information at first contact. ' .
+                'This eliminates unnecessary back-and-forth and speeds up follow-up.',
+            'process_steps' => [
+                [
+                    'title'       => '1. Choose your service',
+                    'description' => 'Heating, air conditioning, plumbing, ventilation, water softener or refrigeration — select what applies.',
+                ],
+                [
+                    'title'       => '2. Describe your situation',
+                    'description' => 'Is it a breakdown, maintenance, new installation or a project? Provide the context.',
+                ],
+                [
+                    'title'       => '3. Add technical details',
+                    'description' => 'Device type, brand, model, serial number or photos of the nameplate help for a faster assessment.',
+                ],
+                [
+                    'title'       => '4. Faster estimate',
+                    'description' => 'With complete information it is easier to propose an estimate, advice or a concrete next step.',
+                ],
+            ],
+
+            'cta_label'  => 'Get started',
+            'cta_title'  => 'Need a quote or fast call-out?',
+            'cta_text'   =>
+                'Complete the smart request form and describe your situation as concretely as possible. ' .
+                'We will contact you as soon as possible with a proposal or next step.',
             'cta_button' => 'Start request',
         ],
     ];
@@ -242,6 +306,24 @@
 
                     <span>{{ $text['more_info'] }}</span>
                 </a>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-header">
+            <span class="eyebrow">{{ $text['why_label'] }}</span>
+            <h2>{{ $text['why_title'] }}</h2>
+        </div>
+
+        <div class="why-grid">
+            @foreach ($text['why_items'] as $item)
+                <article class="why-card">
+                    <h3>{{ $item['title'] }}</h3>
+                    <p>{{ $item['description'] }}</p>
+                </article>
             @endforeach
         </div>
     </div>

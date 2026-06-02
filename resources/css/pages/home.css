@@ -492,3 +492,56 @@
         min-height: auto;
     }
 }
+
+/* ================================
+   Section alt (light gray background)
+================================ */
+
+.section-alt {
+    background: var(--color-background);
+    padding: 64px 0;
+}
+
+/* ================================
+   Why Mastechnics grid
+================================ */
+
+.why-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 32px;
+}
+
+.why-card {
+    padding: 26px 28px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: var(--color-white);
+    box-shadow: var(--shadow-soft);
+}
+
+.why-card h3 {
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: var(--color-primary-dark);
+}
+
+.why-card p {
+    margin: 0;
+    color: var(--color-muted);
+    line-height: 1.6;
+}
+
+@media (max-width: 1000px) {
+    .why-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 680px) {
+    .section-alt {
+        padding: 40px 0;
+    }
+}

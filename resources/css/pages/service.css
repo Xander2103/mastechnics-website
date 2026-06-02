@@ -60,3 +60,95 @@
         margin-bottom: 28px;
     }
 }
+
+/* ================================
+   Use cases list
+================================ */
+
+.use-cases-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 32px;
+}
+
+.use-cases-list li {
+    position: relative;
+    padding-left: 20px;
+    color: var(--color-text);
+    line-height: 1.55;
+}
+
+.use-cases-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+    font-weight: 900;
+}
+
+/* ================================
+   Service highlights grid
+================================ */
+
+.service-highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+/* ================================
+   Service CTA section (dark)
+================================ */
+
+.service-cta-section {
+    background:
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 40%),
+        var(--color-primary-dark);
+    padding: 52px 0;
+}
+
+.service-cta-section .home-cta {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 36px;
+    align-items: center;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-white);
+}
+
+.service-cta-section h2,
+.service-cta-section p {
+    color: var(--color-white);
+}
+
+@media (max-width: 1000px) {
+    .use-cases-list {
+        grid-template-columns: 1fr;
+    }
+
+    .service-highlights-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 680px) {
+    .service-cta-section {
+        padding: 36px 0;
+    }
+
+    .service-cta-section .home-cta {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .service-cta-section .home-cta .button {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+}

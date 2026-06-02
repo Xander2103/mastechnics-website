@@ -253,6 +253,8 @@
 <section class="home-hero">
     <div class="hero-env" aria-hidden="true">
         <div class="hero-env-grid"></div>
+        <div class="hero-env-glow"  data-parallax="0.4"></div>
+        <div class="hero-env-lines" data-parallax="0.25"></div>
         <div class="hero-env-air" data-parallax="0.6">
             <span></span>
             <span></span>

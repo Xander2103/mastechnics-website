@@ -239,6 +239,9 @@
         rgba(15, 102, 194, 0.04)
     );
     pointer-events: none;
+    transform: scaleY(0);
+    transform-origin: top center;
+    transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Each situation becomes a connected card */
@@ -253,7 +256,10 @@
     box-shadow: 0 2px 12px rgba(15, 53, 87, 0.05);
     color: var(--color-text);
     line-height: 1.55;
-    transition: border-left-color 0.18s ease, box-shadow 0.18s ease;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: border-left-color 0.18s ease, box-shadow 0.18s ease,
+                opacity 0.45s ease, transform 0.45s ease;
 }
 
 .service-page--plumbing .use-cases-list li:hover {
@@ -267,7 +273,8 @@
     position: absolute;
     left: 12px;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%) scale(0.4);
+    opacity: 0;
     width: 16px;
     height: 16px;
     border-radius: 50%;
@@ -304,5 +311,134 @@
         left: 10px;
         width: 14px;
         height: 14px;
+    }
+}
+
+/* ================================
+   Pipe-flow scroll animation
+   Triggered by .is-in-view on .use-cases-list
+   Scoped to .service-page--plumbing only
+================================ */
+
+/* Pipe: revealed state */
+.service-page--plumbing .use-cases-list.is-in-view::before {
+    transform: scaleY(1);
+}
+
+/* Cards: revealed state */
+.service-page--plumbing .use-cases-list.is-in-view li {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Cards: stagger delays */
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(1) { transition-delay: 0.08s; }
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(2) { transition-delay: 0.18s; }
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(3) { transition-delay: 0.28s; }
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(4) { transition-delay: 0.38s; }
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(5) { transition-delay: 0.48s; }
+
+/* Nodes: reveal + brighten keyframe */
+@keyframes nodeReveal {
+    0%   { opacity: 0; transform: translateY(-50%) scale(0.4);
+           box-shadow: 0 0 0 3px transparent; }
+    65%  { opacity: 1; transform: translateY(-50%) scale(1.08);
+           box-shadow: 0 0 0 5px rgba(15, 102, 194, 0.22); }
+    100% { opacity: 1; transform: translateY(-50%) scale(1);
+           box-shadow: 0 0 0 3px rgba(15, 102, 194, 0.10); }
+}
+
+/* Nodes: animation trigger */
+.service-page--plumbing .use-cases-list.is-in-view li::before {
+    animation: nodeReveal 0.55s ease-out forwards;
+}
+
+/* Nodes: stagger delays (slightly after matching card) */
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(1)::before { animation-delay: 0.12s; }
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(2)::before { animation-delay: 0.22s; }
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(3)::before { animation-delay: 0.32s; }
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(4)::before { animation-delay: 0.42s; }
+.service-page--plumbing .use-cases-list.is-in-view li:nth-child(5)::before { animation-delay: 0.52s; }
+
+/* Water glow: keyframe
+   background-size: 100% 200% makes the gradient twice the element height.
+   Glow peak at 50% of gradient = one element-height from top.
+   At position 200% the glow sits above the element (invisible);
+   at -100% it has exited below. Animating 200%→-100% passes through
+   the visible range in the middle. Gradient transparency handles soft entry/exit. */
+@keyframes pipeFlowGlow {
+    from { background-position: 0% 200%; }
+    to   { background-position: 0% -100%; }
+}
+
+/* Water glow: ::after initial state */
+.service-page--plumbing .use-cases-list::after {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 30px;
+    bottom: 30px;
+    width: 2px;
+    border-radius: 2px;
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(15, 102, 194, 0.50) 50%,
+        transparent 100%
+    );
+    background-size: 100% 200%;
+    background-repeat: no-repeat;
+    background-position: 0% 200%;
+    filter: blur(1px);
+    opacity: 0;
+}
+
+/* Water glow: revealed — one pass down the pipe, then rests invisible */
+.service-page--plumbing .use-cases-list.is-in-view::after {
+    opacity: 1;
+    animation: pipeFlowGlow 3.5s cubic-bezier(0.37, 0, 0.63, 1) 1.2s 1 forwards;
+}
+
+/* ================================
+   Reduced-motion: show everything
+   immediately, disable all animation
+================================ */
+@media (prefers-reduced-motion: reduce) {
+    .service-page--plumbing .use-cases-list::before {
+        transform: scaleY(1);
+        transition: none;
+    }
+
+    .service-page--plumbing .use-cases-list li {
+        opacity: 1;
+        transform: none;
+        transition: border-left-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .service-page--plumbing .use-cases-list li::before {
+        opacity: 1;
+        transform: translateY(-50%);
+        animation: none;
+    }
+
+    .service-page--plumbing .use-cases-list::after {
+        display: none;
+    }
+}
+
+/* ================================
+   Mobile animation overrides
+================================ */
+@media (max-width: 680px) {
+    .service-page--plumbing .use-cases-list li {
+        transform: translateY(6px);
+    }
+
+    .service-page--plumbing .use-cases-list::after {
+        left: 15px;
+        top: 26px;
+        bottom: 26px;
+        filter: none;
     }
 }

@@ -14,4 +14,35 @@ function initMobileMenu() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', initMobileMenu);
+function initPipeFlowAnimation() {
+    const list = document.querySelector('.service-page--plumbing .use-cases-list');
+    if (!list) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        list.classList.add('is-in-view');
+        return;
+    }
+
+    if (!('IntersectionObserver' in window)) {
+        list.classList.add('is-in-view');
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries, obs) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-in-view');
+                obs.unobserve(entry.target);
+            });
+        },
+        { threshold: 0.15 }
+    );
+
+    observer.observe(list);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initMobileMenu();
+    initPipeFlowAnimation();
+});

@@ -337,6 +337,8 @@
         ?? ($currentServiceKey ? ($serviceContent[$currentServiceKey]['nl'] ?? null) : null);
 @endphp
 
+<div class="service-page service-page--{{ $currentServiceKey ?? '' }}">
+
 <section class="service-hero">
     <div class="container">
         <div class="service-hero-inner">
@@ -433,3 +435,5 @@
         </div>
     </div>
 </section>
+
+</div>{{-- .service-page --}}

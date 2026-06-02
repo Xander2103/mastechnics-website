@@ -206,3 +206,103 @@
         justify-content: center;
     }
 }
+
+/* ================================
+   Sanitair — pipe-flow visual theme
+   Scoped to .service-page--plumbing
+   Pattern can be copied for other
+   services by changing the prefix.
+================================ */
+
+.service-page--plumbing .use-cases-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    position: relative;
+}
+
+/* Vertical pipe line connecting all nodes */
+.service-page--plumbing .use-cases-list::before {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 30px;
+    bottom: 30px;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+        to bottom,
+        rgba(15, 102, 194, 0.04),
+        rgba(15, 102, 194, 0.28) 12%,
+        rgba(15, 102, 194, 0.28) 88%,
+        rgba(15, 102, 194, 0.04)
+    );
+    pointer-events: none;
+}
+
+/* Each situation becomes a connected card */
+.service-page--plumbing .use-cases-list li {
+    position: relative;
+    padding: 16px 24px 16px 60px;
+    margin-bottom: 10px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid rgba(15, 102, 194, 0.20);
+    border-radius: var(--radius-medium);
+    box-shadow: 0 2px 12px rgba(15, 53, 87, 0.05);
+    color: var(--color-text);
+    line-height: 1.55;
+    transition: border-left-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.service-page--plumbing .use-cases-list li:hover {
+    border-left-color: var(--color-primary);
+    box-shadow: 0 4px 20px rgba(15, 53, 87, 0.09);
+}
+
+/* Override checkmark with pipe-node circle */
+.service-page--plumbing .use-cases-list li::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-white);
+    border: 2.5px solid var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(15, 102, 194, 0.10);
+    color: transparent;
+    font-size: 0;
+}
+
+/* Highlight cards: subtle top-accent and refined hover */
+.service-page--plumbing .service-highlights-grid .service-card {
+    border-top: 3px solid rgba(15, 102, 194, 0.20);
+    transition: border-top-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.service-page--plumbing .service-highlights-grid .service-card:hover {
+    border-top-color: var(--color-primary);
+}
+
+/* Mobile */
+@media (max-width: 680px) {
+    .service-page--plumbing .use-cases-list::before {
+        left: 15px;
+        top: 26px;
+        bottom: 26px;
+    }
+
+    .service-page--plumbing .use-cases-list li {
+        padding: 14px 16px 14px 50px;
+    }
+
+    .service-page--plumbing .use-cases-list li::before {
+        left: 10px;
+        width: 14px;
+        height: 14px;
+    }
+}

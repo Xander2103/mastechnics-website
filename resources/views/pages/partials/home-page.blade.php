@@ -250,8 +250,9 @@
     $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
 @endphp
 
-<section class="home-hero" style="--hero-bg-url: url('{{ asset('assets/images/hero.webp') }}')">
+<section class="home-hero">
     <div class="hero-env" aria-hidden="true">
+        <div class="hero-env-grid"></div>
         <div class="hero-env-air" data-parallax="0.6">
             <span></span>
             <span></span>

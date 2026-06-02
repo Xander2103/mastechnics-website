@@ -7,14 +7,9 @@
     overflow: hidden;
     padding: 54px 0 64px;
     background:
-        linear-gradient(
-            105deg,
-            rgba(255, 255, 255, 1.00)  0%,
-            rgba(255, 255, 255, 0.98) 28%,
-            rgba(255, 255, 255, 0.62) 52%,
-            rgba(255, 255, 255, 0.10) 100%
-        ),
-        var(--hero-bg-url, url('/assets/images/hero.webp')) right center / cover no-repeat;
+        radial-gradient(ellipse 600px 380px at 80% 50%,  rgba(15, 102, 194, 0.08) 0%, transparent 100%),
+        radial-gradient(ellipse 280px 240px at 10% 90%,  rgba(15, 102, 194, 0.04) 0%, transparent 100%),
+        linear-gradient(155deg, #ffffff 0%, #f6faff 42%, #ecf4ff 76%, #f3f8ff 100%);
 }
 
 .home-hero::after {
@@ -358,13 +353,8 @@
     .home-hero {
         padding: 38px 0 42px;
         background:
-            linear-gradient(
-                175deg,
-                rgba(255, 255, 255, 0.99)  0%,
-                rgba(255, 255, 255, 0.97) 45%,
-                rgba(255, 255, 255, 0.80) 100%
-            ),
-            var(--hero-bg-url, url('/assets/images/hero.webp')) center 35% / cover no-repeat;
+            radial-gradient(ellipse 280px 200px at 85% 30%, rgba(15, 102, 194, 0.07) 0%, transparent 100%),
+            linear-gradient(170deg, #ffffff 0%, #f4f9ff 50%, #edf5ff 100%);
     }
 
     .home-hero-grid {
@@ -623,6 +613,31 @@
     z-index: 0;
 }
 
+/* ---- Grid: subtle technical line pattern, faded on text side ---- */
+
+.hero-env-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(15, 102, 194, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 102, 194, 0.045) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: linear-gradient(
+        90deg,
+        transparent        0%,
+        rgba(0, 0, 0, 0.18) 28%,
+        rgba(0, 0, 0, 0.60) 56%,
+        rgba(0, 0, 0, 1)   100%
+    );
+    mask-image: linear-gradient(
+        90deg,
+        transparent        0%,
+        rgba(0, 0, 0, 0.18) 28%,
+        rgba(0, 0, 0, 0.60) 56%,
+        rgba(0, 0, 0, 1)   100%
+    );
+}
+
 /* ---- Air: thin drifting ribbons ---- */
 
 .hero-env-air {
@@ -639,9 +654,9 @@
     background: linear-gradient(
         90deg,
         transparent              0%,
-        rgba(15, 102, 194, 0.09) 25%,
-        rgba(15, 102, 194, 0.18) 52%,
-        rgba(15, 102, 194, 0.06) 80%,
+        rgba(15, 102, 194, 0.14) 25%,
+        rgba(15, 102, 194, 0.28) 52%,
+        rgba(15, 102, 194, 0.09) 80%,
         transparent             100%
     );
 }
@@ -673,13 +688,13 @@
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 1.5px solid rgba(15, 102, 194, 0.28);
+    border: 1.5px solid rgba(15, 102, 194, 0.40);
     animation: waterRipple 5.5s ease-out infinite;
 }
 
 .hero-env-water::after {
     animation-delay: 2.75s;
-    border-color: rgba(15, 102, 194, 0.15);
+    border-color: rgba(15, 102, 194, 0.22);
 }
 
 @keyframes waterRipple {
@@ -704,8 +719,8 @@
     border-radius: 50%;
     background: radial-gradient(
         circle,
-        rgba(251, 146, 60, 0.18) 0%,
-        rgba(251, 146, 60, 0.05) 45%,
+        rgba(251, 146, 60, 0.26) 0%,
+        rgba(251, 146, 60, 0.07) 45%,
         transparent              70%
     );
     animation: heatPulse 7s ease-in-out 1.5s infinite both;
@@ -735,6 +750,10 @@
 /* ---- Mobile: simplify ---- */
 
 @media (max-width: 680px) {
+    .hero-env-grid {
+        display: none;
+    }
+
     .hero-env-air span:nth-child(2),
     .hero-env-air span:nth-child(3) {
         display: none;

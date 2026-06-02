@@ -14,7 +14,7 @@
             rgba(255, 255, 255, 0.62) 52%,
             rgba(255, 255, 255, 0.10) 100%
         ),
-        url('/assets/images/hero.png') right center / cover no-repeat;
+        url('/assets/images/hero.webp') right center / cover no-repeat;
 }
 
 .home-hero::after {
@@ -364,7 +364,7 @@
                 rgba(255, 255, 255, 0.97) 45%,
                 rgba(255, 255, 255, 0.80) 100%
             ),
-            url('/assets/images/hero.png') center 35% / cover no-repeat;
+            url('/assets/images/hero.webp') center 35% / cover no-repeat;
     }
 
     .home-hero-grid {

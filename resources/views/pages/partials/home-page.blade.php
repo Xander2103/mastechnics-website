@@ -297,7 +297,7 @@
                 <div class="hero-services-grid">
                     @foreach ($services as $service)
                         <a
-                            class="service-chip"
+                            class="service-chip {{ $service['key'] === 'heating' ? 'service-chip--heat' : '' }}"
                             href="{{ route('pages.show', [
                                 'locale' => $locale,
                                 'slug' => $service['slug'],

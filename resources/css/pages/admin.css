@@ -279,13 +279,13 @@
 }
 
 .admin-status-cancelled {
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba(229, 71, 63, 0.10);
+    color: #B52A24;
 }
 
 .admin-urgency-urgent {
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba(229, 71, 63, 0.10);
+    color: #B52A24;
 }
 
 .admin-urgency-within_days {
@@ -304,8 +304,8 @@
 }
 
 .admin-urgency-water_leaking {
-    background: #fee2e2;
-    color: #7f1d1d;
+    background: rgba(229, 71, 63, 0.10);
+    color: #B52A24;
     font-weight: 900;
 }
 

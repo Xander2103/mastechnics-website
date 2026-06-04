@@ -133,6 +133,13 @@
     height: 20px;
 }
 
+.service-chip--heat .service-chip-icon {
+    background: linear-gradient(135deg,
+        rgba(255, 122, 69, 0.12),
+        rgba(255, 122, 69, 0.06));
+    color: var(--color-accent-heat);
+}
+
 .service-chip-name {
     font-size: 0.76rem;
     font-weight: 700;
@@ -804,8 +811,8 @@
     border-radius: 50%;
     background: radial-gradient(
         circle,
-        rgba(251, 146, 60, 0.32) 0%,
-        rgba(251, 146, 60, 0.09) 45%,
+        rgba(255, 122, 69, 0.32) 0%,
+        rgba(255, 122, 69, 0.09) 45%,
         transparent              70%
     );
     animation: heatPulse 7s ease-in-out 1.5s infinite both;

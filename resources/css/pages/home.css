@@ -133,11 +133,22 @@
     height: 20px;
 }
 
+.service-chip--heat {
+    border-color: rgba(255, 122, 69, 0.35);
+    background: rgba(255, 122, 69, 0.05);
+    box-shadow: 0 4px 14px rgba(255, 122, 69, 0.14);
+}
+
 .service-chip--heat .service-chip-icon {
     background: linear-gradient(135deg,
-        rgba(255, 122, 69, 0.12),
-        rgba(255, 122, 69, 0.06));
+        rgba(255, 122, 69, 0.20),
+        rgba(255, 122, 69, 0.10));
     color: var(--color-accent-heat);
+}
+
+.service-chip--heat:hover {
+    border-color: rgba(255, 122, 69, 0.55);
+    box-shadow: 0 8px 20px rgba(255, 122, 69, 0.22);
 }
 
 .service-chip-name {
@@ -231,6 +242,16 @@
     margin-top: auto;
     color: var(--color-primary);
     font-weight: 900;
+}
+
+.service-card--heat {
+    border-color: rgba(255, 122, 69, 0.30);
+    box-shadow: 0 14px 34px rgba(255, 122, 69, 0.08);
+}
+
+.service-card--heat:hover {
+    border-color: rgba(255, 122, 69, 0.50);
+    box-shadow: 0 22px 46px rgba(255, 122, 69, 0.14);
 }
 
 /* ================================
@@ -596,6 +617,10 @@
     line-height: 1.6;
 }
 
+.why-card:first-child {
+    border-top: 2px solid rgba(255, 122, 69, 0.45);
+}
+
 @media (max-width: 1000px) {
     .why-grid {
         grid-template-columns: 1fr;
@@ -811,15 +836,15 @@
     border-radius: 50%;
     background: radial-gradient(
         circle,
-        rgba(255, 122, 69, 0.32) 0%,
-        rgba(255, 122, 69, 0.09) 45%,
+        rgba(255, 122, 69, 0.50) 0%,
+        rgba(255, 122, 69, 0.15) 45%,
         transparent              70%
     );
     animation: heatPulse 7s ease-in-out 1.5s infinite both;
 }
 
 @keyframes heatPulse {
-    0%, 100% { opacity: 0.45; transform: scale(0.93); }
+    0%, 100% { opacity: 0.62; transform: scale(0.93); }
     50%       { opacity: 1.00; transform: scale(1.05); }
 }
 

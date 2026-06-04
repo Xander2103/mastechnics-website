@@ -328,7 +328,7 @@
         <div class="service-grid">
             @foreach ($services as $service)
                 <a
-                    class="service-card service-card-link"
+                    class="service-card service-card-link {{ $service['key'] === 'heating' ? 'service-card--heat' : '' }}"
                     href="{{ route('pages.show', [
                         'locale' => $locale,
                         'slug' => $service['slug'],

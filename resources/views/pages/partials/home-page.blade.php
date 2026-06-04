@@ -297,7 +297,7 @@
                 <div class="hero-services-grid">
                     @foreach ($services as $service)
                         <a
-                            class="service-chip {{ $service['key'] === 'heating' ? 'service-chip--heat' : '' }}"
+                            class="service-chip {{ $service['key'] === 'heating' ? 'service-chip--heat' : '' }} {{ in_array($service['key'], ['airco', 'cold-rooms']) ? 'service-chip--cool' : '' }}"
                             href="{{ route('pages.show', [
                                 'locale' => $locale,
                                 'slug' => $service['slug'],
@@ -328,7 +328,7 @@
         <div class="service-grid">
             @foreach ($services as $service)
                 <a
-                    class="service-card service-card-link {{ $service['key'] === 'heating' ? 'service-card--heat' : '' }}"
+                    class="service-card service-card-link {{ $service['key'] === 'heating' ? 'service-card--heat' : '' }} {{ in_array($service['key'], ['airco', 'cold-rooms']) ? 'service-card--cool' : '' }}"
                     href="{{ route('pages.show', [
                         'locale' => $locale,
                         'slug' => $service['slug'],

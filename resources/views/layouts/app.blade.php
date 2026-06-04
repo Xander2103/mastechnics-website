@@ -130,7 +130,13 @@
   <header class="site-header">
     <div class="container header-container">
         <a class="site-logo" href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}">
-            {{ config('site.name') }}
+            <img
+                src="{{ asset('assets/images/Logo.webp') }}"
+                alt="MAS Technics"
+                class="site-logo-img"
+                width="176"
+                height="44"
+            >
         </a>
 
         <div class="header-mobile-right">

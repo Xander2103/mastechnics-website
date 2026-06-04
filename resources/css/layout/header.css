@@ -102,6 +102,12 @@
     background: #dbeafe;
 }
 
+.site-logo-img {
+    display: block;
+    max-height: 40px;
+    width: auto;
+}
+
 .mobile-menu-toggle {
     display: none;
 }
@@ -138,6 +144,10 @@
     .site-logo,
     .brand {
         font-size: 1.35rem;
+    }
+
+    .site-logo-img {
+        max-height: 36px;
     }
 
     .mobile-menu-toggle {

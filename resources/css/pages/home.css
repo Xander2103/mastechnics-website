@@ -151,6 +151,24 @@
     box-shadow: 0 8px 20px rgba(255, 122, 69, 0.22);
 }
 
+.service-chip--cool {
+    border-color: rgba(122, 158, 187, 0.35);
+    background: rgba(122, 158, 187, 0.05);
+    box-shadow: 0 4px 14px rgba(122, 158, 187, 0.12);
+}
+
+.service-chip--cool .service-chip-icon {
+    background: linear-gradient(135deg,
+        rgba(122, 158, 187, 0.20),
+        rgba(122, 158, 187, 0.10));
+    color: var(--color-accent-cool);
+}
+
+.service-chip--cool:hover {
+    border-color: rgba(122, 158, 187, 0.55);
+    box-shadow: 0 8px 20px rgba(122, 158, 187, 0.18);
+}
+
 .service-chip-name {
     font-size: 0.76rem;
     font-weight: 700;
@@ -252,6 +270,16 @@
 .service-card--heat:hover {
     border-color: rgba(255, 122, 69, 0.50);
     box-shadow: 0 22px 46px rgba(255, 122, 69, 0.14);
+}
+
+.service-card--cool {
+    border-color: rgba(122, 158, 187, 0.30);
+    box-shadow: 0 14px 34px rgba(122, 158, 187, 0.07);
+}
+
+.service-card--cool:hover {
+    border-color: rgba(122, 158, 187, 0.50);
+    box-shadow: 0 22px 46px rgba(122, 158, 187, 0.12);
 }
 
 /* ================================

@@ -188,7 +188,7 @@
         @yield('content')
     </main>
 
-    <footer class="site-footer">
+    <footer id="contact" class="site-footer">
         <div class="container footer-grid">
             <div>
                 <a class="footer-brand" href="{{ route('pages.home', ['locale' => $currentLocale]) }}">

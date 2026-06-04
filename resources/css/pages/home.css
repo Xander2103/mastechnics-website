@@ -586,6 +586,16 @@
         grid-template-columns: 1fr;
         padding: 36px;
     }
+
+    .section-diensten,
+    .section-werkwijze,
+    .section-cta {
+        padding: 48px 0;
+    }
+
+    .section-waarom {
+        padding: 56px 0;
+    }
 }
 
 /* ================================
@@ -836,6 +846,94 @@
 }
 
 /* ================================
+   Homepage quick navigation
+================================ */
+
+.home-quicknav {
+    background: #ffffff;
+    border-bottom: 1px solid rgba(15, 53, 87, 0.09);
+    box-shadow: 0 2px 10px rgba(15, 53, 87, 0.04);
+}
+
+.home-quicknav-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+}
+
+.quicknav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 53, 87, 0.10);
+    background: var(--color-background);
+    color: #2d4358;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.quicknav-link:hover {
+    background: #dbeafe;
+    border-color: rgba(15, 102, 194, 0.28);
+    color: var(--color-primary-dark);
+}
+
+.quicknav-link:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.quicknav-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.quicknav-link--blue .quicknav-dot   { background: #1a7fd4; }
+.quicknav-link--orange .quicknav-dot { background: #e8622c; }
+.quicknav-link--grey .quicknav-dot   { background: #7a96a8; }
+.quicknav-link--navy .quicknav-dot   { background: #0a4a90; }
+.quicknav-link--dark .quicknav-dot   { background: #334e68; }
+
+/* ================================
+   Homepage section backgrounds
+================================ */
+
+.section-diensten {
+    padding: 56px 0;
+    background-color: #f2f7fc;
+    background-image: radial-gradient(rgba(15, 102, 194, 0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+}
+
+.section-waarom {
+    padding: 64px 0;
+    background: #fafafa;
+    border-top: 1px solid rgba(15, 53, 87, 0.07);
+    border-bottom: 1px solid rgba(15, 53, 87, 0.07);
+}
+
+.section-werkwijze {
+    padding: 56px 0;
+    background: #edf3fa;
+}
+
+.section-cta {
+    padding: 56px 0;
+    background: #f2f7fc;
+}
+
+/* ================================
    Why Mastechnics grid
 ================================ */
 
@@ -879,6 +977,30 @@
 
 @media (max-width: 680px) {
     .section-alt {
+        padding: 40px 0;
+    }
+
+    .home-quicknav-links {
+        gap: 6px;
+        padding: 10px 0;
+    }
+
+    .quicknav-link {
+        font-size: 0.78rem;
+        padding: 6px 12px;
+    }
+
+    .section-diensten {
+        padding: 36px 0;
+        background-image: none;
+    }
+
+    .section-werkwijze,
+    .section-cta {
+        padding: 36px 0;
+    }
+
+    .section-waarom {
         padding: 40px 0;
     }
 }

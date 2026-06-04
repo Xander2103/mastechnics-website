@@ -79,6 +79,11 @@
             'cta_button' => 'Start aanvraag',
             'panel_soft_sub' => 'Waterbehandeling',
             'panel_ice_sub'  => 'Koelinstallaties',
+            'nav_diensten'   => 'Diensten',
+            'nav_waarom'     => 'Waarom Mastechnics',
+            'nav_werkwijze'  => 'Hoe werkt het?',
+            'nav_aanvraag'   => 'Aanvraag',
+            'nav_contact'    => 'Contact',
         ],
 
         'fr' => [
@@ -148,6 +153,11 @@
             'cta_button' => 'Démarrer ma demande',
             'panel_soft_sub' => "Traitement de l'eau",
             'panel_ice_sub'  => 'Installations frigorifiques',
+            'nav_diensten'   => 'Services',
+            'nav_waarom'     => 'Pourquoi Mastechnics',
+            'nav_werkwijze'  => 'Comment ça fonctionne ?',
+            'nav_aanvraag'   => 'Demande',
+            'nav_contact'    => 'Contact',
         ],
 
         'en' => [
@@ -217,6 +227,11 @@
             'cta_button' => 'Start request',
             'panel_soft_sub' => 'Water treatment',
             'panel_ice_sub'  => 'Refrigeration',
+            'nav_diensten'   => 'Services',
+            'nav_waarom'     => 'Why Mastechnics',
+            'nav_werkwijze'  => 'How it works',
+            'nav_aanvraag'   => 'Request',
+            'nav_contact'    => 'Contact',
         ],
     ];
 
@@ -326,7 +341,34 @@
     </div>
 </section>
 
-<section class="section" id="diensten">
+<nav class="home-quicknav" aria-label="{{ $locale === 'fr' ? 'Navigation de page' : ($locale === 'en' ? 'Page navigation' : 'Paginanavigatie') }}">
+    <div class="container">
+        <div class="home-quicknav-links">
+            <a class="quicknav-link quicknav-link--blue" href="#diensten">
+                <span class="quicknav-dot" aria-hidden="true"></span>
+                {{ $text['nav_diensten'] }}
+            </a>
+            <a class="quicknav-link quicknav-link--orange" href="#waarom-mastechnics">
+                <span class="quicknav-dot" aria-hidden="true"></span>
+                {{ $text['nav_waarom'] }}
+            </a>
+            <a class="quicknav-link quicknav-link--grey" href="#werkwijze">
+                <span class="quicknav-dot" aria-hidden="true"></span>
+                {{ $text['nav_werkwijze'] }}
+            </a>
+            <a class="quicknav-link quicknav-link--navy" href="#aanvraag">
+                <span class="quicknav-dot" aria-hidden="true"></span>
+                {{ $text['nav_aanvraag'] }}
+            </a>
+            <a class="quicknav-link quicknav-link--dark" href="#contact">
+                <span class="quicknav-dot" aria-hidden="true"></span>
+                {{ $text['nav_contact'] }}
+            </a>
+        </div>
+    </div>
+</nav>
+
+<section class="section section-diensten" id="diensten">
     <div class="container">
         <div class="section-header">
             <span class="eyebrow">{{ $text['services_label'] }}</span>
@@ -356,7 +398,7 @@
     </div>
 </section>
 
-<section class="section section-alt">
+<section class="section section-waarom" id="waarom-mastechnics">
     <div class="container">
         <div class="section-header">
             <span class="eyebrow">{{ $text['why_label'] }}</span>
@@ -374,7 +416,7 @@
     </div>
 </section>
 
-<section class="section section-white">
+<section class="section section-werkwijze" id="werkwijze">
     <div class="container">
         <div class="section-header">
             <span class="eyebrow">{{ $text['process_label'] }}</span>
@@ -395,7 +437,7 @@
     </div>
 </section>
 
-<section class="section section-white">
+<section class="section section-cta" id="aanvraag">
     <div class="container">
         <div class="home-cta">
             <div>

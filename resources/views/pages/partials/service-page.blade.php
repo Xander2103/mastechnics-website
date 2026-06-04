@@ -387,12 +387,7 @@
                 @if ($translation->content)
                     <p>{{ $translation->content }}</p>
                 @endif
-                <div class="button-row">
-                    <a class="button button-primary"
-                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $requestSlug]) }}">
-                        {{ $text['quote'] }}
-                    </a>
-                </div>
+
             </div>
 
             @if ($currentContent && !empty($currentContent['situations']))

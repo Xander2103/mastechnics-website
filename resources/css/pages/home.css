@@ -9,15 +9,15 @@
     background: var(--color-background);
 }
 
-.home-hero::before {
-    content: "";
+.home-hero-bg {
     position: absolute;
     inset: 0;
-    background-image: url("/assets/images/hero.webp");
-    background-size: cover;
-    background-position: right center;
-    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: right center;
     z-index: 0;
+    pointer-events: none;
 }
 
 .home-hero::after {
@@ -308,8 +308,8 @@
         padding: 48px 0 56px;
     }
 
-    .home-hero::before {
-        background-position: 60% center;
+    .home-hero-bg {
+        object-position: 60% center;
     }
 
     .home-hero::after {

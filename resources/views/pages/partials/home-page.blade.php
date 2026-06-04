@@ -219,6 +219,14 @@
 @endphp
 
 <section class="home-hero">
+    <img
+        src="{{ asset('assets/images/hero.webp') }}"
+        alt=""
+        class="home-hero-bg"
+        aria-hidden="true"
+        loading="eager"
+        fetchpriority="high"
+    >
     <div class="container">
         <div class="home-hero-content">
             <span class="eyebrow">{{ $text['hero_badge'] }}</span>

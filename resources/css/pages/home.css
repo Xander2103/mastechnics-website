@@ -7,9 +7,11 @@
     overflow: hidden;
     padding: 54px 0 64px;
     background:
-        radial-gradient(ellipse 700px 460px at 82% 52%,  rgba(15, 102, 194, 0.10) 0%, transparent 100%),
-        radial-gradient(ellipse 300px 260px at  8% 88%,  rgba(15, 102, 194, 0.04) 0%, transparent 100%),
-        linear-gradient(155deg, #ffffff 0%, #f6faff 42%, #ecf4ff 76%, #f3f8ff 100%);
+        linear-gradient(to right,
+            rgba(255, 255, 255, 0.45) 0%,
+            rgba(255, 255, 255, 0.10) 50%,
+            transparent 100%),
+        url('/assets/images/hero.webp') center / cover no-repeat;
 }
 
 .home-hero::after {
@@ -413,8 +415,11 @@
     .home-hero {
         padding: 38px 0 42px;
         background:
-            radial-gradient(ellipse 280px 200px at 85% 30%, rgba(15, 102, 194, 0.07) 0%, transparent 100%),
-            linear-gradient(170deg, #ffffff 0%, #f4f9ff 50%, #edf5ff 100%);
+            linear-gradient(to bottom,
+                rgba(255, 255, 255, 0.60) 0%,
+                rgba(255, 255, 255, 0.20) 70%,
+                rgba(255, 255, 255, 0.10) 100%),
+            url('/assets/images/hero.webp') 25% center / cover no-repeat;
     }
 
     .home-hero-grid {

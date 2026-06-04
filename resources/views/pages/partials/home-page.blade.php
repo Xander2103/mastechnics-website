@@ -26,9 +26,11 @@
                 $siteName . ' helpt zowel particulieren als professionele klanten snel verder.',
             'more_info'      => 'Meer info →',
 
-            'why_label' => 'Waarom Mastechnics',
-            'why_title' => 'Snelle, duidelijke en vakkundige service.',
-            'why_items' => [
+            'why_label'   => 'Waarom Mastechnics',
+            'why_title'   => 'Snelle, duidelijke en vakkundige service.',
+            'why_intro'   => 'Mastechnics helpt particulieren en bedrijven met technische installaties en interventies voor sanitair, verwarming, airco, ventilatie, waterverzachters en koelcellen. We werken gestructureerd: eerst de situatie helder krijgen, daarna een correcte inschatting en een nette uitvoering.',
+            'why_support' => 'Zo weet u snel waar u aan toe bent — zonder onnodige ingrepen of vaag advies.',
+            'why_items'   => [
                 [
                     'title'       => 'Erkende technici',
                     'description' => 'Gecertificeerde installateurs voor gas, F-gas en verwante disciplines. Correcte uitvoering, conform de geldende normen.',
@@ -100,9 +102,11 @@
                 $siteName . ' aide aussi bien les particuliers que les clients professionnels.',
             'more_info'      => 'Plus d\'infos →',
 
-            'why_label' => 'Pourquoi Mastechnics',
-            'why_title' => 'Un service rapide, clair et professionnel.',
-            'why_items' => [
+            'why_label'   => 'Pourquoi Mastechnics',
+            'why_title'   => 'Un service rapide, clair et professionnel.',
+            'why_intro'   => "Mastechnics aide les particuliers et les entreprises avec des installations techniques et des interventions en plomberie, chauffage, climatisation, ventilation, adoucisseurs d'eau et chambres froides. Nous travaillons de manière structurée : d'abord clarifier la situation, puis une estimation correcte et une exécution soignée.",
+            'why_support' => "Vous saurez rapidement à quoi vous en tenir — sans interventions inutiles ni conseils vagues.",
+            'why_items'   => [
                 [
                     'title'       => 'Techniciens certifiés',
                     'description' => 'Installateurs certifiés pour le gaz, les fluides frigorigènes (F-gaz) et les disciplines connexes. Exécution correcte, conforme aux normes en vigueur.',
@@ -174,9 +178,11 @@
                 $siteName . ' helps both homeowners and professional clients quickly.',
             'more_info'      => 'More info →',
 
-            'why_label' => 'Why Mastechnics',
-            'why_title' => 'Fast, clear and professional service.',
-            'why_items' => [
+            'why_label'   => 'Why Mastechnics',
+            'why_title'   => 'Fast, clear and professional service.',
+            'why_intro'   => 'Mastechnics helps homeowners and businesses with technical installations and call-outs for plumbing, heating, air conditioning, ventilation, water softeners and cold rooms. We work in a structured way: first we clarify the situation, then we give an accurate estimate and carry out the work cleanly.',
+            'why_support' => 'So you know quickly where you stand — without unnecessary work or vague advice.',
+            'why_items'   => [
                 [
                     'title'       => 'Certified technicians',
                     'description' => 'Certified installers for gas, F-gas refrigerants and related disciplines. Correct execution, in line with applicable standards.',
@@ -371,6 +377,21 @@
         <div class="section-header">
             <span class="eyebrow">{{ $text['why_label'] }}</span>
             <h2>{{ $text['why_title'] }}</h2>
+        </div>
+
+        <div class="about-intro reveal">
+            <div class="about-intro-visual">
+                <img
+                    src="{{ asset('assets/images/hero.webp') }}"
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                >
+            </div>
+            <div class="about-intro-text">
+                <p class="about-intro-body">{{ $text['why_intro'] }}</p>
+                <p class="about-intro-support">{{ $text['why_support'] }}</p>
+            </div>
         </div>
 
         <div class="why-grid">

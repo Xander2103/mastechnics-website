@@ -12,6 +12,7 @@
 @import './components/buttons.css';
 @import './components/language-switcher.css';
 @import './components/cards.css';
+@import './components/custom-cursor.css';
 
 /* Pages */
 @import './pages/home.css';

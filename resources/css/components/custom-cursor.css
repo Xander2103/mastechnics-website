@@ -1,0 +1,70 @@
+/* ================================
+   Custom branded pipe cursor
+   Desktop / fine pointer only —
+   JS adds .custom-cursor-enabled to body
+================================ */
+
+body.custom-cursor-enabled {
+    cursor: none;
+}
+
+body.custom-cursor-enabled a,
+body.custom-cursor-enabled button,
+body.custom-cursor-enabled [role="button"],
+body.custom-cursor-enabled .button,
+body.custom-cursor-enabled .hero-hex,
+body.custom-cursor-enabled .hero-service-panel,
+body.custom-cursor-enabled .service-card,
+body.custom-cursor-enabled .service-card-link,
+body.custom-cursor-enabled label {
+    cursor: none;
+}
+
+/* Preserve usable cursor on form fields */
+body.custom-cursor-enabled input,
+body.custom-cursor-enabled textarea,
+body.custom-cursor-enabled select {
+    cursor: auto;
+}
+
+.custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 36px;
+    height: 36px;
+    pointer-events: none;
+    z-index: 99999;
+    will-change: transform;
+    display: none;
+}
+
+body.custom-cursor-enabled .custom-cursor {
+    display: block;
+}
+
+.custom-cursor img {
+    display: block;
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    transform-origin: center;
+    transition: transform 0.18s ease;
+    user-select: none;
+}
+
+/* Hover: subtle scale up */
+.custom-cursor.is-hovering img {
+    transform: scale(1.22);
+}
+
+/* Click: one-shot 360° spin */
+@keyframes cursor-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.custom-cursor.is-spinning img {
+    animation: cursor-spin 0.40s ease-in-out forwards;
+    transition: none;
+}

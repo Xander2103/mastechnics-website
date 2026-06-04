@@ -163,6 +163,14 @@
                     {{ ($locale ?? 'nl') === 'fr' ? 'Services' : (($locale ?? 'nl') === 'en' ? 'Services' : 'Diensten') }}
                 </a>
 
+                <a href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}#waarom-mastechnics">
+                    {{ ($locale ?? 'nl') === 'fr' ? 'À propos' : (($locale ?? 'nl') === 'en' ? 'About' : 'Over ons') }}
+                </a>
+
+                <a href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}#werkwijze">
+                    {{ ($locale ?? 'nl') === 'fr' ? 'Méthode' : (($locale ?? 'nl') === 'en' ? 'Process' : 'Werkwijze') }}
+                </a>
+
                 <a href="{{ route('pages.show', ['locale' => $locale ?? 'nl', 'slug' => ($locale ?? 'nl') === 'fr' ? 'contact' : 'contact']) }}">
                     Contact
                 </a>

@@ -547,6 +547,35 @@
 }
 
 /* ================================
+   Scroll reveal
+================================ */
+
+.reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+.reveal-stagger:nth-child(2) { transition-delay: 0.08s; }
+.reveal-stagger:nth-child(3) { transition-delay: 0.16s; }
+.reveal-stagger:nth-child(4) { transition-delay: 0.24s; }
+.reveal-stagger:nth-child(5) { transition-delay: 0.32s; }
+.reveal-stagger:nth-child(6) { transition-delay: 0.40s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+/* ================================
    Tablet
 ================================ */
 
@@ -859,66 +888,6 @@
 }
 
 /* ================================
-   Homepage quick navigation
-================================ */
-
-.home-quicknav {
-    background: #ffffff;
-    border-bottom: 1px solid rgba(15, 53, 87, 0.09);
-    box-shadow: 0 2px 10px rgba(15, 53, 87, 0.04);
-}
-
-.home-quicknav-links {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 0;
-}
-
-.quicknav-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(15, 53, 87, 0.10);
-    background: var(--color-background);
-    color: #2d4358;
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    text-decoration: none;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    white-space: nowrap;
-}
-
-.quicknav-link:hover {
-    background: #dbeafe;
-    border-color: rgba(15, 102, 194, 0.28);
-    color: var(--color-primary-dark);
-}
-
-.quicknav-link:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-.quicknav-dot {
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.quicknav-link--blue .quicknav-dot   { background: #1a7fd4; }
-.quicknav-link--orange .quicknav-dot { background: #e8622c; }
-.quicknav-link--grey .quicknav-dot   { background: #7a96a8; }
-.quicknav-link--navy .quicknav-dot   { background: #0a4a90; }
-.quicknav-link--dark .quicknav-dot   { background: #334e68; }
-
-/* ================================
    Homepage section backgrounds
 ================================ */
 
@@ -991,16 +960,6 @@
 @media (max-width: 680px) {
     .section-alt {
         padding: 40px 0;
-    }
-
-    .home-quicknav-links {
-        gap: 6px;
-        padding: 10px 0;
-    }
-
-    .quicknav-link {
-        font-size: 0.78rem;
-        padding: 6px 12px;
     }
 
     .section-diensten {

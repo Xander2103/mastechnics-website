@@ -341,33 +341,6 @@
     </div>
 </section>
 
-<nav class="home-quicknav" aria-label="{{ $locale === 'fr' ? 'Navigation de page' : ($locale === 'en' ? 'Page navigation' : 'Paginanavigatie') }}">
-    <div class="container">
-        <div class="home-quicknav-links">
-            <a class="quicknav-link quicknav-link--blue" href="#diensten">
-                <span class="quicknav-dot" aria-hidden="true"></span>
-                {{ $text['nav_diensten'] }}
-            </a>
-            <a class="quicknav-link quicknav-link--orange" href="#waarom-mastechnics">
-                <span class="quicknav-dot" aria-hidden="true"></span>
-                {{ $text['nav_waarom'] }}
-            </a>
-            <a class="quicknav-link quicknav-link--grey" href="#werkwijze">
-                <span class="quicknav-dot" aria-hidden="true"></span>
-                {{ $text['nav_werkwijze'] }}
-            </a>
-            <a class="quicknav-link quicknav-link--navy" href="#aanvraag">
-                <span class="quicknav-dot" aria-hidden="true"></span>
-                {{ $text['nav_aanvraag'] }}
-            </a>
-            <a class="quicknav-link quicknav-link--dark" href="#contact">
-                <span class="quicknav-dot" aria-hidden="true"></span>
-                {{ $text['nav_contact'] }}
-            </a>
-        </div>
-    </div>
-</nav>
-
 <section class="section section-diensten" id="diensten">
     <div class="container">
         <div class="section-header">
@@ -381,7 +354,7 @@
         <div class="service-grid">
             @foreach ($services as $service)
                 <a
-                    class="service-card service-card-link {{ $service['key'] === 'heating' ? 'service-card--heat' : '' }} {{ in_array($service['key'], ['airco', 'cold-rooms']) ? 'service-card--cool' : '' }}"
+                    class="service-card service-card-link reveal reveal-stagger {{ $service['key'] === 'heating' ? 'service-card--heat' : '' }} {{ in_array($service['key'], ['airco', 'cold-rooms']) ? 'service-card--cool' : '' }}"
                     href="{{ route('pages.show', [
                         'locale' => $locale,
                         'slug' => $service['slug'],
@@ -407,7 +380,7 @@
 
         <div class="why-grid">
             @foreach ($text['why_items'] as $item)
-                <article class="why-card">
+                <article class="why-card reveal reveal-stagger">
                     <h3>{{ $item['title'] }}</h3>
                     <p>{{ $item['description'] }}</p>
                 </article>
@@ -428,7 +401,7 @@
 
         <div class="process-grid">
             @foreach ($text['process_steps'] as $step)
-                <article class="process-card">
+                <article class="process-card reveal reveal-stagger">
                     <h3>{{ $step['title'] }}</h3>
                     <p>{{ $step['description'] }}</p>
                 </article>
@@ -439,7 +412,7 @@
 
 <section class="section section-cta" id="aanvraag">
     <div class="container">
-        <div class="home-cta">
+        <div class="home-cta reveal">
             <div>
                 <span class="eyebrow eyebrow-dark">{{ $text['cta_label'] }}</span>
 

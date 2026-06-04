@@ -44,42 +44,7 @@ function initPipeFlowAnimation() {
     observer.observe(list);
 }
 
-function initHeroParallax() {
-    const hero = document.querySelector('.home-hero');
-    if (!hero) return;
-
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if ('ontouchstart' in window) return;
-
-    const layers = hero.querySelectorAll('[data-parallax]');
-    if (!layers.length) return;
-
-    hero.addEventListener('mouseenter', () => {
-        layers.forEach(layer => { layer.style.transition = ''; });
-    });
-
-    hero.addEventListener('mousemove', (e) => {
-        const rect = hero.getBoundingClientRect();
-        const dx = (e.clientX - rect.left - rect.width  / 2) / rect.width;
-        const dy = (e.clientY - rect.top  - rect.height / 2) / rect.height;
-
-        layers.forEach(layer => {
-            const speed = parseFloat(layer.dataset.parallax) || 0;
-            layer.style.transform =
-                `translate(${dx * speed * 18}px, ${dy * speed * 12}px)`;
-        });
-    });
-
-    hero.addEventListener('mouseleave', () => {
-        layers.forEach(layer => {
-            layer.style.transition = 'transform 0.7s cubic-bezier(0.22, 1, 0.36, 1)';
-            layer.style.transform = '';
-        });
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initPipeFlowAnimation();
-    initHeroParallax();
 });

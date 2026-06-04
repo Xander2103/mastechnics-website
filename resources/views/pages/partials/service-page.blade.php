@@ -361,13 +361,9 @@
             </div>
 
             @if ($currentServiceKey === 'heating')
-                {{-- Large image card. Swap src to verwarming-hero.webp when that file is added. --}}
-                <div class="service-hero-image" aria-hidden="true">
-                    <img
-                        src="{{ asset('assets/images/service-verwarming.webp') }}"
-                        alt=""
-                        loading="eager"
-                    >
+                {{-- Glass badge icon — background image (verwarming-hero.webp) comes from CSS --}}
+                <div class="service-hero-badge-icon" aria-hidden="true">
+                    {!! $serviceIcons['heating'] !!}
                 </div>
             @elseif ($currentServiceKey && isset($serviceIcons[$currentServiceKey]))
                 <div class="service-hero-icon" aria-hidden="true">

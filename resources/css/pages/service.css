@@ -90,26 +90,54 @@
     object-position: center;
 }
 
-/* Heating — warm orange hero tint */
+/* Heating — full background image hero */
 .service-page--heating .service-hero {
+    position: relative;
+    overflow: hidden;
     background:
-        radial-gradient(circle at top right, rgba(220, 88, 20, 0.08), transparent 40%),
-        linear-gradient(135deg, #ffffff 0%, #fef8f5 100%);
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.96) 0%,
+            rgba(255, 255, 255, 0.84) 38%,
+            rgba(255, 255, 255, 0.25) 68%,
+            rgba(255, 255, 255, 0.05) 100%
+        ),
+        url('/assets/images/verwarming-hero.webp') right center / cover no-repeat;
 }
 
-.service-page--heating .service-hero-image {
-    box-shadow:
-        0 16px 48px rgba(174, 50, 12, 0.18),
-        0 6px 16px rgba(174, 50, 12, 0.10);
-    border: 1px solid rgba(220, 88, 20, 0.12);
-}
-
-.service-page--heating .service-hero-image::after {
+.service-page--heating .service-hero::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 25% 65%, rgba(220, 88, 20, 0.07), transparent 60%);
+    background: radial-gradient(circle at 78% 58%, rgba(255, 122, 69, 0.32), transparent 34%);
     pointer-events: none;
+}
+
+.service-page--heating .service-hero .container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Glass badge icon — floats over the hero image on the right */
+.service-hero-badge-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 122, 69, 0.22);
+    color: #D95310;
+    box-shadow: 0 8px 28px rgba(255, 122, 69, 0.18);
+}
+
+.service-hero-badge-icon svg {
+    width: 36px;
+    height: 36px;
 }
 
 /* ================================
@@ -139,20 +167,28 @@
         height: 40px;
     }
 
-    .service-hero-image {
-        flex: none;
-        width: 100%;
-        aspect-ratio: 16 / 9;
-        max-height: 240px;
-        border-radius: 14px;
-    }
-
     .service-hero h1 {
         margin-bottom: 20px;
     }
 
     .service-intro {
         margin-bottom: 24px;
+    }
+
+    /* Heating mobile: stronger overlay, background-position for portrait */
+    .service-page--heating .service-hero {
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.97) 0%,
+                rgba(255, 255, 255, 0.92) 60%,
+                rgba(255, 255, 255, 0.78) 100%
+            ),
+            url('/assets/images/verwarming-hero.webp') 65% center / cover no-repeat;
+    }
+
+    .service-hero-badge-icon {
+        display: none;
     }
 
     .service-overview-grid {
@@ -327,24 +363,6 @@
 .service-cta-section h2,
 .service-cta-section p {
     color: var(--color-white);
-}
-
-/* Heating hero stacks at 900px (image too wide for narrower layouts) */
-@media (max-width: 900px) {
-    .service-page--heating .service-hero-inner {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
-        padding: 32px 0 24px;
-    }
-
-    .service-page--heating .service-hero-image {
-        width: 100%;
-        flex: none;
-        aspect-ratio: 16 / 9;
-        max-height: 280px;
-        border-radius: 16px;
-    }
 }
 
 @media (max-width: 1000px) {

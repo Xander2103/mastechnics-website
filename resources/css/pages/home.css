@@ -4,13 +4,39 @@
 
 .home-hero {
     position: relative;
+    overflow: hidden;
     padding: 80px 0 88px;
-    background:
-        linear-gradient(to right,
-            rgba(255, 255, 255, 0.36) 0%,
-            rgba(255, 255, 255, 0.08) 42%,
-            transparent 68%),
-        url('/assets/images/hero.webp') right center / cover no-repeat;
+    background: var(--color-background);
+}
+
+.home-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("/assets/images/hero.webp");
+    background-size: cover;
+    background-position: right center;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
+
+.home-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.38) 0%,
+        rgba(255, 255, 255, 0.10) 42%,
+        rgba(255, 255, 255, 0) 70%
+    );
+    z-index: 1;
+    pointer-events: none;
+}
+
+.home-hero > .container {
+    position: relative;
+    z-index: 2;
 }
 
 .home-hero-content {
@@ -280,12 +306,19 @@
 @media (max-width: 680px) {
     .home-hero {
         padding: 48px 0 56px;
-        background:
-            linear-gradient(to bottom,
-                rgba(255, 255, 255, 0.55) 0%,
-                rgba(255, 255, 255, 0.20) 60%,
-                rgba(255, 255, 255, 0.05) 100%),
-            url('/assets/images/hero.webp') 60% center / cover no-repeat;
+    }
+
+    .home-hero::before {
+        background-position: 60% center;
+    }
+
+    .home-hero::after {
+        background: linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.68) 0%,
+            rgba(255, 255, 255, 0.28) 65%,
+            rgba(255, 255, 255, 0.12) 100%
+        );
     }
 
     .home-hero h1 {

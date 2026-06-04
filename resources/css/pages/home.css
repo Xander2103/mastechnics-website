@@ -74,6 +74,7 @@
 }
 
 .hero-hex {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -85,7 +86,7 @@
     -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     color: #ffffff;
     text-decoration: none;
-    transition: transform 0.18s ease, filter 0.18s ease;
+    transition: transform 0.20s ease, filter 0.20s ease;
     cursor: pointer;
 }
 
@@ -94,11 +95,32 @@
     outline-offset: 4px;
 }
 
+.hero-hex::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.22) 0%,
+        rgba(255, 255, 255, 0.07) 45%,
+        transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
 .hero-hex-icon {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.24);
 }
 
 .hero-hex-icon svg {
@@ -107,47 +129,75 @@
 }
 
 .hero-hex-label {
+    position: relative;
+    z-index: 1;
     font-size: 0.72rem;
     font-weight: 800;
     line-height: 1.2;
     text-align: center;
     letter-spacing: 0.01em;
     padding: 0 8px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.30);
 }
 
-/* ---- Color identities ---- */
+/* ---- Color identities — gradient + ambient glow ---- */
+/* To add a service photo later: set --hx-bg-image on the class and add   */
+/* background-image: var(--hx-bg-image) as a top layer in the shorthand.  */
 
-.hero-hex--water { background: #0F66C2; }
-.hero-hex--heat  { background: #E55A22; }
-.hero-hex--cool  { background: #5A8FAD; }
-.hero-hex--vent  { background: #7A96A8; }
-.hero-hex--icy   { background: #3B7A99; }
+.hero-hex--water {
+    --hx-resting-shadow: rgba(10, 74, 144, 0.40);
+    --hx-hover-shadow:   rgba(10, 74, 144, 0.68);
+    background: linear-gradient(145deg, #0a4a90 0%, #1c80d6 100%);
+    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
+}
 
-/* ---- Hover: drop-shadow follows clip-path ---- */
+.hero-hex--heat {
+    --hx-resting-shadow: rgba(174, 50, 12, 0.40);
+    --hx-hover-shadow:   rgba(174, 50, 12, 0.68);
+    background: linear-gradient(145deg, #ae320c 0%, #e8622c 100%);
+    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
+}
+
+.hero-hex--cool {
+    --hx-resting-shadow: rgba(34, 84, 108, 0.40);
+    --hx-hover-shadow:   rgba(34, 84, 108, 0.68);
+    background: linear-gradient(145deg, #22546c 0%, #4c8dab 100%);
+    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
+}
+
+.hero-hex--vent {
+    --hx-resting-shadow: rgba(40, 68, 82, 0.38);
+    --hx-hover-shadow:   rgba(40, 68, 82, 0.62);
+    background: linear-gradient(145deg, #284452 0%, #567e8e 100%);
+    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
+}
+
+.hero-hex--soft {
+    --hx-resting-shadow: rgba(12, 60, 104, 0.40);
+    --hx-hover-shadow:   rgba(12, 60, 104, 0.68);
+    background: linear-gradient(145deg, #0c3c68 0%, #3278b4 100%);
+    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
+}
+
+.hero-hex--icy {
+    --hx-resting-shadow: rgba(18, 50, 66, 0.40);
+    --hx-hover-shadow:   rgba(18, 50, 66, 0.68);
+    background: linear-gradient(145deg, #123242 0%, #286880 100%);
+    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
+}
+
+/* ---- Hover: lift + stronger glow ---- */
 
 .hero-hex:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
 }
 
-.hero-hex--water:hover {
-    filter: drop-shadow(0 6px 16px rgba(15, 102, 194, 0.55));
-}
-
-.hero-hex--heat:hover {
-    filter: drop-shadow(0 6px 16px rgba(229, 90, 34, 0.55));
-}
-
-.hero-hex--cool:hover {
-    filter: drop-shadow(0 6px 16px rgba(90, 143, 173, 0.55));
-}
-
-.hero-hex--vent:hover {
-    filter: drop-shadow(0 6px 16px rgba(122, 150, 168, 0.50));
-}
-
-.hero-hex--icy:hover {
-    filter: drop-shadow(0 6px 16px rgba(59, 122, 153, 0.55));
-}
+.hero-hex--water:hover { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+.hero-hex--heat:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+.hero-hex--cool:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+.hero-hex--vent:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+.hero-hex--soft:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+.hero-hex--icy:hover   { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
 
 .home-hero-content {
     max-width: 720px;

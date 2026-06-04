@@ -54,23 +54,28 @@
    Hero hex cluster
 ================================ */
 
-.hero-hex-cluster {
-    --hx-w: 110px;
-    --hx-gap: 6px;
+.hero-service-visual {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    margin: 0 auto;
+    align-items: center;
+    gap: 8px;
+    width: 280px;
 }
 
-.hero-hex-row {
+.hero-hex-diamond {
+    --hx-w: 100px;
     display: flex;
-    gap: var(--hx-gap);
+    flex-direction: column;
+    align-items: center;
 }
 
-.hero-hex-row + .hero-hex-row {
-    margin-top: -32px;
-    margin-left: 58px;
+.hxd-row {
+    display: flex;
+    gap: 6px;
+}
+
+.hxd-row + .hxd-row {
+    margin-top: -29px;
 }
 
 .hero-hex {
@@ -81,7 +86,7 @@
     justify-content: center;
     gap: 5px;
     width: var(--hx-w);
-    height: 127px;
+    height: 116px;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     color: #ffffff;
@@ -140,53 +145,45 @@
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.30);
 }
 
-/* ---- Color identities — gradient + ambient glow ---- */
-/* To add a service photo later: set --hx-bg-image on the class and add   */
-/* background-image: var(--hx-bg-image) as a top layer in the shorthand.  */
+/* ---- Color identities — gradient overlay + service image ---- */
 
 .hero-hex--water {
     --hx-resting-shadow: rgba(10, 74, 144, 0.40);
     --hx-hover-shadow:   rgba(10, 74, 144, 0.68);
-    background: linear-gradient(145deg, #0a4a90 0%, #1c80d6 100%);
+    background:
+        linear-gradient(145deg, rgba(10, 74, 144, 0.82) 0%, rgba(28, 128, 214, 0.60) 100%),
+        url('/assets/images/service-sanitair.webp') center / cover no-repeat;
     filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
 }
 
 .hero-hex--heat {
     --hx-resting-shadow: rgba(174, 50, 12, 0.40);
     --hx-hover-shadow:   rgba(174, 50, 12, 0.68);
-    background: linear-gradient(145deg, #ae320c 0%, #e8622c 100%);
+    background:
+        linear-gradient(145deg, rgba(174, 50, 12, 0.82) 0%, rgba(232, 98, 44, 0.60) 100%),
+        url('/assets/images/service-verwarming.webp') center / cover no-repeat;
     filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
 }
 
 .hero-hex--cool {
     --hx-resting-shadow: rgba(34, 84, 108, 0.40);
     --hx-hover-shadow:   rgba(34, 84, 108, 0.68);
-    background: linear-gradient(145deg, #22546c 0%, #4c8dab 100%);
+    background:
+        linear-gradient(145deg, rgba(34, 84, 108, 0.82) 0%, rgba(76, 141, 171, 0.60) 100%),
+        url('/assets/images/service-airco.webp') center / cover no-repeat;
     filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
 }
 
 .hero-hex--vent {
     --hx-resting-shadow: rgba(40, 68, 82, 0.38);
     --hx-hover-shadow:   rgba(40, 68, 82, 0.62);
-    background: linear-gradient(145deg, #284452 0%, #567e8e 100%);
+    background:
+        linear-gradient(145deg, rgba(40, 68, 82, 0.82) 0%, rgba(86, 126, 142, 0.60) 100%),
+        url('/assets/images/service-ventilatie.webp') center / cover no-repeat;
     filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
 }
 
-.hero-hex--soft {
-    --hx-resting-shadow: rgba(12, 60, 104, 0.40);
-    --hx-hover-shadow:   rgba(12, 60, 104, 0.68);
-    background: linear-gradient(145deg, #0c3c68 0%, #3278b4 100%);
-    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
-}
-
-.hero-hex--icy {
-    --hx-resting-shadow: rgba(18, 50, 66, 0.40);
-    --hx-hover-shadow:   rgba(18, 50, 66, 0.68);
-    background: linear-gradient(145deg, #123242 0%, #286880 100%);
-    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
-}
-
-/* ---- Hover: lift + stronger glow ---- */
+/* ---- Hex hover: lift + stronger glow ---- */
 
 .hero-hex:hover {
     transform: translateY(-6px);
@@ -196,8 +193,104 @@
 .hero-hex--heat:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
 .hero-hex--cool:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
 .hero-hex--vent:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-.hero-hex--soft:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-.hero-hex--icy:hover   { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+
+/* ================================
+   Hero service panels
+================================ */
+
+.hero-service-panels {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+}
+
+.hero-service-panel {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 76px;
+    color: #ffffff;
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform 0.20s ease, filter 0.20s ease;
+    cursor: pointer;
+}
+
+.hero-service-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.20) 0%,
+        rgba(255, 255, 255, 0.06) 50%,
+        transparent 72%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hero-service-panel:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 4px;
+}
+
+.hero-service-panel--soft {
+    --hx-resting-shadow: rgba(12, 60, 104, 0.40);
+    --hx-hover-shadow:   rgba(12, 60, 104, 0.68);
+    clip-path: polygon(0% 8%, 100% 0%, 100% 92%, 0% 100%);
+    -webkit-clip-path: polygon(0% 8%, 100% 0%, 100% 92%, 0% 100%);
+    background:
+        linear-gradient(135deg, rgba(12, 60, 104, 0.82) 0%, rgba(50, 120, 180, 0.62) 100%),
+        url('/assets/images/service-waterverzachters.webp') center / cover no-repeat;
+    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
+}
+
+.hero-service-panel--ice {
+    --hx-resting-shadow: rgba(18, 50, 66, 0.40);
+    --hx-hover-shadow:   rgba(18, 50, 66, 0.68);
+    clip-path: polygon(0% 0%, 100% 8%, 100% 100%, 0% 92%);
+    -webkit-clip-path: polygon(0% 0%, 100% 8%, 100% 100%, 0% 92%);
+    background:
+        linear-gradient(135deg, rgba(18, 50, 66, 0.82) 0%, rgba(40, 104, 128, 0.62) 100%),
+        url('/assets/images/service-koelcellen.webp') center / cover no-repeat;
+    filter: drop-shadow(0 4px 14px var(--hx-resting-shadow));
+}
+
+.hero-panel-label {
+    position: relative;
+    z-index: 1;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.40);
+}
+
+.hero-panel-sub {
+    position: relative;
+    z-index: 1;
+    font-size: 0.60rem;
+    font-weight: 600;
+    opacity: 0.76;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.30);
+}
+
+/* ---- Panel hover ---- */
+
+.hero-service-panel:hover {
+    transform: translateY(-4px);
+}
+
+.hero-service-panel--soft:hover { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+.hero-service-panel--ice:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
 
 .home-hero-content {
     max-width: 720px;
@@ -450,18 +543,24 @@
         gap: 36px;
     }
 
-    .hero-hex-cluster {
-        --hx-w: 94px;
-        align-self: center;
+    .hero-service-visual {
+        width: 250px;
+    }
+
+    .hero-hex-diamond {
+        --hx-w: 88px;
     }
 
     .hero-hex {
-        height: 108px;
+        height: 102px;
     }
 
-    .hero-hex-row + .hero-hex-row {
-        margin-top: -27px;
-        margin-left: 50px;
+    .hxd-row + .hxd-row {
+        margin-top: -26px;
+    }
+
+    .hero-service-panel {
+        height: 66px;
     }
 
     .hero-hex-label {
@@ -509,42 +608,60 @@
         gap: 28px;
     }
 
-    .hero-hex-cluster {
+    .hero-service-visual {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
         width: 100%;
     }
 
-    .hero-hex-row {
+    .hero-hex-diamond,
+    .hxd-row,
+    .hero-service-panels {
         display: contents;
-    }
-
-    .hero-hex-row + .hero-hex-row {
-        margin: 0;
     }
 
     .hero-hex {
         width: 100%;
-        height: 80px;
+        height: 70px;
         clip-path: none;
         -webkit-clip-path: none;
-        border-radius: 14px;
+        border-radius: 12px;
         flex-direction: row;
         gap: 10px;
         justify-content: flex-start;
-        padding: 0 16px;
+        padding: 0 14px;
+    }
+
+    .hero-hex-icon {
+        width: 36px;
+        height: 36px;
     }
 
     .hero-hex-icon svg {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
     }
 
     .hero-hex-label {
-        font-size: 0.82rem;
+        font-size: 0.80rem;
         text-align: left;
         padding: 0;
+    }
+
+    .hero-service-panel {
+        clip-path: none;
+        -webkit-clip-path: none;
+        border-radius: 12px;
+        height: 70px;
+        flex-direction: row;
+        gap: 10px;
+        justify-content: flex-start;
+        padding: 0 14px;
+    }
+
+    .hero-panel-sub {
+        display: none;
     }
 
     .home-hero h1 {

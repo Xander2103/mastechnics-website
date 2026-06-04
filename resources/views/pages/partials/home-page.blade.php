@@ -77,6 +77,8 @@
                 'Vul de slimme aanvraagflow in en beschrijf uw situatie zo concreet mogelijk. ' .
                 'Wij nemen zo snel mogelijk contact op met een voorstel of vervolgstap.',
             'cta_button' => 'Start aanvraag',
+            'panel_soft_sub' => 'Waterbehandeling',
+            'panel_ice_sub'  => 'Koelinstallaties',
         ],
 
         'fr' => [
@@ -144,6 +146,8 @@
                 'Remplissez le formulaire de demande intelligent et décrivez votre situation aussi concrètement que possible. ' .
                 'Nous vous contacterons dès que possible avec une proposition ou une prochaine étape.',
             'cta_button' => 'Démarrer ma demande',
+            'panel_soft_sub' => "Traitement de l'eau",
+            'panel_ice_sub'  => 'Installations frigorifiques',
         ],
 
         'en' => [
@@ -211,6 +215,8 @@
                 'Complete the smart request form and describe your situation as concretely as possible. ' .
                 'We will contact you as soon as possible with a proposal or next step.',
             'cta_button' => 'Start request',
+            'panel_soft_sub' => 'Water treatment',
+            'panel_ice_sub'  => 'Refrigeration',
         ],
     ];
 
@@ -255,59 +261,66 @@
                 </div>
             </div>{{-- end .home-hero-content --}}
 
-            <div class="hero-hex-cluster" aria-label="{{ $text['services_label'] }}">
+            <div class="hero-service-visual" aria-label="{{ $text['services_label'] }}">
 
-                <div class="hero-hex-row">
+                <div class="hero-hex-diamond">
 
-                    <a class="hero-hex hero-hex--water"
-                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['plumbing']['slug']]) }}"
-                       aria-label="{{ $hexServices['plumbing']['title'] }}">
-                        <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
-                        <span class="hero-hex-label">{{ $hexServices['plumbing']['title'] }}</span>
-                    </a>
+                    <div class="hxd-row">
+                        <a class="hero-hex hero-hex--water"
+                           href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['plumbing']['slug']]) }}"
+                           aria-label="{{ $hexServices['plumbing']['title'] }}">
+                            <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
+                            <span class="hero-hex-label">{{ $hexServices['plumbing']['title'] }}</span>
+                        </a>
+                    </div>
 
-                    <a class="hero-hex hero-hex--heat"
-                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['heating']['slug']]) }}"
-                       aria-label="{{ $hexServices['heating']['title'] }}">
-                        <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
-                        <span class="hero-hex-label">{{ $hexServices['heating']['title'] }}</span>
-                    </a>
+                    <div class="hxd-row">
+                        <a class="hero-hex hero-hex--heat"
+                           href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['heating']['slug']]) }}"
+                           aria-label="{{ $hexServices['heating']['title'] }}">
+                            <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
+                            <span class="hero-hex-label">{{ $hexServices['heating']['title'] }}</span>
+                        </a>
+                        <a class="hero-hex hero-hex--cool"
+                           href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['airco']['slug']]) }}"
+                           aria-label="{{ $hexServices['airco']['title'] }}">
+                            <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg></span>
+                            <span class="hero-hex-label">{{ $hexServices['airco']['title'] }}</span>
+                        </a>
+                    </div>
 
-                    <a class="hero-hex hero-hex--cool"
-                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['airco']['slug']]) }}"
-                       aria-label="{{ $hexServices['airco']['title'] }}">
-                        <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg></span>
-                        <span class="hero-hex-label">{{ $hexServices['airco']['title'] }}</span>
-                    </a>
+                    <div class="hxd-row">
+                        <a class="hero-hex hero-hex--vent"
+                           href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['ventilation']['slug']]) }}"
+                           aria-label="{{ $hexServices['ventilation']['title'] }}">
+                            <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M21 2v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/></svg></span>
+                            <span class="hero-hex-label">{{ $hexServices['ventilation']['title'] }}</span>
+                        </a>
+                    </div>
 
-                </div>
+                </div>{{-- .hero-hex-diamond --}}
 
-                <div class="hero-hex-row">
+                <div class="hero-service-panels">
 
-                    <a class="hero-hex hero-hex--vent"
-                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['ventilation']['slug']]) }}"
-                       aria-label="{{ $hexServices['ventilation']['title'] }}">
-                        <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M21 2v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/></svg></span>
-                        <span class="hero-hex-label">{{ $hexServices['ventilation']['title'] }}</span>
-                    </a>
-
-                    <a class="hero-hex hero-hex--soft"
+                    <a class="hero-service-panel hero-service-panel--soft"
                        href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['water-softeners']['slug']]) }}"
                        aria-label="{{ $hexServices['water-softeners']['title'] }}">
                         <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg></span>
-                        <span class="hero-hex-label">{{ $hexServices['water-softeners']['title'] }}</span>
+                        <span class="hero-panel-label">{{ $hexServices['water-softeners']['title'] }}</span>
+                        <span class="hero-panel-sub">{{ $text['panel_soft_sub'] }}</span>
                     </a>
 
-                    <a class="hero-hex hero-hex--icy"
+                    <a class="hero-service-panel hero-service-panel--ice"
                        href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['cold-rooms']['slug']]) }}"
                        aria-label="{{ $hexServices['cold-rooms']['title'] }}">
                         <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg></span>
-                        <span class="hero-hex-label">{{ $hexServices['cold-rooms']['title'] }}</span>
+                        <span class="hero-panel-label">{{ $hexServices['cold-rooms']['title'] }}</span>
+                        <span class="hero-panel-sub">{{ $text['panel_ice_sub'] }}</span>
                     </a>
 
-                </div>
+                </div>{{-- .hero-service-panels --}}
 
-            </div>{{-- end .hero-hex-cluster --}}
+            </div>{{-- .hero-service-visual --}}
 
         </div>{{-- end .home-hero-layout --}}
     </div>

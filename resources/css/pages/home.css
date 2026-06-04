@@ -7,10 +7,10 @@
     padding: 80px 0 88px;
     background:
         linear-gradient(to right,
-            rgba(255, 255, 255, 0.45) 0%,
-            rgba(255, 255, 255, 0.10) 50%,
-            transparent 100%),
-        url('/assets/images/hero.webp') center / cover no-repeat;
+            rgba(255, 255, 255, 0.36) 0%,
+            rgba(255, 255, 255, 0.08) 42%,
+            transparent 68%),
+        url('/assets/images/hero.webp') right center / cover no-repeat;
 }
 
 .home-hero-content {
@@ -282,10 +282,10 @@
         padding: 48px 0 56px;
         background:
             linear-gradient(to bottom,
-                rgba(255, 255, 255, 0.60) 0%,
-                rgba(255, 255, 255, 0.20) 70%,
-                rgba(255, 255, 255, 0.10) 100%),
-            url('/assets/images/hero.webp') 25% center / cover no-repeat;
+                rgba(255, 255, 255, 0.55) 0%,
+                rgba(255, 255, 255, 0.20) 60%,
+                rgba(255, 255, 255, 0.05) 100%),
+            url('/assets/images/hero.webp') 60% center / cover no-repeat;
     }
 
     .home-hero h1 {

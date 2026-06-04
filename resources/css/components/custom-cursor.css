@@ -31,8 +31,8 @@ body.custom-cursor-enabled select {
     position: fixed;
     top: 0;
     left: 0;
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
     pointer-events: none;
     z-index: 99999;
     will-change: transform;
@@ -45,8 +45,8 @@ body.custom-cursor-enabled .custom-cursor {
 
 .custom-cursor img {
     display: block;
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
     object-fit: contain;
     transform-origin: center;
     transition: transform 0.18s ease;

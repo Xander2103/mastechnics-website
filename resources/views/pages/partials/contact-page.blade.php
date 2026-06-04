@@ -73,18 +73,6 @@
     $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
 @endphp
 
-<section class="contact-hero">
-    <div class="container">
-      
-
-        <h1>{{ $translation->title }}</h1>
-
-        @if ($translation->intro)
-            <p class="contact-intro">{{ $translation->intro }}</p>
-        @endif
-    </div>
-</section>
-
 <section class="section section-white">
     <div class="container">
         <div class="contact-layout">

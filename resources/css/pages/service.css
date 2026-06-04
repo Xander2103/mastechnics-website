@@ -32,27 +32,15 @@
 }
 
 /* ================================
-   Service page sections
-================================ */
-
-.service-page-content {
-    max-width: 820px;
-}
-
-.service-hero + .section {
-    padding-top: 72px;
-}
-
-/* ================================
-   Service hero layout (with icon)
+   Service hero layout (with icon or image)
 ================================ */
 
 .service-hero-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 32px;
-    padding: 48px 0 40px;
+    gap: 40px;
+    padding: 40px 0 32px;
 }
 
 .service-hero-text {
@@ -77,6 +65,51 @@
 .service-hero-icon svg {
     width: 56px;
     height: 56px;
+}
+
+/* ================================
+   Service hero — large image card
+================================ */
+
+.service-hero-image {
+    flex: 0 0 400px;
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    box-shadow:
+        0 16px 48px rgba(15, 53, 87, 0.14),
+        0 4px 12px rgba(15, 53, 87, 0.08);
+}
+
+.service-hero-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Heating — warm orange hero tint */
+.service-page--heating .service-hero {
+    background:
+        radial-gradient(circle at top right, rgba(220, 88, 20, 0.08), transparent 40%),
+        linear-gradient(135deg, #ffffff 0%, #fef8f5 100%);
+}
+
+.service-page--heating .service-hero-image {
+    box-shadow:
+        0 16px 48px rgba(174, 50, 12, 0.18),
+        0 6px 16px rgba(174, 50, 12, 0.10);
+    border: 1px solid rgba(220, 88, 20, 0.12);
+}
+
+.service-page--heating .service-hero-image::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 25% 65%, rgba(220, 88, 20, 0.07), transparent 60%);
+    pointer-events: none;
 }
 
 /* ================================
@@ -106,13 +139,92 @@
         height: 40px;
     }
 
+    .service-hero-image {
+        flex: none;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        max-height: 240px;
+        border-radius: 14px;
+    }
+
     .service-hero h1 {
         margin-bottom: 20px;
     }
 
     .service-intro {
-        margin-bottom: 28px;
+        margin-bottom: 24px;
     }
+
+    .service-overview-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .service-overview-card {
+        padding: 20px 22px;
+    }
+
+    .service-why-section {
+        padding: 24px 0 32px;
+    }
+
+    .service-highlights-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* ================================
+   Compact overview — 2-col card grid
+================================ */
+
+.service-overview-section {
+    padding: 28px 0;
+    background: var(--color-background);
+}
+
+.service-overview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.service-overview-grid--single {
+    grid-template-columns: 1fr;
+    max-width: 680px;
+}
+
+.service-overview-card {
+    display: flex;
+    flex-direction: column;
+    padding: 26px 28px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    box-shadow:
+        0 2px 8px rgba(15, 53, 87, 0.05),
+        0 1px 3px rgba(15, 53, 87, 0.03);
+}
+
+.service-overview-card h2 {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: var(--color-primary-dark);
+    margin-bottom: 12px;
+    line-height: 1.25;
+}
+
+.service-overview-card > p {
+    font-size: 0.97rem;
+    line-height: 1.62;
+    color: var(--color-muted);
+    margin: 0 0 20px;
+    flex: 1;
+}
+
+.service-overview-card > .button-row {
+    margin-top: auto;
 }
 
 /* ================================
@@ -124,8 +236,8 @@
     padding: 0;
     list-style: none;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px 32px;
+    grid-template-columns: 1fr;
+    gap: 8px;
 }
 
 .use-cases-list li {
@@ -133,6 +245,7 @@
     padding-left: 20px;
     color: var(--color-text);
     line-height: 1.55;
+    font-size: 0.95rem;
 }
 
 .use-cases-list li::before {
@@ -144,13 +257,49 @@
 }
 
 /* ================================
-   Service highlights grid
+   Why section — compact 3-card row
+================================ */
+
+.service-why-section {
+    padding: 28px 0 40px;
+    background: var(--color-white);
+}
+
+.service-why-heading {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--color-primary-dark);
+    margin-bottom: 18px;
+    line-height: 1.2;
+}
+
+/* ================================
+   Service highlights grid + cards
 ================================ */
 
 .service-highlights-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.service-highlights-grid .service-card {
+    min-height: 0;
+    padding: 20px 22px;
+}
+
+/* Heating — warm accent on why cards */
+.service-page--heating .service-highlights-grid .service-card {
+    border-top: 3px solid rgba(220, 88, 20, 0.28);
+    transition: border-top-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.service-page--heating .service-highlights-grid .service-card:hover {
+    border-top-color: rgba(220, 88, 20, 0.65);
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 24px rgba(174, 50, 12, 0.10),
+        0 2px 6px rgba(174, 50, 12, 0.06);
 }
 
 /* ================================
@@ -180,13 +329,27 @@
     color: var(--color-white);
 }
 
-@media (max-width: 1000px) {
-    .use-cases-list {
-        grid-template-columns: 1fr;
+/* Heating hero stacks at 900px (image too wide for narrower layouts) */
+@media (max-width: 900px) {
+    .service-page--heating .service-hero-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 32px 0 24px;
     }
 
+    .service-page--heating .service-hero-image {
+        width: 100%;
+        flex: none;
+        aspect-ratio: 16 / 9;
+        max-height: 280px;
+        border-radius: 16px;
+    }
+}
+
+@media (max-width: 1000px) {
     .service-highlights-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 

@@ -339,71 +339,88 @@
 
 <div class="service-page service-page--{{ $currentServiceKey ?? '' }}">
 
+{{-- ═══════════════════════════════════════════════════════════
+     Hero
+═══════════════════════════════════════════════════════════ --}}
 <section class="service-hero">
     <div class="container">
         <div class="service-hero-inner">
+
             <div class="service-hero-text">
                 <span class="eyebrow">{{ $text['type'] }}</span>
-
                 <h1>{{ $translation->title }}</h1>
-
                 @if ($translation->intro)
                     <p class="service-intro">{{ $translation->intro }}</p>
                 @endif
+                <div class="button-row">
+                    <a class="button button-primary"
+                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $requestSlug]) }}">
+                        {{ $text['quote'] }}
+                    </a>
+                </div>
             </div>
 
-            @if ($currentServiceKey && isset($serviceIcons[$currentServiceKey]))
+            @if ($currentServiceKey === 'heating')
+                {{-- Large image card. Swap src to verwarming-hero.webp when that file is added. --}}
+                <div class="service-hero-image" aria-hidden="true">
+                    <img
+                        src="{{ asset('assets/images/service-verwarming.webp') }}"
+                        alt=""
+                        loading="eager"
+                    >
+                </div>
+            @elseif ($currentServiceKey && isset($serviceIcons[$currentServiceKey]))
                 <div class="service-hero-icon" aria-hidden="true">
                     {!! $serviceIcons[$currentServiceKey] !!}
                 </div>
             @endif
+
         </div>
     </div>
 </section>
 
-<section class="section section-white">
+{{-- ═══════════════════════════════════════════════════════════
+     Compact overview: "What we do" + "Typical situations"
+═══════════════════════════════════════════════════════════ --}}
+<section class="service-overview-section">
     <div class="container">
-        <div class="section-header">
-            <h2>{{ $text['what'] }}</h2>
+        <div class="service-overview-grid{{ !$currentContent ? ' service-overview-grid--single' : '' }}">
 
-            @if ($translation->content)
-                <p>{{ $translation->content }}</p>
+            <div class="service-overview-card">
+                <h2>{{ $text['what'] }}</h2>
+                @if ($translation->content)
+                    <p>{{ $translation->content }}</p>
+                @endif
+                <div class="button-row">
+                    <a class="button button-primary"
+                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $requestSlug]) }}">
+                        {{ $text['quote'] }}
+                    </a>
+                </div>
+            </div>
+
+            @if ($currentContent && !empty($currentContent['situations']))
+                <div class="service-overview-card">
+                    <h2>{{ $text['situations'] }}</h2>
+                    <ul class="use-cases-list">
+                        @foreach ($currentContent['situations'] as $situation)
+                            <li>{{ $situation }}</li>
+                        @endforeach
+                    </ul>
+                </div>
             @endif
 
-            <div class="button-row service-content-button">
-                <a class="button button-primary button-large"
-                    href="{{ route('pages.show', [
-                        'locale' => $locale,
-                        'slug' => $requestSlug,
-                    ]) }}">
-                    {{ $text['quote'] }}
-                </a>
-            </div>
         </div>
     </div>
 </section>
 
-@if ($currentContent)
-    <section class="section">
+{{-- ═══════════════════════════════════════════════════════════
+     Why Mastechnics — compact 3-card row
+═══════════════════════════════════════════════════════════ --}}
+@if ($currentContent && !empty($currentContent['highlights']))
+    <section class="service-why-section">
         <div class="container">
-            <div class="section-header">
-                <h2>{{ $text['situations'] }}</h2>
-            </div>
-
-            <ul class="use-cases-list">
-                @foreach ($currentContent['situations'] as $situation)
-                    <li>{{ $situation }}</li>
-                @endforeach
-            </ul>
-        </div>
-    </section>
-
-    <section class="section section-white">
-        <div class="container">
-            <div class="section-header">
-                <h2>{{ $text['why'] }}</h2>
-            </div>
-
+            <h2 class="service-why-heading">{{ $text['why'] }}</h2>
             <div class="service-highlights-grid">
                 @foreach ($currentContent['highlights'] as $item)
                     <article class="service-card">
@@ -416,6 +433,9 @@
     </section>
 @endif
 
+{{-- ═══════════════════════════════════════════════════════════
+     CTA
+═══════════════════════════════════════════════════════════ --}}
 <section class="service-cta-section">
     <div class="container">
         <div class="home-cta">
@@ -424,12 +444,8 @@
                 <h2>{{ $text['cta_title'] }}</h2>
                 <p>{{ $text['cta_text'] }}</p>
             </div>
-
             <a class="button button-light button-large"
-               href="{{ route('pages.show', [
-                   'locale' => $locale,
-                   'slug' => $requestSlug,
-               ]) }}">
+               href="{{ route('pages.show', ['locale' => $locale, 'slug' => $requestSlug]) }}">
                 {{ $text['cta_button'] }}
             </a>
         </div>

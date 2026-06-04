@@ -60,7 +60,7 @@
     flex-direction: column;
     align-items: center;
     gap: 0;
-    width: 356px;
+    width: fit-content;
     justify-self: center;
 }
 
@@ -78,8 +78,9 @@
     pointer-events: none;
 }
 
-.hero-hex-diamond {
-    --hx-w: 124px;
+.hero-hex-pyramid {
+    --hx-w: 120px;
+    --hx-h: 138px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -87,13 +88,13 @@
     z-index: 1;
 }
 
-.hxd-row {
+.hxp-row {
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
-.hxd-row + .hxd-row {
-    margin-top: -38px;
+.hxp-row + .hxp-row {
+    margin-top: -28px;
 }
 
 .hero-hex {
@@ -104,7 +105,7 @@
     justify-content: center;
     gap: 5px;
     width: var(--hx-w);
-    height: 144px;
+    height: var(--hx-h);
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     color: #ffffff;
@@ -139,28 +140,28 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 44px;
-    height: 44px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.18);
     border: 1px solid rgba(255, 255, 255, 0.30);
 }
 
 .hero-hex-icon svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
 }
 
 .hero-hex-label {
     position: relative;
     z-index: 1;
-    font-size: 0.76rem;
+    font-size: 0.70rem;
     font-weight: 800;
-    line-height: 1.2;
+    line-height: 1.15;
     text-align: center;
     letter-spacing: 0.01em;
-    padding: 0 6px;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.50);
+    padding: 0 8px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
 }
 
 /* ---- Color identities — gradient overlay + service image ---- */
@@ -201,118 +202,36 @@
     filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
 }
 
-/* ---- Hex hover: lift + stronger glow ---- */
+.hero-hex--soft {
+    --hx-resting-shadow: rgba(10, 54, 98, 0.58);
+    --hx-hover-shadow:   rgba(10, 54, 98, 0.85);
+    background:
+        linear-gradient(145deg, rgba(8, 52, 96, 0.92) 0%, rgba(44, 112, 172, 0.74) 100%),
+        url('/assets/images/service-waterverzachters.webp') center / cover no-repeat;
+    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
+}
+
+.hero-hex--ice {
+    --hx-resting-shadow: rgba(14, 44, 60, 0.58);
+    --hx-hover-shadow:   rgba(14, 44, 60, 0.85);
+    background:
+        linear-gradient(145deg, rgba(12, 40, 58, 0.92) 0%, rgba(34, 92, 116, 0.74) 100%),
+        url('/assets/images/service-koelcellen.webp') center / cover no-repeat;
+    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
+}
+
+/* ---- Hex hover: subtle lift + stronger glow ---- */
 
 .hero-hex:hover {
-    transform: translateY(-6px);
+    transform: translateY(-5px);
 }
 
 .hero-hex--water:hover { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
 .hero-hex--heat:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
 .hero-hex--cool:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
 .hero-hex--vent:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-
-/* ================================
-   Hero service panels
-================================ */
-
-.hero-service-panels {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    margin-top: -26px;
-    position: relative;
-    z-index: 0;
-}
-
-.hero-service-panel {
-    position: relative;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    height: 110px;
-    padding-top: 18px;
-    color: #ffffff;
-    text-decoration: none;
-    overflow: hidden;
-    transition: transform 0.20s ease, filter 0.20s ease;
-    cursor: pointer;
-}
-
-.hero-service-panel::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0.28) 0%,
-        rgba(255, 255, 255, 0.08) 45%,
-        transparent 70%
-    );
-    pointer-events: none;
-    z-index: 0;
-}
-
-.hero-service-panel:focus-visible {
-    outline: 3px solid #ffffff;
-    outline-offset: 4px;
-}
-
-.hero-service-panel--soft {
-    --hx-resting-shadow: rgba(10, 54, 98, 0.58);
-    --hx-hover-shadow:   rgba(10, 54, 98, 0.85);
-    clip-path: polygon(15% 0%, 85% 0%, 100% 26%, 100% 100%, 0% 100%, 0% 26%);
-    -webkit-clip-path: polygon(15% 0%, 85% 0%, 100% 26%, 100% 100%, 0% 100%, 0% 26%);
-    background:
-        linear-gradient(135deg, rgba(8, 52, 96, 0.94) 0%, rgba(44, 112, 172, 0.76) 100%),
-        url('/assets/images/service-waterverzachters.webp') center / cover no-repeat;
-    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
-}
-
-.hero-service-panel--ice {
-    --hx-resting-shadow: rgba(14, 44, 60, 0.58);
-    --hx-hover-shadow:   rgba(14, 44, 60, 0.85);
-    clip-path: polygon(15% 0%, 85% 0%, 100% 26%, 100% 100%, 0% 100%, 0% 26%);
-    -webkit-clip-path: polygon(15% 0%, 85% 0%, 100% 26%, 100% 100%, 0% 100%, 0% 26%);
-    background:
-        linear-gradient(135deg, rgba(12, 40, 58, 0.94) 0%, rgba(34, 92, 116, 0.76) 100%),
-        url('/assets/images/service-koelcellen.webp') center / cover no-repeat;
-    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
-}
-
-.hero-panel-label {
-    position: relative;
-    z-index: 1;
-    font-size: 0.82rem;
-    font-weight: 800;
-    letter-spacing: 0.01em;
-    text-align: center;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
-}
-
-.hero-panel-sub {
-    position: relative;
-    z-index: 1;
-    font-size: 0.63rem;
-    font-weight: 600;
-    opacity: 0.80;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    text-align: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.30);
-}
-
-/* ---- Panel hover ---- */
-
-.hero-service-panel:hover {
-    transform: translateY(-4px);
-}
-
-.hero-service-panel--soft:hover { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-.hero-service-panel--ice:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+.hero-hex--soft:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+.hero-hex--ice:hover   { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
 
 .home-hero-content {
     max-width: 720px;
@@ -595,28 +514,20 @@
     }
 
     .hero-service-visual {
-        width: 320px;
+        width: fit-content;
     }
 
-    .hero-hex-diamond {
-        --hx-w: 108px;
+    .hero-hex-pyramid {
+        --hx-w: 104px;
+        --hx-h: 120px;
     }
 
-    .hero-hex {
-        height: 126px;
-    }
-
-    .hxd-row + .hxd-row {
-        margin-top: -33px;
-    }
-
-    .hero-service-panel {
-        height: 96px;
-        padding-top: 16px;
+    .hxp-row + .hxp-row {
+        margin-top: -24px;
     }
 
     .hero-hex-label {
-        font-size: 0.68rem;
+        font-size: 0.64rem;
     }
 
     .service-grid {
@@ -681,15 +592,14 @@
         display: none;
     }
 
-    .hero-hex-diamond,
-    .hxd-row,
-    .hero-service-panels {
+    .hero-hex-pyramid,
+    .hxp-row {
         display: contents;
     }
 
     .hero-hex {
         width: 100%;
-        height: 70px;
+        height: 68px;
         clip-path: none;
         -webkit-clip-path: none;
         border-radius: 12px;
@@ -700,34 +610,20 @@
     }
 
     .hero-hex-icon {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
     }
 
     .hero-hex-icon svg {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
     }
 
     .hero-hex-label {
-        font-size: 0.80rem;
+        font-size: 0.78rem;
         text-align: left;
         padding: 0;
-    }
-
-    .hero-service-panel {
-        clip-path: none;
-        -webkit-clip-path: none;
-        border-radius: 12px;
-        height: 70px;
-        padding: 0 14px;
-        flex-direction: row;
-        gap: 10px;
-        justify-content: flex-start;
-    }
-
-    .hero-panel-sub {
-        display: none;
     }
 
     .home-hero h1 {

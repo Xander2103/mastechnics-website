@@ -55,22 +55,31 @@
 ================================ */
 
 .hero-service-visual {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0;
-    width: 316px;
-    padding: 18px 16px 14px;
-    background: rgba(4, 12, 28, 0.44);
-    border: 1px solid rgba(255, 255, 255, 0.11);
-    border-radius: 22px;
-    box-shadow:
-        0 28px 72px rgba(4, 12, 28, 0.46),
-        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    width: 356px;
+    justify-self: center;
+}
+
+/* Soft white halo so shapes remain readable over the hero photo */
+.hero-service-visual::before {
+    content: "";
+    position: absolute;
+    inset: -32px;
+    background: radial-gradient(
+        ellipse at 50% 45%,
+        rgba(255, 255, 255, 0.42) 0%,
+        rgba(255, 255, 255, 0.00) 68%
+    );
+    z-index: -1;
+    pointer-events: none;
 }
 
 .hero-hex-diamond {
-    --hx-w: 116px;
+    --hx-w: 124px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -84,7 +93,7 @@
 }
 
 .hxd-row + .hxd-row {
-    margin-top: -34px;
+    margin-top: -38px;
 }
 
 .hero-hex {
@@ -95,7 +104,7 @@
     justify-content: center;
     gap: 5px;
     width: var(--hx-w);
-    height: 134px;
+    height: 144px;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     color: #ffffff;
@@ -211,7 +220,7 @@
     display: flex;
     gap: 8px;
     width: 100%;
-    margin-top: -22px;
+    margin-top: -26px;
     position: relative;
     z-index: 0;
 }
@@ -224,8 +233,8 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    height: 102px;
-    padding-top: 16px;
+    height: 110px;
+    padding-top: 18px;
     color: #ffffff;
     text-decoration: none;
     overflow: hidden;
@@ -586,25 +595,24 @@
     }
 
     .hero-service-visual {
-        width: 280px;
-        padding: 14px 14px 12px;
+        width: 320px;
     }
 
     .hero-hex-diamond {
-        --hx-w: 100px;
+        --hx-w: 108px;
     }
 
     .hero-hex {
-        height: 116px;
+        height: 126px;
     }
 
     .hxd-row + .hxd-row {
-        margin-top: -29px;
+        margin-top: -33px;
     }
 
     .hero-service-panel {
-        height: 88px;
-        padding-top: 14px;
+        height: 96px;
+        padding-top: 16px;
     }
 
     .hero-hex-label {
@@ -667,11 +675,10 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
         width: 100%;
-        padding: 0;
-        background: transparent;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
+    }
+
+    .hero-service-visual::before {
+        display: none;
     }
 
     .hero-hex-diamond,

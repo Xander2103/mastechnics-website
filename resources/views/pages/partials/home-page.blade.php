@@ -16,13 +16,13 @@
             'primary_cta'    => 'Start aanvraag',
             'secondary_cta'  => 'Bekijk diensten',
             'hero_badge'     => 'Technische service — particulieren & bedrijven',
-            'hero_headline'  => 'Technische oplossingen die comfort creëren.',
+            'hero_headline'  => 'Technische oplossingen voor comfort en zekerheid.',
             'hero_intro'     => 'Uw partner voor sanitair, verwarming, airco, ventilatie, waterverzachters en koelcellen. Duurzame technologie, perfecte afwerking en service op maat.',
 
             'services_label' => 'Diensten',
-            'services_title' => 'Alle technische diensten onder één dak',
+            'services_title' => 'Waarvoor zoekt u hulp?',
             'services_intro' =>
-                'Van verwarmingsonderhoud en airco-installatie tot sanitaire herstellingen en koelcellen: ' .
+                'Kies een dienst en bekijk meteen wat Mastechnics voor u kan doen.' .
                 $siteName . ' helpt zowel particulieren als professionele klanten snel verder.',
             'more_info'      => 'Meer info →',
 

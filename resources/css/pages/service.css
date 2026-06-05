@@ -94,15 +94,32 @@
 .service-page--heating .service-hero {
     position: relative;
     overflow: hidden;
+    padding: 70px 0;
     background:
         linear-gradient(
             90deg,
             rgba(255, 255, 255, 0.96) 0%,
-            rgba(255, 255, 255, 0.84) 38%,
-            rgba(255, 255, 255, 0.25) 68%,
-            rgba(255, 255, 255, 0.05) 100%
+            rgba(255, 255, 255, 0.88) 36%,
+            rgba(255, 255, 255, 0.42) 62%,
+            rgba(255, 255, 255, 0.08) 100%
         ),
         url('/assets/images/verwarming-hero.webp') right center / cover no-repeat;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Ensure text and inner layout sit above the glow overlays */
+.service-page--heating .service-hero .container,
+.service-page--heating .service-hero-inner {
+    position: relative;
+    z-index: 2;
+}
+
+/* Defensive reset — no rogue background/border on the inner */
+.service-page--heating .service-hero-inner {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
 }
 
 /* ---- Heating pipe glow overlays ---- */
@@ -217,16 +234,21 @@
         margin-bottom: 24px;
     }
 
-    /* Heating mobile: stronger overlay, background-position for portrait */
+    /* Heating mobile: reduce section padding, stronger overlay for readability */
     .service-page--heating .service-hero {
+        padding: 36px 0;
         background:
             linear-gradient(
                 180deg,
                 rgba(255, 255, 255, 0.97) 0%,
-                rgba(255, 255, 255, 0.92) 60%,
-                rgba(255, 255, 255, 0.78) 100%
+                rgba(255, 255, 255, 0.90) 55%,
+                rgba(255, 255, 255, 0.72) 100%
             ),
             url('/assets/images/verwarming-hero.webp') 65% center / cover no-repeat;
+    }
+
+    .service-page--heating .service-hero-inner {
+        padding: 0;
     }
 
     .service-hero-badge-icon {
@@ -409,6 +431,8 @@
     padding: 0;
     border-radius: 0;
     background: transparent;
+    border: none;
+    box-shadow: none;
     color: var(--color-white);
 }
 

@@ -450,9 +450,9 @@
     align-items: center;
     padding: 46px;
     border-radius: var(--radius-large);
-    background:
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 30%),
-        var(--color-primary-dark);
+    background: linear-gradient(135deg, #0f3557 0%, #1466cf 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 24px 60px rgba(9, 36, 63, 0.22);
     color: var(--color-white);
 }
 

@@ -118,26 +118,34 @@
     z-index: 1;
 }
 
-/* Glass badge icon — floats over the hero image on the right */
+/* Glass badge icon — absolutely positioned over the right/image area */
 .service-hero-badge-icon {
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 72px;
-    height: 72px;
-    border-radius: 22px;
+    border-radius: 24px;
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 122, 69, 0.22);
+    border: 1px solid rgba(255, 122, 69, 0.28);
     color: #D95310;
-    box-shadow: 0 8px 28px rgba(255, 122, 69, 0.18);
+    box-shadow: 0 18px 44px rgba(255, 122, 69, 0.22);
+    z-index: 2;
 }
 
 .service-hero-badge-icon svg {
     width: 36px;
     height: 36px;
+}
+
+/* Heating: badge floats over the image side */
+.service-page--heating .service-hero-badge-icon {
+    position: absolute;
+    right: clamp(32px, 8vw, 140px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 78px;
+    height: 78px;
 }
 
 /* ================================
@@ -343,10 +351,20 @@
 ================================ */
 
 .service-cta-section {
-    background:
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 40%),
-        var(--color-primary-dark);
+    position: relative;
+    background: linear-gradient(135deg, #0f3252 0%, #0f4575 100%);
     padding: 52px 0;
+}
+
+/* Accent stripe separates CTA visually from the same-dark footer */
+.service-cta-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #0F66C2 0%, #FF7A45 50%, #7A9EBB 100%);
 }
 
 .service-cta-section .home-cta {

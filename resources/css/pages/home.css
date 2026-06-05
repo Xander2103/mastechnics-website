@@ -110,8 +110,9 @@
     -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     color: #ffffff;
     text-decoration: none;
-    transition: transform 0.20s ease, filter 0.20s ease;
+    transition: transform 0.20s ease;
     cursor: pointer;
+    animation: hexGlowPulse 4s ease-in-out infinite alternate;
 }
 
 .hero-hex:focus-visible {
@@ -167,71 +168,65 @@
 /* ---- Color identities — gradient overlay + service image ---- */
 
 .hero-hex--water {
-    --hx-resting-shadow: rgba(10, 74, 144, 0.58);
-    --hx-hover-shadow:   rgba(10, 74, 144, 0.85);
+    --hex-accent-rgb: 15, 102, 194;
+    animation-delay: 0s;
     background:
         linear-gradient(145deg, rgba(8, 64, 128, 0.92) 0%, rgba(26, 118, 210, 0.74) 100%),
         url('/assets/images/service-sanitair.webp') center / cover no-repeat;
-    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
 }
 
 .hero-hex--heat {
-    --hx-resting-shadow: rgba(174, 50, 12, 0.58);
-    --hx-hover-shadow:   rgba(174, 50, 12, 0.85);
+    --hex-accent-rgb: 217, 83, 16;
+    animation-delay: -1.1s;
     background:
         linear-gradient(145deg, rgba(160, 44, 8, 0.92) 0%, rgba(224, 88, 28, 0.74) 100%),
         url('/assets/images/service-verwarming.webp') center / cover no-repeat;
-    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
 }
 
 .hero-hex--cool {
-    --hx-resting-shadow: rgba(34, 84, 108, 0.55);
-    --hx-hover-shadow:   rgba(34, 84, 108, 0.82);
+    --hex-accent-rgb: 62, 143, 184;
+    animation-delay: -2.2s;
     background:
         linear-gradient(145deg, rgba(28, 74, 98, 0.92) 0%, rgba(64, 130, 162, 0.74) 100%),
         url('/assets/images/service-airco.webp') center / cover no-repeat;
-    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
 }
 
 .hero-hex--vent {
-    --hx-resting-shadow: rgba(40, 68, 82, 0.52);
-    --hx-hover-shadow:   rgba(40, 68, 82, 0.80);
+    --hex-accent-rgb: 111, 145, 164;
+    animation-delay: -0.55s;
     background:
         linear-gradient(145deg, rgba(32, 56, 70, 0.92) 0%, rgba(74, 114, 130, 0.74) 100%),
         url('/assets/images/service-ventilatie.webp') center / cover no-repeat;
-    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
 }
 
 .hero-hex--soft {
-    --hx-resting-shadow: rgba(10, 54, 98, 0.58);
-    --hx-hover-shadow:   rgba(10, 54, 98, 0.85);
+    --hex-accent-rgb: 26, 118, 204;
+    animation-delay: -1.65s;
     background:
         linear-gradient(145deg, rgba(8, 52, 96, 0.92) 0%, rgba(44, 112, 172, 0.74) 100%),
         url('/assets/images/service-waterverzachters.webp') center / cover no-repeat;
-    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
 }
 
 .hero-hex--ice {
-    --hx-resting-shadow: rgba(14, 44, 60, 0.58);
-    --hx-hover-shadow:   rgba(14, 44, 60, 0.85);
+    --hex-accent-rgb: 46, 143, 168;
+    animation-delay: -2.75s;
     background:
         linear-gradient(145deg, rgba(12, 40, 58, 0.92) 0%, rgba(34, 92, 116, 0.74) 100%),
         url('/assets/images/service-koelcellen.webp') center / cover no-repeat;
-    filter: drop-shadow(0 6px 18px var(--hx-resting-shadow));
 }
 
-/* ---- Hex hover: subtle lift + stronger glow ---- */
+/* ---- Hex hover: pause animation, stronger glow ---- */
 
 .hero-hex:hover {
     transform: translateY(-5px);
+    animation-play-state: paused;
+    filter: drop-shadow(0 10px 28px rgba(var(--hex-accent-rgb), 0.88));
 }
 
-.hero-hex--water:hover { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-.hero-hex--heat:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-.hero-hex--cool:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-.hero-hex--vent:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-.hero-hex--soft:hover  { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
-.hero-hex--ice:hover   { filter: drop-shadow(0 10px 26px var(--hx-hover-shadow)); }
+@keyframes hexGlowPulse {
+    from { filter: drop-shadow(0 4px 14px rgba(var(--hex-accent-rgb), 0.44)); }
+    to   { filter: drop-shadow(0 6px 22px rgba(var(--hex-accent-rgb), 0.80)); }
+}
 
 .home-hero-content {
     max-width: 720px;
@@ -500,6 +495,11 @@
         opacity: 1;
         transform: none;
         transition: none;
+    }
+
+    .hero-hex {
+        animation: none;
+        filter: drop-shadow(0 5px 16px rgba(var(--hex-accent-rgb), 0.58));
     }
 }
 

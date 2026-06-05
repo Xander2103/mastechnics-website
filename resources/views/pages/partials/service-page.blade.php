@@ -369,7 +369,7 @@
     <div class="container">
         <div class="service-hero-inner">
 
-            <div class="service-hero-text">
+            <div class="service-hero-text reveal">
                 <div class="service-hero-kicker">
                     <span class="eyebrow">{{ $text['type'] }}</span>
 
@@ -409,7 +409,7 @@
     <div class="container">
         <div class="service-overview-grid{{ !$currentContent ? ' service-overview-grid--single' : '' }}">
 
-            <div class="service-overview-card">
+            <div class="service-overview-card reveal reveal-stagger">
                 <h2>{{ $text['what'] }}</h2>
                 @if ($translation->content)
                     <p>{{ $translation->content }}</p>
@@ -418,7 +418,7 @@
             </div>
 
             @if ($currentContent && !empty($currentContent['situations']))
-                <div class="service-overview-card">
+                <div class="service-overview-card reveal reveal-stagger">
                     <h2>{{ $text['situations'] }}</h2>
                     <ul class="use-cases-list">
                         @foreach ($currentContent['situations'] as $situation)
@@ -441,7 +441,7 @@
             <h2 class="service-why-heading">{{ $text['why'] }}</h2>
             <div class="service-highlights-grid">
                 @foreach ($currentContent['highlights'] as $item)
-                    <article class="service-card">
+                    <article class="service-card reveal reveal-stagger">
                         <h3>{{ $item['title'] }}</h3>
                         <p>{{ $item['description'] }}</p>
                     </article>
@@ -456,7 +456,7 @@
 ═══════════════════════════════════════════════════════════ --}}
 <section class="service-cta-section">
     <div class="container">
-        <div class="home-cta">
+        <div class="home-cta reveal">
             <div>
                 <span class="eyebrow eyebrow-dark">{{ $text['cta_badge'] }}</span>
                 <h2>{{ $text['cta_title'] }}</h2>

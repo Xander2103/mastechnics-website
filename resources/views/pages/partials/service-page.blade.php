@@ -20,6 +20,17 @@
         'cold-rooms' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>',
     ];
 
+    $serviceHeroImages = [
+        'heating'        => 'verwarming-hero.webp',
+        'plumbing'       => 'sanitair-hero.webp',
+        'airco'          => 'airco-hero.webp',
+        'ventilation'    => 'ventilatie-hero.webp',
+        'water-softeners' => 'waterverzachter-hero.webp',
+        'cold-rooms'     => 'koelcellen-hero.webp',
+    ];
+
+    $heroImage = $currentServiceKey ? ($serviceHeroImages[$currentServiceKey] ?? null) : null;
+
     // ── Shared labels ──────────────────────────────────────────────────────────
     $labels = [
         'nl' => [
@@ -343,23 +354,32 @@
      Hero
 ═══════════════════════════════════════════════════════════ --}}
 <section class="service-hero">
-    @if ($currentServiceKey === 'heating')
+    @if ($heroImage)
         <img
             class="service-hero-bg-img"
-            src="{{ asset('assets/images/verwarming-hero.webp') }}"
+            src="{{ asset('assets/images/' . $heroImage) }}"
             alt=""
             aria-hidden="true"
             loading="eager"
         >
         <div class="service-hero-bg-overlay" aria-hidden="true"></div>
-        <div class="service-hero-heat-glow" aria-hidden="true"></div>
+        <div class="service-hero-accent-glow" aria-hidden="true"></div>
     @endif
 
     <div class="container">
         <div class="service-hero-inner">
 
             <div class="service-hero-text">
-                <span class="eyebrow">{{ $text['type'] }}</span>
+                <div class="service-hero-kicker">
+                    <span class="eyebrow">{{ $text['type'] }}</span>
+
+                    @if ($heroImage && $currentServiceKey && isset($serviceIcons[$currentServiceKey]))
+                        <span class="service-hero-badge-icon" aria-hidden="true">
+                            {!! $serviceIcons[$currentServiceKey] !!}
+                        </span>
+                    @endif
+                </div>
+
                 <h1>{{ $translation->title }}</h1>
                 @if ($translation->intro)
                     <p class="service-intro">{{ $translation->intro }}</p>
@@ -372,11 +392,7 @@
                 </div>
             </div>
 
-            @if ($currentServiceKey === 'heating')
-                <div class="service-hero-badge-icon" aria-hidden="true">
-                    {!! $serviceIcons['heating'] !!}
-                </div>
-            @elseif ($currentServiceKey && isset($serviceIcons[$currentServiceKey]))
+            @if (!$heroImage && $currentServiceKey && isset($serviceIcons[$currentServiceKey]))
                 <div class="service-hero-icon" aria-hidden="true">
                     {!! $serviceIcons[$currentServiceKey] !!}
                 </div>

@@ -25,6 +25,17 @@
     min-width: 0;
 }
 
+.service-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.service-hero-kicker .eyebrow {
+    margin-bottom: 0;
+}
+
 .service-hero .eyebrow {
     margin-bottom: 22px;
 }
@@ -46,7 +57,9 @@
     margin-top: 0;
 }
 
-/* Default service icon */
+/* ================================
+   Default service icon
+================================ */
 
 .service-hero-icon {
     flex-shrink: 0;
@@ -68,18 +81,51 @@
 }
 
 /* ================================
-   Heating hero
-   Uses real <img>, not CSS background
+   Service accent colors
 ================================ */
 
-.service-page--heating .service-hero {
+.service-page--heating {
+    --service-accent: #D95310;
+    --service-accent-rgb: 217, 83, 16;
+}
+
+.service-page--plumbing {
+    --service-accent: #0F66C2;
+    --service-accent-rgb: 15, 102, 194;
+}
+
+.service-page--airco {
+    --service-accent: #3E8FB8;
+    --service-accent-rgb: 62, 143, 184;
+}
+
+.service-page--ventilation {
+    --service-accent: #6F91A4;
+    --service-accent-rgb: 111, 145, 164;
+}
+
+.service-page--water-softeners {
+    --service-accent: #1A76CC;
+    --service-accent-rgb: 26, 118, 204;
+}
+
+.service-page--cold-rooms {
+    --service-accent: #2E8FA8;
+    --service-accent-rgb: 46, 143, 168;
+}
+
+/* ================================
+   Service hero — shared image system
+================================ */
+
+.service-page .service-hero {
     isolation: isolate;
-    min-height: 520px;
-    padding: 96px 0;
+    min-height: 460px;
+    padding: 72px 0;
     background: #ffffff;
 }
 
-.service-page--heating .service-hero-bg-img {
+.service-page .service-hero-bg-img {
     position: absolute;
     inset: 0;
     z-index: 0;
@@ -88,11 +134,10 @@
     height: 100%;
     object-fit: cover;
     object-position: center 48%;
-    opacity: 1;
     pointer-events: none;
 }
 
-.service-page--heating .service-hero-bg-overlay {
+.service-page .service-hero-bg-overlay {
     position: absolute;
     inset: 0;
     z-index: 1;
@@ -107,40 +152,89 @@
     );
 }
 
-.service-page--heating .service-hero .container,
-.service-page--heating .service-hero-inner,
-.service-page--heating .service-hero-text {
-    position: relative;
+.service-page .service-hero-accent-glow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
     z-index: 2;
+    width: 55%;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            ellipse 65% 50% at 78% 44%,
+            rgba(var(--service-accent-rgb), 0.22) 0%,
+            transparent 70%
+        ),
+        radial-gradient(
+            ellipse 42% 38% at 68% 62%,
+            rgba(var(--service-accent-rgb), 0.14) 0%,
+            transparent 65%
+        );
+    animation: serviceGlowPulse 4s ease-in-out infinite alternate;
 }
 
-.service-page--heating .service-hero-inner {
+.service-page .service-hero .container,
+.service-page .service-hero-inner,
+.service-page .service-hero-text {
+    position: relative;
+    z-index: 3;
+}
+
+.service-page .service-hero-inner {
     padding: 0;
     background: transparent;
     border: 0;
     box-shadow: none;
 }
 
-/* Heating badge */
+/* ================================
+   Service hero badge (in kicker)
+================================ */
 
-.service-hero-badge-icon {
-    display: flex;
+.service-page .service-hero-badge-icon {
+    position: relative;
+    z-index: 4;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.72);
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    color: var(--service-accent);
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(var(--service-accent-rgb), 0.34);
+    box-shadow:
+        0 0 0 0 rgba(var(--service-accent-rgb), 0.26),
+        0 14px 32px rgba(var(--service-accent-rgb), 0.18);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 122, 69, 0.28);
-    color: #D95310;
-    box-shadow: 0 18px 44px rgba(255, 122, 69, 0.22);
+    animation: serviceIconGlow 2.8s ease-in-out infinite alternate;
 }
 
-.service-hero-badge-icon svg {
-    width: 36px;
-    height: 36px;
+.service-page .service-hero-badge-icon svg {
+    width: 30px;
+    height: 30px;
 }
 
+@keyframes serviceIconGlow {
+    from {
+        box-shadow:
+            0 0 0 0 rgba(var(--service-accent-rgb), 0.22),
+            0 14px 32px rgba(var(--service-accent-rgb), 0.16);
+    }
+
+    to {
+        box-shadow:
+            0 0 0 10px rgba(var(--service-accent-rgb), 0.08),
+            0 18px 42px rgba(var(--service-accent-rgb), 0.28);
+    }
+}
+
+@keyframes serviceGlowPulse {
+    from { opacity: 0.65; }
+    to   { opacity: 1; }
+}
 
 /* ================================
    Compact overview
@@ -252,22 +346,22 @@
     padding: 20px 22px;
 }
 
-/* Heating why-card accent */
+/* Service why-card accent */
 
-.service-page--heating .service-highlights-grid .service-card {
-    border-top: 3px solid rgba(220, 88, 20, 0.28);
+.service-page .service-highlights-grid .service-card {
+    border-top: 3px solid rgba(var(--service-accent-rgb), 0.28);
     transition:
         border-top-color 0.18s ease,
         transform 0.18s ease,
         box-shadow 0.18s ease;
 }
 
-.service-page--heating .service-highlights-grid .service-card:hover {
-    border-top-color: rgba(220, 88, 20, 0.65);
+.service-page .service-highlights-grid .service-card:hover {
+    border-top-color: rgba(var(--service-accent-rgb), 0.65);
     transform: translateY(-2px);
     box-shadow:
-        0 8px 24px rgba(174, 50, 12, 0.10),
-        0 2px 6px rgba(174, 50, 12, 0.06);
+        0 8px 24px rgba(var(--service-accent-rgb), 0.10),
+        0 2px 6px rgba(var(--service-accent-rgb), 0.06);
 }
 
 /* ================================
@@ -488,9 +582,9 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .service-page--heating .service-hero {
-        min-height: 460px;
-        padding: 86px 0;
+    .service-page .service-hero {
+        min-height: 420px;
+        padding: 60px 0;
     }
 }
 
@@ -517,6 +611,22 @@
         height: 40px;
     }
 
+    .service-hero-kicker {
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .service-page .service-hero-badge-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 15px;
+    }
+
+    .service-page .service-hero-badge-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+
     .service-hero h1 {
         margin-bottom: 20px;
     }
@@ -525,16 +635,16 @@
         margin-bottom: 24px;
     }
 
-    .service-page--heating .service-hero {
-        min-height: 380px;
-        padding: 56px 0;
+    .service-page .service-hero {
+        min-height: 340px;
+        padding: 46px 0;
     }
 
-    .service-page--heating .service-hero-bg-img {
+    .service-page .service-hero-bg-img {
         object-position: 62% center;
     }
 
-    .service-page--heating .service-hero-bg-overlay {
+    .service-page .service-hero-bg-overlay {
         background: linear-gradient(
             180deg,
             rgba(255, 255, 255, 0.98) 0%,
@@ -543,11 +653,11 @@
         );
     }
 
-    .service-page--heating .service-hero-inner {
+    .service-page .service-hero-inner {
         padding: 0;
     }
 
-    .service-page--heating .service-hero-badge-icon {
+    .service-page .service-hero-accent-glow {
         display: none;
     }
 
@@ -614,6 +724,15 @@
 ================================ */
 
 @media (prefers-reduced-motion: reduce) {
+    .service-page .service-hero-badge-icon,
+    .service-page .service-hero-accent-glow {
+        animation: none;
+    }
+
+    .service-page .service-hero-accent-glow {
+        opacity: 0.8;
+    }
+
     .service-page--plumbing .use-cases-list::before {
         transform: scaleY(1);
         transition: none;
@@ -635,100 +754,5 @@
 
     .service-page--plumbing .use-cases-list::after {
         display: none;
-    }
-}
-
-/* ================================
-   Heating hero — badge near text
-================================ */
-
-.service-page--heating .service-hero-badge-icon {
-    position: absolute;
-    left: calc((100vw - var(--container-width)) / 2 + 150px);
-    top: 118px;
-    right: auto;
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    transform: none;
-    z-index: 4;
-    background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 122, 69, 0.34);
-    color: #D95310;
-    box-shadow:
-        0 0 0 0 rgba(255, 122, 69, 0.32),
-        0 16px 36px rgba(217, 83, 16, 0.20);
-    animation: heatingIconGlow 2.8s ease-in-out infinite alternate;
-}
-
-.service-page--heating .service-hero-badge-icon svg {
-    width: 32px;
-    height: 32px;
-}
-
-@keyframes heatingIconGlow {
-    from {
-        box-shadow:
-            0 0 0 0 rgba(255, 122, 69, 0.22),
-            0 16px 36px rgba(217, 83, 16, 0.16);
-    }
-
-    to {
-        box-shadow:
-            0 0 0 10px rgba(255, 122, 69, 0.08),
-            0 20px 46px rgba(217, 83, 16, 0.28);
-    }
-}
-
-/* ================================
-   Heating hero — pipe heat glow
-================================ */
-
-.service-page--heating .service-hero-heat-glow {
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 55%;
-    z-index: 2;
-    pointer-events: none;
-    background:
-        radial-gradient(ellipse 65% 50% at 78% 44%, rgba(255, 140, 50, 0.28) 0%, transparent 70%),
-        radial-gradient(ellipse 42% 38% at 68% 62%, rgba(220, 75, 15, 0.18) 0%, transparent 65%);
-    animation: heatingGlowPulse 4s ease-in-out infinite alternate;
-}
-
-@keyframes heatingGlowPulse {
-    from { opacity: 0.65; }
-    to   { opacity: 1; }
-}
-
-@media (max-width: 1200px) {
-    .service-page--heating .service-hero-badge-icon {
-        left: 260px;
-        top: 118px;
-    }
-}
-
-@media (max-width: 680px) {
-    .service-page--heating .service-hero-badge-icon {
-        display: none;
-    }
-
-    .service-page--heating .service-hero-heat-glow {
-        display: none;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .service-page--heating .service-hero-badge-icon {
-        animation: none;
-    }
-
-    .service-page--heating .service-hero-heat-glow {
-        animation: none;
-        opacity: 0.8;
     }
 }

@@ -90,49 +90,36 @@
     object-position: center;
 }
 
-/* Heating — full background image hero
-   ::before (z:0) = photo
-   ::after  (z:1) = readability gradient only
-   .container    (z:2) = text + badge */
+/* Heating — image + gradient directly on the element, no pseudo-element layers */
 .service-page--heating .service-hero {
     position: relative;
-    isolation: isolate;
     overflow: hidden;
     padding: 70px 0;
-    background: #fff;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.96) 0%,
+            rgba(255, 255, 255, 0.78) 32%,
+            rgba(255, 255, 255, 0.16) 56%,
+            rgba(255, 255, 255, 0.00) 100%
+        ),
+        url('/assets/images/verwarming-hero.webp') right center / cover no-repeat;
     border-bottom: 1px solid var(--color-border);
 }
 
-/* Layer 0 — photo */
-.service-page--heating .service-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: url('/assets/images/verwarming-hero.webp') right center / cover no-repeat;
-    z-index: 0;
-}
-
-/* Layer 1 — readability gradient only, no glow */
+/* Kill any inherited pseudo-elements that could cover the image */
+.service-page--heating .service-hero::before,
 .service-page--heating .service-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.96) 0%,
-        rgba(255, 255, 255, 0.82) 33%,
-        rgba(255, 255, 255, 0.25) 55%,
-        rgba(255, 255, 255, 0.00) 100%
-    );
-    z-index: 1;
-    pointer-events: none;
+    content: none;
 }
 
-/* Layer 2 — text + badge */
 .service-page--heating .service-hero .container,
 .service-page--heating .service-hero-inner {
     position: relative;
     z-index: 2;
+}
+
+.service-page--heating .service-hero-inner {
     background: transparent;
     border: 0;
     box-shadow: none;
@@ -206,28 +193,22 @@
 
     /* Heating mobile — shorter section, image shifted left, stronger overlay */
     .service-page--heating .service-hero {
-        padding: 36px 0;
-        background: #fff;
-    }
-
-    .service-page--heating .service-hero::before {
-        background: url('/assets/images/verwarming-hero.webp') 65% center / cover no-repeat;
-    }
-
-    .service-page--heating .service-hero::after {
-        background: linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.94) 0%,
-            rgba(255, 255, 255, 0.90) 55%,
-            rgba(255, 255, 255, 0.72) 100%
-        );
+        padding: 44px 0;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.98) 0%,
+                rgba(255, 255, 255, 0.88) 58%,
+                rgba(255, 255, 255, 0.40) 100%
+            ),
+            url('/assets/images/verwarming-hero.webp') 65% center / cover no-repeat;
     }
 
     .service-page--heating .service-hero-inner {
         padding: 0;
     }
 
-    .service-hero-badge-icon {
+    .service-page--heating .service-hero-badge-icon {
         display: none;
     }
 

@@ -3,11 +3,26 @@
 ================================ */
 
 .service-hero {
+    position: relative;
+    overflow: hidden;
     padding: 0;
     background:
         radial-gradient(circle at top right, rgba(15, 102, 194, 0.12), transparent 34%),
         linear-gradient(135deg, #ffffff 0%, #f3f7fb 100%);
     border-bottom: 1px solid var(--color-border);
+}
+
+.service-hero-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 40px 0 32px;
+}
+
+.service-hero-text {
+    flex: 1;
+    min-width: 0;
 }
 
 .service-hero .eyebrow {
@@ -31,22 +46,7 @@
     margin-top: 0;
 }
 
-/* ================================
-   Service hero layout (with icon or image)
-================================ */
-
-.service-hero-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 40px;
-    padding: 40px 0 32px;
-}
-
-.service-hero-text {
-    flex: 1;
-    min-width: 0;
-}
+/* Default service icon */
 
 .service-hero-icon {
     flex-shrink: 0;
@@ -68,65 +68,61 @@
 }
 
 /* ================================
-   Service hero — large image card
+   Heating hero
+   Uses real <img>, not CSS background
 ================================ */
 
-.service-hero-image {
-    flex: 0 0 400px;
-    position: relative;
-    border-radius: 20px;
-    overflow: hidden;
-    aspect-ratio: 4 / 3;
-    box-shadow:
-        0 16px 48px rgba(15, 53, 87, 0.14),
-        0 4px 12px rgba(15, 53, 87, 0.08);
+.service-page--heating .service-hero {
+    isolation: isolate;
+    min-height: 520px;
+    padding: 96px 0;
+    background: #ffffff;
 }
 
-.service-hero-image img {
+.service-page--heating .service-hero-bg-img {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
     display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
+    object-position: center 48%;
+    opacity: 1;
+    pointer-events: none;
 }
 
-/* Heating — image + gradient directly on the element, no pseudo-element layers */
-.service-page--heating .service-hero {
-    position: relative;
-    overflow: hidden;
-    padding: 70px 0;
-    background:
-        linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.96) 0%,
-            rgba(255, 255, 255, 0.78) 32%,
-            rgba(255, 255, 255, 0.16) 56%,
-            rgba(255, 255, 255, 0.00) 100%
-        ),
-        url('/assets/images/verwarming-hero.webp') right center / cover no-repeat;
-    border-bottom: 1px solid var(--color-border);
-}
-
-/* Kill any inherited pseudo-elements that could cover the image */
-.service-page--heating .service-hero::before,
-.service-page--heating .service-hero::after {
-    content: none;
+.service-page--heating .service-hero-bg-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(255, 255, 255, 0.90) 24%,
+        rgba(255, 255, 255, 0.46) 42%,
+        rgba(255, 255, 255, 0.12) 58%,
+        rgba(255, 255, 255, 0.00) 76%
+    );
 }
 
 .service-page--heating .service-hero .container,
-.service-page--heating .service-hero-inner {
+.service-page--heating .service-hero-inner,
+.service-page--heating .service-hero-text {
     position: relative;
     z-index: 2;
 }
 
 .service-page--heating .service-hero-inner {
+    padding: 0;
     background: transparent;
     border: 0;
     box-shadow: none;
-    padding: 0;
 }
 
-/* Glass badge icon — absolutely positioned over the right/image area */
+/* Heating badge */
+
 .service-hero-badge-icon {
     display: flex;
     align-items: center;
@@ -138,7 +134,6 @@
     border: 1px solid rgba(255, 122, 69, 0.28);
     color: #D95310;
     box-shadow: 0 18px 44px rgba(255, 122, 69, 0.22);
-    z-index: 2;
 }
 
 .service-hero-badge-icon svg {
@@ -146,93 +141,9 @@
     height: 36px;
 }
 
-/* Heating: badge floats over the image side */
-.service-page--heating .service-hero-badge-icon {
-    position: absolute;
-    right: clamp(32px, 8vw, 140px);
-    top: 50%;
-    transform: translateY(-50%);
-    width: 78px;
-    height: 78px;
-}
 
 /* ================================
-   Responsive
-================================ */
-
-@media (max-width: 680px) {
-    .service-hero {
-        padding: 0;
-    }
-
-    .service-hero-inner {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 20px;
-        padding: 36px 0 28px;
-    }
-
-    .service-hero-icon {
-        width: 78px;
-        height: 78px;
-        border-radius: 20px;
-    }
-
-    .service-hero-icon svg {
-        width: 40px;
-        height: 40px;
-    }
-
-    .service-hero h1 {
-        margin-bottom: 20px;
-    }
-
-    .service-intro {
-        margin-bottom: 24px;
-    }
-
-    /* Heating mobile — shorter section, image shifted left, stronger overlay */
-    .service-page--heating .service-hero {
-        padding: 44px 0;
-        background:
-            linear-gradient(
-                180deg,
-                rgba(255, 255, 255, 0.98) 0%,
-                rgba(255, 255, 255, 0.88) 58%,
-                rgba(255, 255, 255, 0.40) 100%
-            ),
-            url('/assets/images/verwarming-hero.webp') 65% center / cover no-repeat;
-    }
-
-    .service-page--heating .service-hero-inner {
-        padding: 0;
-    }
-
-    .service-page--heating .service-hero-badge-icon {
-        display: none;
-    }
-
-    .service-overview-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .service-overview-card {
-        padding: 20px 22px;
-    }
-
-    .service-why-section {
-        padding: 24px 0 32px;
-    }
-
-    .service-highlights-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-}
-
-/* ================================
-   Compact overview — 2-col card grid
+   Compact overview
 ================================ */
 
 .service-overview-section {
@@ -265,19 +176,19 @@
 }
 
 .service-overview-card h2 {
+    margin-bottom: 12px;
+    color: var(--color-primary-dark);
     font-size: 1.15rem;
     font-weight: 900;
-    color: var(--color-primary-dark);
-    margin-bottom: 12px;
     line-height: 1.25;
 }
 
 .service-overview-card > p {
+    flex: 1;
+    margin: 0 0 20px;
+    color: var(--color-muted);
     font-size: 0.97rem;
     line-height: 1.62;
-    color: var(--color-muted);
-    margin: 0 0 20px;
-    flex: 1;
 }
 
 .service-overview-card > .button-row {
@@ -289,20 +200,20 @@
 ================================ */
 
 .use-cases-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
     display: grid;
     grid-template-columns: 1fr;
     gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 .use-cases-list li {
     position: relative;
     padding-left: 20px;
     color: var(--color-text);
-    line-height: 1.55;
     font-size: 0.95rem;
+    line-height: 1.55;
 }
 
 .use-cases-list li::before {
@@ -314,7 +225,7 @@
 }
 
 /* ================================
-   Why section — compact 3-card row
+   Why section
 ================================ */
 
 .service-why-section {
@@ -323,16 +234,12 @@
 }
 
 .service-why-heading {
+    margin-bottom: 18px;
+    color: var(--color-primary-dark);
     font-size: 1.25rem;
     font-weight: 900;
-    color: var(--color-primary-dark);
-    margin-bottom: 18px;
     line-height: 1.2;
 }
-
-/* ================================
-   Service highlights grid + cards
-================================ */
 
 .service-highlights-grid {
     display: grid;
@@ -345,10 +252,14 @@
     padding: 20px 22px;
 }
 
-/* Heating — warm accent on why cards */
+/* Heating why-card accent */
+
 .service-page--heating .service-highlights-grid .service-card {
     border-top: 3px solid rgba(220, 88, 20, 0.28);
-    transition: border-top-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    transition:
+        border-top-color 0.18s ease,
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
 .service-page--heating .service-highlights-grid .service-card:hover {
@@ -360,22 +271,21 @@
 }
 
 /* ================================
-   Service CTA section (dark)
+   Service CTA section
 ================================ */
 
 .service-cta-section {
     position: relative;
-    background: linear-gradient(135deg, #0f3252 0%, #0f4575 100%);
     padding: 52px 0;
+    background: linear-gradient(135deg, #0f3252 0%, #0f4575 100%);
 }
 
-/* Accent stripe separates CTA visually from the same-dark footer */
 .service-cta-section::before {
     content: "";
     position: absolute;
     top: 0;
-    left: 0;
     right: 0;
+    left: 0;
     height: 3px;
     background: linear-gradient(90deg, #0F66C2 0%, #FF7A45 50%, #7A9EBB 100%);
 }
@@ -386,11 +296,11 @@
     gap: 36px;
     align-items: center;
     padding: 0;
-    border-radius: 0;
+    color: var(--color-white);
     background: transparent;
     border: none;
+    border-radius: 0;
     box-shadow: none;
-    color: var(--color-white);
 }
 
 .service-cta-section h2,
@@ -398,51 +308,24 @@
     color: var(--color-white);
 }
 
-@media (max-width: 1000px) {
-    .service-highlights-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 680px) {
-    .service-cta-section {
-        padding: 36px 0;
-    }
-
-    .service-cta-section .home-cta {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .service-cta-section .home-cta .button {
-        width: 100%;
-        text-align: center;
-        justify-content: center;
-    }
-}
-
 /* ================================
-   Sanitair — pipe-flow visual theme
-   Scoped to .service-page--plumbing
-   Pattern can be copied for other
-   services by changing the prefix.
+   Sanitair pipe-flow theme
 ================================ */
 
 .service-page--plumbing .use-cases-list {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0;
     padding: 0;
-    position: relative;
 }
 
-/* Vertical pipe line connecting all nodes */
 .service-page--plumbing .use-cases-list::before {
     content: "";
     position: absolute;
-    left: 19px;
     top: 30px;
     bottom: 30px;
+    left: 19px;
     width: 2px;
     border-radius: 2px;
     background: linear-gradient(
@@ -458,22 +341,24 @@
     transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Each situation becomes a connected card */
 .service-page--plumbing .use-cases-list li {
     position: relative;
-    padding: 16px 24px 16px 60px;
     margin-bottom: 10px;
+    padding: 16px 24px 16px 60px;
+    color: var(--color-text);
+    line-height: 1.55;
     background: var(--color-white);
     border: 1px solid var(--color-border);
     border-left: 3px solid rgba(15, 102, 194, 0.20);
     border-radius: var(--radius-medium);
     box-shadow: 0 2px 12px rgba(15, 53, 87, 0.05);
-    color: var(--color-text);
-    line-height: 1.55;
     opacity: 0;
     transform: translateY(10px);
-    transition: border-left-color 0.18s ease, box-shadow 0.18s ease,
-                opacity 0.45s ease, transform 0.45s ease;
+    transition:
+        border-left-color 0.18s ease,
+        box-shadow 0.18s ease,
+        opacity 0.45s ease,
+        transform 0.45s ease;
 }
 
 .service-page--plumbing .use-cases-list li:hover {
@@ -481,117 +366,98 @@
     box-shadow: 0 4px 20px rgba(15, 53, 87, 0.09);
 }
 
-/* Override checkmark with pipe-node circle */
 .service-page--plumbing .use-cases-list li::before {
     content: "";
     position: absolute;
-    left: 12px;
     top: 50%;
-    transform: translateY(-50%) scale(0.4);
-    opacity: 0;
+    left: 12px;
     width: 16px;
     height: 16px;
-    border-radius: 50%;
-    background: var(--color-white);
-    border: 2.5px solid var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(15, 102, 194, 0.10);
     color: transparent;
     font-size: 0;
+    background: var(--color-white);
+    border: 2.5px solid var(--color-primary);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(15, 102, 194, 0.10);
+    opacity: 0;
+    transform: translateY(-50%) scale(0.4);
 }
 
-/* Highlight cards: subtle top-accent and refined hover */
 .service-page--plumbing .service-highlights-grid .service-card {
     border-top: 3px solid rgba(15, 102, 194, 0.20);
-    transition: border-top-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    transition:
+        border-top-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
 }
 
 .service-page--plumbing .service-highlights-grid .service-card:hover {
     border-top-color: var(--color-primary);
 }
 
-/* Mobile */
-@media (max-width: 680px) {
-    .service-page--plumbing .use-cases-list::before {
-        left: 15px;
-        top: 26px;
-        bottom: 26px;
-    }
+/* Pipe-flow animation states */
 
-    .service-page--plumbing .use-cases-list li {
-        padding: 14px 16px 14px 50px;
-    }
-
-    .service-page--plumbing .use-cases-list li::before {
-        left: 10px;
-        width: 14px;
-        height: 14px;
-    }
-}
-
-/* ================================
-   Pipe-flow scroll animation
-   Triggered by .is-in-view on .use-cases-list
-   Scoped to .service-page--plumbing only
-================================ */
-
-/* Pipe: revealed state */
 .service-page--plumbing .use-cases-list.is-in-view::before {
     transform: scaleY(1);
 }
 
-/* Cards: revealed state */
 .service-page--plumbing .use-cases-list.is-in-view li {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* Cards: stagger delays */
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(1) { transition-delay: 0.08s; }
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(2) { transition-delay: 0.18s; }
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(3) { transition-delay: 0.28s; }
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(4) { transition-delay: 0.38s; }
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(5) { transition-delay: 0.48s; }
 
-/* Nodes: reveal + brighten keyframe */
 @keyframes nodeReveal {
-    0%   { opacity: 0; transform: translateY(-50%) scale(0.4);
-           box-shadow: 0 0 0 3px transparent; }
-    65%  { opacity: 1; transform: translateY(-50%) scale(1.08);
-           box-shadow: 0 0 0 5px rgba(15, 102, 194, 0.22); }
-    100% { opacity: 1; transform: translateY(-50%) scale(1);
-           box-shadow: 0 0 0 3px rgba(15, 102, 194, 0.10); }
+    0% {
+        opacity: 0;
+        transform: translateY(-50%) scale(0.4);
+        box-shadow: 0 0 0 3px transparent;
+    }
+
+    65% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.08);
+        box-shadow: 0 0 0 5px rgba(15, 102, 194, 0.22);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+        box-shadow: 0 0 0 3px rgba(15, 102, 194, 0.10);
+    }
 }
 
-/* Nodes: animation trigger */
 .service-page--plumbing .use-cases-list.is-in-view li::before {
     animation: nodeReveal 0.55s ease-out forwards;
 }
 
-/* Nodes: stagger delays (slightly after matching card) */
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(1)::before { animation-delay: 0.12s; }
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(2)::before { animation-delay: 0.22s; }
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(3)::before { animation-delay: 0.32s; }
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(4)::before { animation-delay: 0.42s; }
 .service-page--plumbing .use-cases-list.is-in-view li:nth-child(5)::before { animation-delay: 0.52s; }
 
-/* Water glow: keyframe
-   background-size: 100% 200% makes the gradient twice the element height.
-   Glow peak at 50% of gradient = one element-height from top.
-   At position 200% the glow sits above the element (invisible);
-   at -100% it has exited below. Animating 200%→-100% passes through
-   the visible range in the middle. Gradient transparency handles soft entry/exit. */
 @keyframes pipeFlowGlow {
-    from { background-position: 0% 200%; }
-    to   { background-position: 0% -100%; }
+    from {
+        background-position: 0% 200%;
+    }
+
+    to {
+        background-position: 0% -100%;
+    }
 }
 
-/* Water glow: ::after initial state */
 .service-page--plumbing .use-cases-list::after {
     content: "";
     position: absolute;
-    left: 19px;
     top: 30px;
     bottom: 30px;
+    left: 19px;
     width: 2px;
     border-radius: 2px;
     pointer-events: none;
@@ -608,16 +474,145 @@
     opacity: 0;
 }
 
-/* Water glow: revealed — one pass down the pipe, then rests invisible */
 .service-page--plumbing .use-cases-list.is-in-view::after {
     opacity: 1;
     animation: pipeFlowGlow 3.5s cubic-bezier(0.37, 0, 0.63, 1) 1.2s 1 forwards;
 }
 
 /* ================================
-   Reduced-motion: show everything
-   immediately, disable all animation
+   Responsive
 ================================ */
+
+@media (max-width: 1000px) {
+    .service-highlights-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .service-page--heating .service-hero {
+        min-height: 460px;
+        padding: 86px 0;
+    }
+}
+
+@media (max-width: 680px) {
+    .service-hero {
+        padding: 0;
+    }
+
+    .service-hero-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 36px 0 28px;
+    }
+
+    .service-hero-icon {
+        width: 78px;
+        height: 78px;
+        border-radius: 20px;
+    }
+
+    .service-hero-icon svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .service-hero h1 {
+        margin-bottom: 20px;
+    }
+
+    .service-intro {
+        margin-bottom: 24px;
+    }
+
+    .service-page--heating .service-hero {
+        min-height: 380px;
+        padding: 56px 0;
+    }
+
+    .service-page--heating .service-hero-bg-img {
+        object-position: 62% center;
+    }
+
+    .service-page--heating .service-hero-bg-overlay {
+        background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.98) 0%,
+            rgba(255, 255, 255, 0.90) 55%,
+            rgba(255, 255, 255, 0.50) 100%
+        );
+    }
+
+    .service-page--heating .service-hero-inner {
+        padding: 0;
+    }
+
+    .service-page--heating .service-hero-badge-icon {
+        display: none;
+    }
+
+    .service-overview-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .service-overview-card {
+        padding: 20px 22px;
+    }
+
+    .service-why-section {
+        padding: 24px 0 32px;
+    }
+
+    .service-highlights-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .service-cta-section {
+        padding: 36px 0;
+    }
+
+    .service-cta-section .home-cta {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .service-cta-section .home-cta .button {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .service-page--plumbing .use-cases-list::before {
+        top: 26px;
+        bottom: 26px;
+        left: 15px;
+    }
+
+    .service-page--plumbing .use-cases-list li {
+        padding: 14px 16px 14px 50px;
+        transform: translateY(6px);
+    }
+
+    .service-page--plumbing .use-cases-list li::before {
+        left: 10px;
+        width: 14px;
+        height: 14px;
+    }
+
+    .service-page--plumbing .use-cases-list::after {
+        top: 26px;
+        bottom: 26px;
+        left: 15px;
+        filter: none;
+    }
+}
+
+/* ================================
+   Reduced motion
+================================ */
+
 @media (prefers-reduced-motion: reduce) {
     .service-page--plumbing .use-cases-list::before {
         transform: scaleY(1);
@@ -627,7 +622,9 @@
     .service-page--plumbing .use-cases-list li {
         opacity: 1;
         transform: none;
-        transition: border-left-color 0.18s ease, box-shadow 0.18s ease;
+        transition:
+            border-left-color 0.18s ease,
+            box-shadow 0.18s ease;
     }
 
     .service-page--plumbing .use-cases-list li::before {
@@ -642,17 +639,90 @@
 }
 
 /* ================================
-   Mobile animation overrides
+   Heating hero — badge near text
 ================================ */
-@media (max-width: 680px) {
-    .service-page--plumbing .use-cases-list li {
-        transform: translateY(6px);
+
+.service-page--heating .service-hero-badge-icon {
+    position: absolute;
+    top: 82px;
+    left: calc((100vw - var(--container-width)) / 2 + 150px);
+    right: auto;
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    transform: none;
+    background: rgba(255, 255, 255, 0.84);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(217, 83, 16, 0.18);
+    animation: heatingIconGlow 2.8s ease-in-out infinite alternate;
+}
+
+.service-page--heating .service-hero-badge-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+@keyframes heatingIconGlow {
+    from {
+        box-shadow:
+            0 8px 24px rgba(217, 83, 16, 0.16),
+            0 0 0 0 rgba(255, 122, 69, 0.0);
     }
 
-    .service-page--plumbing .use-cases-list::after {
-        left: 15px;
-        top: 26px;
-        bottom: 26px;
-        filter: none;
+    to {
+        box-shadow:
+            0 14px 36px rgba(217, 83, 16, 0.32),
+            0 0 16px 4px rgba(255, 122, 69, 0.18);
+    }
+}
+
+/* ================================
+   Heating hero — pipe heat glow
+================================ */
+
+.service-page--heating .service-hero-heat-glow {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 55%;
+    z-index: 2;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 65% 50% at 78% 44%, rgba(255, 140, 50, 0.20) 0%, transparent 70%),
+        radial-gradient(ellipse 42% 38% at 68% 62%, rgba(220, 75, 15, 0.13) 0%, transparent 65%);
+    animation: heatingGlowPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes heatingGlowPulse {
+    from { opacity: 0.65; }
+    to   { opacity: 1; }
+}
+
+@media (max-width: 1200px) {
+    .service-page--heating .service-hero-badge-icon {
+        left: 210px;
+    }
+}
+
+@media (max-width: 680px) {
+    .service-page--heating .service-hero-badge-icon {
+        display: none;
+    }
+
+    .service-page--heating .service-hero-heat-glow {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .service-page--heating .service-hero-badge-icon {
+        animation: none;
+    }
+
+    .service-page--heating .service-hero-heat-glow {
+        animation: none;
+        opacity: 0.8;
     }
 }

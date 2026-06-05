@@ -343,6 +343,18 @@
      Hero
 ═══════════════════════════════════════════════════════════ --}}
 <section class="service-hero">
+    @if ($currentServiceKey === 'heating')
+        <img
+            class="service-hero-bg-img"
+            src="{{ asset('assets/images/verwarming-hero.webp') }}"
+            alt=""
+            aria-hidden="true"
+            loading="eager"
+        >
+        <div class="service-hero-bg-overlay" aria-hidden="true"></div>
+        <div class="service-hero-heat-glow" aria-hidden="true"></div>
+    @endif
+
     <div class="container">
         <div class="service-hero-inner">
 
@@ -361,7 +373,6 @@
             </div>
 
             @if ($currentServiceKey === 'heating')
-                {{-- Glass badge icon — background image (verwarming-hero.webp) comes from CSS --}}
                 <div class="service-hero-badge-icon" aria-hidden="true">
                     {!! $serviceIcons['heating'] !!}
                 </div>

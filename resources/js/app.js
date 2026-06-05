@@ -112,8 +112,20 @@ function initCustomCursor() {
         cursor.classList.toggle('is-hovering', !!e.target.closest(interactiveSelector));
     });
 
+    function isInteractiveTarget(target) {
+        return Boolean(target.closest(
+            'a, button, input, textarea, select, label, summary,' +
+            ' [role="button"], [role="link"], [role="menuitem"],' +
+            ' [tabindex]:not([tabindex="-1"]),' +
+            ' .button, .nav-link, .language-link, .quicknav-link,' +
+            ' .service-card, .hero-hex, .hero-service-panel,' +
+            ' .custom-cursor-disabled, header, form'
+        ));
+    }
+
     if (!reducedMotion) {
-        document.addEventListener('click', () => {
+        document.addEventListener('click', (event) => {
+            if (isInteractiveTarget(event.target)) return;
             cursor.classList.remove('is-spinning');
             void cursor.offsetWidth; // restart animation
             cursor.classList.add('is-spinning');

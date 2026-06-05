@@ -4,27 +4,16 @@
    JS adds .custom-cursor-enabled to body
 ================================ */
 
-body.custom-cursor-enabled {
-    cursor: none;
-}
-
-body.custom-cursor-enabled a,
-body.custom-cursor-enabled button,
-body.custom-cursor-enabled [role="button"],
-body.custom-cursor-enabled .button,
-body.custom-cursor-enabled .hero-hex,
-body.custom-cursor-enabled .hero-service-panel,
-body.custom-cursor-enabled .service-card,
-body.custom-cursor-enabled .service-card-link,
-body.custom-cursor-enabled label {
-    cursor: none;
+body.custom-cursor-enabled,
+body.custom-cursor-enabled * {
+    cursor: none !important;
 }
 
 /* Preserve usable cursor on form fields */
 body.custom-cursor-enabled input,
 body.custom-cursor-enabled textarea,
 body.custom-cursor-enabled select {
-    cursor: auto;
+    cursor: auto !important;
 }
 
 .custom-cursor {

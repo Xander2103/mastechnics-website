@@ -105,12 +105,46 @@
         url('/assets/images/verwarming-hero.webp') right center / cover no-repeat;
 }
 
+/* ---- Heating pipe glow overlays ---- */
+
+@keyframes heatPulse {
+    0%, 100% { opacity: 0.55; }
+    50%       { opacity: 0.96; }
+}
+
+/* Static multi-hot-spot glow — boiler (74% 50%), lower pipe (83% 72%),
+   diagonal pipe streak (linear). mix-blend-mode:screen is near-invisible
+   on the white-overlay left side, visible only on the dark image right side. */
 .service-page--heating .service-hero::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 78% 58%, rgba(255, 122, 69, 0.32), transparent 34%);
+    background:
+        radial-gradient(circle at 74% 50%, rgba(255, 55, 8, 0.52), transparent 22%),
+        radial-gradient(circle at 83% 72%, rgba(255, 138, 18, 0.36), transparent 16%),
+        linear-gradient(108deg, transparent 45%, rgba(255, 82, 26, 0.26) 56%, transparent 66%);
+    mix-blend-mode: screen;
     pointer-events: none;
+    z-index: 0;
+}
+
+/* Breathing pulse — slow fade makes the pipes feel alive */
+.service-page--heating .service-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 78% 56%, rgba(255, 75, 15, 0.60), transparent 26%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: 0;
+    animation: heatPulse 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .service-page--heating .service-hero::before {
+        animation: none;
+        opacity: 0.55;
+    }
 }
 
 .service-page--heating .service-hero .container {

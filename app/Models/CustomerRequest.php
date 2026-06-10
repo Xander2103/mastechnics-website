@@ -28,12 +28,21 @@ class CustomerRequest extends Model
         'customer_message',
         'ai_summary',
         'ai_detected_missing_fields',
+        'internal_notes',
+        'contacted_at',
+        'quote_sent_at',
+        'won_at',
+        'lost_at',
     ];
 
     protected $casts = [
-        'metadata' => 'array',
-        'unknown_device_details' => 'boolean',
+        'metadata'                   => 'array',
+        'unknown_device_details'     => 'boolean',
         'ai_detected_missing_fields' => 'array',
+        'contacted_at'               => 'datetime',
+        'quote_sent_at'              => 'datetime',
+        'won_at'                     => 'datetime',
+        'lost_at'                    => 'datetime',
     ];
 
     public function attachments(): HasMany
@@ -121,5 +130,54 @@ class CustomerRequest extends Model
         }
 
         return $missing;
+    }
+
+    public function getSummaryLines(): array
+    {
+        $lines    = [];
+        $metadata = $this->metadata ?? [];
+        $answers  = $metadata['answers'] ?? [];
+
+        if ($this->service_category) {
+            $category = collect(config('request-flow.service_categories', []))
+                ->firstWhere('value', $this->service_category);
+            $label   = $category['labels']['nl'] ?? $this->service_category;
+            $lines[] = "Aanvraag voor {$label}.";
+        }
+
+        $urgentLevels = ['water_leaking', 'small_leak', 'no_heating', 'no_hot_water', 'urgent'];
+        if ($this->urgency_level && in_array($this->urgency_level, $urgentLevels, true)) {
+            $lines[] = 'Klant geeft aan dat het dringend is.';
+        } elseif ($this->urgency_level === 'within_days') {
+            $lines[] = 'Klant wenst behandeling binnen enkele dagen.';
+        }
+
+        $attachmentCount = $this->relationLoaded('attachments')
+            ? $this->attachments->count()
+            : $this->attachments()->count();
+        if ($attachmentCount > 0) {
+            $noun    = $attachmentCount === 1 ? 'bijlage' : 'bijlagen';
+            $word    = $attachmentCount === 1 ? 'is' : 'zijn';
+            $lines[] = "Er {$word} {$attachmentCount} {$noun} toegevoegd.";
+        }
+
+        if (! empty($this->preferred_time)) {
+            $lines[] = "Voorkeurmoment: {$this->preferred_time}.";
+        }
+
+        if ($this->service_category === 'airco_offerte'
+            && ! empty($answers['rooms'])
+            && is_array($answers['rooms'])
+        ) {
+            $n       = count($answers['rooms']);
+            $lines[] = "{$n} kamer(s) opgegeven voor offerte.";
+        }
+
+        $brandModel = trim(($this->brand ?? '') . ' ' . ($this->device_model ?? ''));
+        if ($brandModel !== '') {
+            $lines[] = "Toestel: {$brandModel}.";
+        }
+
+        return $lines;
     }
 }

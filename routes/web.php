@@ -38,6 +38,12 @@ Route::middleware('admin')
 
         Route::post('/requests/{customerRequest}/notes', [AdminRequestController::class, 'storeNote'])
             ->name('requests.notes.store');
+
+        Route::post('/requests/{customerRequest}/action', [AdminRequestController::class, 'performAction'])
+            ->name('requests.action');
+
+        Route::patch('/requests/{customerRequest}/internal-notes', [AdminRequestController::class, 'updateInternalNotes'])
+            ->name('requests.internal-notes.update');
     });
 
 Route::post('/{locale}/requests', [CustomerRequestController::class, 'store'])

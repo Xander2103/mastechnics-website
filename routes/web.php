@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\QuoteController as AdminQuoteController;
 use App\Http\Controllers\Admin\RequestController as AdminRequestController;
 use App\Http\Controllers\CustomerRequestController;
 use App\Http\Controllers\PageController;
@@ -44,6 +45,15 @@ Route::middleware('admin')
 
         Route::patch('/requests/{customerRequest}/internal-notes', [AdminRequestController::class, 'updateInternalNotes'])
             ->name('requests.internal-notes.update');
+
+        Route::get('/requests/{customerRequest}/quote/edit', [AdminQuoteController::class, 'edit'])
+            ->name('requests.quote.edit');
+
+        Route::post('/requests/{customerRequest}/quote', [AdminQuoteController::class, 'store'])
+            ->name('requests.quote.store');
+
+        Route::post('/requests/{customerRequest}/quote/action', [AdminQuoteController::class, 'performAction'])
+            ->name('requests.quote.action');
     });
 
 Route::post('/{locale}/requests', [CustomerRequestController::class, 'store'])

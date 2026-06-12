@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CustomerRequest extends Model
 {
@@ -53,6 +54,11 @@ class CustomerRequest extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(CustomerRequestNote::class)->latest();
+    }
+
+    public function quote(): HasOne
+    {
+        return $this->hasOne(Quote::class);
     }
 
     public function getMissingInfoChecklist(): array

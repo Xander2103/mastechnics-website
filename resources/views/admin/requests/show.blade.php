@@ -169,6 +169,18 @@
                 </div>
             @endif
 
+            @if (session('success') === 'quote_saved')
+                <div class="form-success">
+                    Offerte werd opgeslagen.
+                </div>
+            @endif
+
+            @if (session('success') === 'quote_action_applied')
+                <div class="form-success">
+                    Offerte-status werd bijgewerkt.
+                </div>
+            @endif
+
             <div class="admin-detail-layout">
 
                 {{-- ===================== LEFT SIDEBAR ===================== --}}
@@ -336,6 +348,124 @@
                             </ul>
                         </div>
                     @endif
+
+                    {{-- Quote card --}}
+                    @php $quote = $customerRequest->quote; @endphp
+                    <div class="admin-detail-card admin-quote-card">
+                        <div class="admin-quote-card-header">
+                            <h2>Offerte</h2>
+                            @if ($quote)
+                                @php
+                                    $quoteStatusLabels = [
+                                        'draft'    => 'Concept',
+                                        'sent'     => 'Verstuurd',
+                                        'accepted' => 'Aanvaard',
+                                        'rejected' => 'Afgewezen',
+                                    ];
+                                @endphp
+                                <span class="admin-quote-status admin-quote-status-{{ $quote->quote_status }}">
+                                    {{ $quoteStatusLabels[$quote->quote_status] ?? $quote->quote_status }}
+                                </span>
+                            @endif
+                        </div>
+
+                        @if (! $quote)
+                            <p class="admin-muted-text">Nog geen offerte aangemaakt voor deze aanvraag.</p>
+                            <div style="margin-top: 14px;">
+                                <a class="button button-primary"
+                                   href="{{ route('admin.requests.quote.edit', $customerRequest) }}">
+                                    + Offerte aanmaken
+                                </a>
+                            </div>
+                        @else
+                            {{-- Meta: number + valid until --}}
+                            <div class="admin-quote-meta-row">
+                                @if ($quote->quote_number)
+                                    <span class="admin-quote-number">{{ $quote->quote_number }}</span>
+                                @endif
+                                @if ($quote->valid_until)
+                                    <span class="admin-quote-valid">Geldig t/m {{ $quote->valid_until->format('d/m/Y') }}</span>
+                                @endif
+                            </div>
+
+                            @if ($quote->title)
+                                <p class="admin-quote-title">{{ $quote->title }}</p>
+                            @endif
+
+                            @if ($quote->description)
+                                <p class="admin-quote-description">{{ $quote->description }}</p>
+                            @endif
+
+                            {{-- Amounts --}}
+                            @if ($quote->amount_excl_vat !== null)
+                                <div class="admin-quote-amounts">
+                                    <div class="admin-quote-amount-row">
+                                        <span>Excl. BTW</span>
+                                        <span>€&nbsp;{{ number_format((float) $quote->amount_excl_vat, 2, ',', '.') }}</span>
+                                    </div>
+                                    <div class="admin-quote-amount-row">
+                                        <span>BTW ({{ $quote->vat_rate }}%)</span>
+                                        <span>€&nbsp;{{ number_format((float) $quote->amount_vat, 2, ',', '.') }}</span>
+                                    </div>
+                                    <div class="admin-quote-amount-row admin-quote-amount-total">
+                                        <span>Incl. BTW</span>
+                                        <span>€&nbsp;{{ number_format((float) $quote->amount_incl_vat, 2, ',', '.') }}</span>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- Timestamps --}}
+                            @if ($quote->sent_at || $quote->accepted_at || $quote->rejected_at)
+                                <div class="admin-quote-timestamps">
+                                    @if ($quote->sent_at)
+                                        <div><span>Verstuurd:</span> {{ $quote->sent_at->format('d/m/Y H:i') }}</div>
+                                    @endif
+                                    @if ($quote->accepted_at)
+                                        <div><span>Aanvaard:</span> {{ $quote->accepted_at->format('d/m/Y H:i') }}</div>
+                                    @endif
+                                    @if ($quote->rejected_at)
+                                        <div><span>Afgewezen:</span> {{ $quote->rejected_at->format('d/m/Y H:i') }}</div>
+                                    @endif
+                                </div>
+                            @endif
+
+                            {{-- Actions --}}
+                            <div class="admin-quote-actions">
+                                <a class="button button-secondary"
+                                   href="{{ route('admin.requests.quote.edit', $customerRequest) }}">
+                                    ✏ Bewerken
+                                </a>
+
+                                @if ($quote->quote_status === 'draft')
+                                    <form method="POST" action="{{ route('admin.requests.quote.action', $customerRequest) }}">
+                                        @csrf
+                                        <input type="hidden" name="action" value="mark_sent">
+                                        <button type="submit" class="admin-quick-action-btn">
+                                            Verstuurd ▸
+                                        </button>
+                                    </form>
+                                @endif
+
+                                @if ($quote->quote_status === 'sent')
+                                    <form method="POST" action="{{ route('admin.requests.quote.action', $customerRequest) }}">
+                                        @csrf
+                                        <input type="hidden" name="action" value="mark_accepted">
+                                        <button type="submit" class="admin-quick-action-btn admin-quick-action-won">
+                                            Gewonnen ▸
+                                        </button>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('admin.requests.quote.action', $customerRequest) }}">
+                                        @csrf
+                                        <input type="hidden" name="action" value="mark_rejected">
+                                        <button type="submit" class="admin-quick-action-btn admin-quick-action-lost">
+                                            Verloren ▸
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
 
                     {{-- Ontbrekende informatie — only render if there are missing items --}}
                     @php $missingItems = $customerRequest->getMissingInfoChecklist(); @endphp

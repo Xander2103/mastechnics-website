@@ -49,15 +49,15 @@ class RequestController extends Controller
 
         $statusCounts = CustomerRequest::query()
             ->selectRaw('status, count(*) as total')
-            ->whereIn('status', ['new', 'contacted', 'planned'])
+            ->whereIn('status', ['new', 'contacted', 'quote_sent'])
             ->groupBy('status')
             ->pluck('total', 'status');
 
         $stats = [
-            'new'       => $statusCounts->get('new', 0),
-            'contacted' => $statusCounts->get('contacted', 0),
-            'planned'   => $statusCounts->get('planned', 0),
-            'urgent'    => CustomerRequest::whereNotIn('status', ['done', 'cancelled'])
+            'new'        => $statusCounts->get('new', 0),
+            'contacted'  => $statusCounts->get('contacted', 0),
+            'quote_sent' => $statusCounts->get('quote_sent', 0),
+            'urgent'     => CustomerRequest::whereNotIn('status', ['won', 'lost'])
                                 ->where(function ($q): void {
                                     $q->where('service_category', 'dringend_lek')
                                       ->orWhereIn('urgency_level', ['water_leaking', 'small_leak', 'no_heating', 'no_hot_water', 'urgent']);
@@ -76,14 +76,15 @@ class RequestController extends Controller
             'customerTypes' => $customerTypes,
             'serviceCategoryLabels' => $serviceCategoryLabels,
             'filters' => [
-                'search' => $request->string('search')->toString(),
-                'status' => $request->string('status')->toString(),
-                'service_slug' => $request->string('service_slug')->toString(),
-                'request_type' => $request->string('request_type')->toString(),
-                'urgency' => $request->string('urgency')->toString(),
-                'customer_type' => $request->string('customer_type')->toString(),
-                'date_from' => $request->string('date_from')->toString(),
-                'date_to' => $request->string('date_to')->toString(),
+                'search'           => $request->string('search')->toString(),
+                'status'           => $request->string('status')->toString(),
+                'service_slug'     => $request->string('service_slug')->toString(),
+                'service_category' => $request->string('service_category')->toString(),
+                'request_type'     => $request->string('request_type')->toString(),
+                'urgency'          => $request->string('urgency')->toString(),
+                'customer_type'    => $request->string('customer_type')->toString(),
+                'date_from'        => $request->string('date_from')->toString(),
+                'date_to'          => $request->string('date_to')->toString(),
             ],
         ]);
     }
@@ -108,7 +109,7 @@ class RequestController extends Controller
     public function updateStatus(Request $request, CustomerRequest $customerRequest): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'string', 'in:new,contacted,planned,done,cancelled'],
+            'status' => ['required', 'string', 'in:new,viewed,contacted,quote_sent,won,lost,planned,done,cancelled'],
         ]);
 
         $customerRequest->update([
@@ -221,6 +222,9 @@ class RequestController extends Controller
             ->when($request->filled('service_slug'), function ($query) use ($request): void {
                 $query->where('service_slug', $request->string('service_slug')->toString());
             })
+            ->when($request->filled('service_category'), function ($query) use ($request): void {
+                $query->where('service_category', $request->string('service_category')->toString());
+            })
             ->when($request->filled('request_type'), function ($query) use ($request): void {
                 $query->where('request_type', $request->string('request_type')->toString());
             })
@@ -251,11 +255,16 @@ class RequestController extends Controller
     private function getStatuses(): array
     {
         return [
-            'new' => 'Nieuw',
-            'contacted' => 'Gecontacteerd',
-            'planned' => 'Ingepland',
-            'done' => 'Afgewerkt',
-            'cancelled' => 'Geannuleerd',
+            'new'        => 'Nieuw',
+            'viewed'     => 'Bekeken',
+            'contacted'  => 'Gecontacteerd',
+            'quote_sent' => 'Offerte verstuurd',
+            'won'        => 'Gewonnen',
+            'lost'       => 'Verloren',
+            // backwards compat — display-only, not offered as new UI actions
+            'planned'    => 'Ingepland (oud)',
+            'done'       => 'Afgewerkt (oud)',
+            'cancelled'  => 'Geannuleerd (oud)',
         ];
     }
 }

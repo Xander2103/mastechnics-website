@@ -157,6 +157,18 @@
                 </div>
             @endif
 
+            @if (session('success') === 'action_applied')
+                <div class="form-success">
+                    Status werd bijgewerkt.
+                </div>
+            @endif
+
+            @if (session('success') === 'internal_notes_updated')
+                <div class="form-success">
+                    Memo werd opgeslagen.
+                </div>
+            @endif
+
             <div class="admin-detail-layout">
 
                 {{-- ===================== LEFT SIDEBAR ===================== --}}
@@ -175,32 +187,51 @@
                             </a>
                         @endif
 
-                        <form class="admin-status-form" method="POST"
-                            action="{{ route('admin.requests.update-status', $customerRequest) }}">
-                            @csrf
-                            @method('PATCH')
+                        {{-- Current status (read-only badge) --}}
+                        <div class="admin-current-status-row" style="margin-top: 16px; margin-bottom: 4px;">
+                            <span class="admin-current-status-label">Huidige status</span>
+                            <span class="admin-status admin-status-{{ $customerRequest->status }}">
+                                {{ $statuses[$customerRequest->status] ?? $customerRequest->status }}
+                            </span>
+                        </div>
 
-                            <label>
-                                <span>Status aanpassen</span>
+                        {{-- Quick-action buttons --}}
+                        <div class="admin-quick-action-grid">
+                            {{-- Bekeken: only enabled when status is 'new' --}}
+                            @if ($customerRequest->status === 'new')
+                                <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}">
+                                    @csrf
+                                    <input type="hidden" name="action" value="mark_viewed">
+                                    <button type="submit" class="admin-quick-action-btn">Bekeken</button>
+                                </form>
+                            @else
+                                <button type="button" class="admin-quick-action-btn admin-quick-action-disabled" disabled>Bekeken</button>
+                            @endif
 
-                                <select name="status">
-                                    @foreach ($statuses as $statusValue => $statusLabel)
-                                        <option value="{{ $statusValue }}"
-                                            {{ $customerRequest->status === $statusValue ? 'selected' : '' }}>
-                                            {{ $statusLabel }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </label>
+                            <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}">
+                                @csrf
+                                <input type="hidden" name="action" value="mark_contacted">
+                                <button type="submit" class="admin-quick-action-btn">Gecontacteerd</button>
+                            </form>
 
-                            @error('status')
-                                <p class="field-error-text">{{ $message }}</p>
-                            @enderror
+                            <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}">
+                                @csrf
+                                <input type="hidden" name="action" value="mark_quote_sent">
+                                <button type="submit" class="admin-quick-action-btn">Offerte verstuurd</button>
+                            </form>
 
-                            <button class="button button-primary" type="submit">
-                                Status opslaan
-                            </button>
-                        </form>
+                            <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}">
+                                @csrf
+                                <input type="hidden" name="action" value="mark_won">
+                                <button type="submit" class="admin-quick-action-btn admin-quick-action-won">Gewonnen</button>
+                            </form>
+
+                            <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}">
+                                @csrf
+                                <input type="hidden" name="action" value="mark_lost">
+                                <button type="submit" class="admin-quick-action-btn admin-quick-action-lost">Verloren</button>
+                            </form>
+                        </div>
 
                         @php
                             $snelBerichtCat = $serviceCategoryLabels[$customerRequest->service_category] ?? null;
@@ -264,10 +295,47 @@
                         </dl>
                     </div>
 
+                    {{-- Internal memo (fixed short note, not the follow-up log) --}}
+                    <div class="admin-detail-card admin-internal-notes-card">
+                        <h2>Interne memo</h2>
+                        <form method="POST"
+                            action="{{ route('admin.requests.internal-notes.update', $customerRequest) }}">
+                            @csrf
+                            @method('PATCH')
+
+                            <label>
+                                <span>Korte interne samenvatting</span>
+                                <textarea name="internal_notes" rows="4" maxlength="2000"
+                                    placeholder="Bijv. offerte doorgestuurd, klant wacht op keuring...">{{ old('internal_notes', $customerRequest->internal_notes) }}</textarea>
+                            </label>
+
+                            @error('internal_notes')
+                                <p class="field-error-text">{{ $message }}</p>
+                            @enderror
+
+                            <button class="button button-secondary" type="submit">
+                                Memo opslaan
+                            </button>
+                        </form>
+                    </div>
+
                 </aside>
 
                 {{-- ===================== MAIN AREA ===================== --}}
                 <div class="admin-detail-main">
+
+                    {{-- Summary block — rendered first in main column --}}
+                    @php $summaryLines = $customerRequest->getSummaryLines(); @endphp
+                    @if (! empty($summaryLines))
+                        <div class="admin-detail-card admin-summary-block">
+                            <h2>Samenvatting</h2>
+                            <ul class="admin-summary-list">
+                                @foreach ($summaryLines as $line)
+                                    <li class="admin-summary-line">{{ $line }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
                     {{-- Ontbrekende informatie — only render if there are missing items --}}
                     @php $missingItems = $customerRequest->getMissingInfoChecklist(); @endphp

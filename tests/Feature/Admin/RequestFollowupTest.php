@@ -201,4 +201,42 @@ class RequestFollowupTest extends TestCase
         $this->post(route('admin.requests.action', $req), ['action' => 'mark_viewed'])
             ->assertRedirect(route('admin.login'));
     }
+
+    // --- updateInternalNotes ---
+
+    public function test_update_internal_notes_saves_memo(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->patch(route('admin.requests.internal-notes.update', $req), [
+                'internal_notes' => 'Klant gebeld op 10/06. Wacht op foto.',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame('Klant gebeld op 10/06. Wacht op foto.', $req->fresh()->internal_notes);
+    }
+
+    public function test_update_internal_notes_accepts_null_to_clear_memo(): void
+    {
+        $req = $this->makeRequest(['internal_notes' => 'Oude memo']);
+
+        $this->withSession($this->adminSession())
+            ->patch(route('admin.requests.internal-notes.update', $req), [
+                'internal_notes' => null,
+            ]);
+
+        $this->assertNull($req->fresh()->internal_notes);
+    }
+
+    public function test_update_internal_notes_rejects_over_2000_chars(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->patch(route('admin.requests.internal-notes.update', $req), [
+                'internal_notes' => str_repeat('x', 2001),
+            ])
+            ->assertSessionHasErrors('internal_notes');
+    }
 }

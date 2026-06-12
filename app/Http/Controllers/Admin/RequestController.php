@@ -222,6 +222,19 @@ class RequestController extends Controller
         return back()->with('success', 'action_applied');
     }
 
+    public function updateInternalNotes(Request $request, CustomerRequest $customerRequest): RedirectResponse
+    {
+        $validated = $request->validate([
+            'internal_notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $customerRequest->update([
+            'internal_notes' => $validated['internal_notes'] ?? null,
+        ]);
+
+        return back()->with('success', 'internal_notes_updated');
+    }
+
     private function applyMarkViewed(CustomerRequest $customerRequest): void
     {
         if ($customerRequest->status === 'new') {

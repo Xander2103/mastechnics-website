@@ -205,6 +205,62 @@ class RequestController extends Controller
         ]);
     }
 
+    public function performAction(Request $request, CustomerRequest $customerRequest): RedirectResponse
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'string', 'in:mark_viewed,mark_contacted,mark_quote_sent,mark_won,mark_lost'],
+        ]);
+
+        match ($validated['action']) {
+            'mark_viewed'     => $this->applyMarkViewed($customerRequest),
+            'mark_contacted'  => $this->applyMarkContacted($customerRequest),
+            'mark_quote_sent' => $this->applyMarkQuoteSent($customerRequest),
+            'mark_won'        => $this->applyMarkWon($customerRequest),
+            'mark_lost'       => $this->applyMarkLost($customerRequest),
+        };
+
+        return back()->with('success', 'action_applied');
+    }
+
+    private function applyMarkViewed(CustomerRequest $customerRequest): void
+    {
+        if ($customerRequest->status === 'new') {
+            $customerRequest->update(['status' => 'viewed']);
+        }
+    }
+
+    private function applyMarkContacted(CustomerRequest $customerRequest): void
+    {
+        $customerRequest->update([
+            'status'       => 'contacted',
+            'contacted_at' => $customerRequest->contacted_at ?? now(),
+        ]);
+    }
+
+    private function applyMarkQuoteSent(CustomerRequest $customerRequest): void
+    {
+        $customerRequest->update([
+            'status'        => 'quote_sent',
+            'quote_sent_at' => $customerRequest->quote_sent_at ?? now(),
+        ]);
+    }
+
+    private function applyMarkWon(CustomerRequest $customerRequest): void
+    {
+        $customerRequest->update([
+            'status' => 'won',
+            'won_at' => $customerRequest->won_at ?? now(),
+        ]);
+    }
+
+    private function applyMarkLost(CustomerRequest $customerRequest): void
+    {
+        $customerRequest->update([
+            'status'  => 'lost',
+            'lost_at' => $customerRequest->lost_at ?? now(),
+        ]);
+    }
+
     private function buildFilteredQuery(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         return CustomerRequest::query()

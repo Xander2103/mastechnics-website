@@ -91,7 +91,7 @@ class RequestController extends Controller
 
     public function show(CustomerRequest $customerRequest): View
     {
-        $customerRequest->load(['attachments', 'notes']);
+        $customerRequest->load(['attachments', 'notes', 'quote']);
 
         $serviceCategoryLabels = collect(config('request-flow.service_categories', []))
             ->mapWithKeys(fn (array $cat): array => [

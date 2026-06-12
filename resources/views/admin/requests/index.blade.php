@@ -71,11 +71,11 @@
                 </div>
                 <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'contacted']) }}">
                     <span class="admin-stat-number">{{ $stats['contacted'] }}</span>
-                    <span class="admin-stat-label">Te contacteren</span>
+                    <span class="admin-stat-label">Gecontacteerd</span>
                 </a>
-                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'planned']) }}">
-                    <span class="admin-stat-number">{{ $stats['planned'] }}</span>
-                    <span class="admin-stat-label">Ingepland</span>
+                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'quote_sent']) }}">
+                    <span class="admin-stat-number">{{ $stats['quote_sent'] }}</span>
+                    <span class="admin-stat-label">Offerte verstuurd</span>
                 </a>
             </div>
 
@@ -133,6 +133,20 @@
                                     <option value="{{ $service['slug'] }}"
                                         {{ $filters['service_slug'] === $service['slug'] ? 'selected' : '' }}>
                                         {{ $service['title'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </label>
+
+                        <label>
+                            <span>Categorie</span>
+                            <select name="service_category">
+                                <option value="">Alle categorieën</option>
+
+                                @foreach ($serviceCategoryLabels as $catValue => $catLabel)
+                                    <option value="{{ $catValue }}"
+                                        {{ $filters['service_category'] === $catValue ? 'selected' : '' }}>
+                                        {{ $catLabel }}
                                     </option>
                                 @endforeach
                             </select>

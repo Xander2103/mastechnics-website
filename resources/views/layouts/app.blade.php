@@ -35,6 +35,16 @@
         ],
     ];
 
+    // Build service nav links from config
+    $serviceNav = collect(config('services', []))
+        ->filter(fn($s) => $s['is_active'] ?? false)
+        ->map(function ($s) use ($currentLocale) {
+            $trans = $s['translations'][$currentLocale] ?? $s['translations']['nl'];
+            return ['title' => $trans['title'], 'slug' => $trans['slug']];
+        })
+        ->values()
+        ->toArray();
+
     $serviceSlugs = [
         'nl' => 'verwarming',
         'fr' => 'chauffage',
@@ -159,9 +169,27 @@
 
         <div class="header-menu">
             <nav class="site-nav">
-                <a href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}#diensten">
-                    {{ ($locale ?? 'nl') === 'fr' ? 'Services' : (($locale ?? 'nl') === 'en' ? 'Services' : 'Diensten') }}
-                </a>
+                <div class="services-dropdown">
+                    <button
+                        type="button"
+                        class="services-dropdown-toggle"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-label="{{ $nav['services'] }}"
+                    >
+                        {{ $nav['services'] }}
+                        <svg class="services-dropdown-chevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+                            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="services-dropdown-menu" role="menu">
+                        @foreach ($serviceNav as $service)
+                            <a href="{{ route('pages.show', ['locale' => $currentLocale, 'slug' => $service['slug']]) }}" role="menuitem">
+                                {{ $service['title'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
 
                 <a href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}#waarom-mastechnics">
                     {{ ($locale ?? 'nl') === 'fr' ? 'À propos' : (($locale ?? 'nl') === 'en' ? 'About' : 'Over ons') }}
@@ -231,7 +259,9 @@
                     </li>
 
                     <li>
-                        Messenger: {{ $siteContact['messenger'] }}
+                        <a href="https://m.me/{{ $siteContact['messenger'] }}" target="_blank" rel="noopener noreferrer">
+                            Messenger
+                        </a>
                     </li>
                 </ul>
             </div>

@@ -54,6 +54,9 @@ Route::middleware('admin')
 
         Route::post('/requests/{customerRequest}/quote/action', [AdminQuoteController::class, 'performAction'])
             ->name('requests.quote.action');
+
+        Route::get('/requests/{customerRequest}/quote/pdf', [AdminQuoteController::class, 'pdf'])
+            ->name('requests.quote.pdf');
     });
 
 Route::post('/{locale}/requests', [CustomerRequestController::class, 'store'])

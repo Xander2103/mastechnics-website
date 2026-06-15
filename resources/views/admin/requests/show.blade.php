@@ -350,7 +350,10 @@
                     @endif
 
                     {{-- Quote card --}}
-                    @php $quote = $customerRequest->quote; @endphp
+                    @php
+                        $quote = $customerRequest->quote;
+                        $quoteItemCount = $quote ? $quote->items()->count() : 0;
+                    @endphp
                     <div class="admin-detail-card admin-quote-card">
                         <div class="admin-quote-card-header">
                             <h2>Offerte</h2>
@@ -392,19 +395,21 @@
                                 <p class="admin-quote-title">{{ $quote->title }}</p>
                             @endif
 
-                            @if ($quote->description)
-                                <p class="admin-quote-description">{{ $quote->description }}</p>
+                            @if ($quoteItemCount > 0)
+                                <p class="admin-muted-text" style="margin-bottom: 8px; font-size: 0.82rem;">
+                                    {{ $quoteItemCount }} {{ $quoteItemCount === 1 ? 'offerteregel' : 'offerteregels' }}
+                                </p>
                             @endif
 
                             {{-- Amounts --}}
-                            @if ($quote->amount_excl_vat !== null)
+                            @if ($quote->amount_incl_vat !== null)
                                 <div class="admin-quote-amounts">
                                     <div class="admin-quote-amount-row">
                                         <span>Excl. BTW</span>
                                         <span>€&nbsp;{{ number_format((float) $quote->amount_excl_vat, 2, ',', '.') }}</span>
                                     </div>
                                     <div class="admin-quote-amount-row">
-                                        <span>BTW ({{ $quote->vat_rate }}%)</span>
+                                        <span>BTW</span>
                                         <span>€&nbsp;{{ number_format((float) $quote->amount_vat, 2, ',', '.') }}</span>
                                     </div>
                                     <div class="admin-quote-amount-row admin-quote-amount-total">
@@ -434,6 +439,12 @@
                                 <a class="button button-secondary"
                                    href="{{ route('admin.requests.quote.edit', $customerRequest) }}">
                                     ✏ Bewerken
+                                </a>
+
+                                <a class="button button-secondary"
+                                   href="{{ route('admin.requests.quote.pdf', $customerRequest) }}"
+                                   target="_blank">
+                                    ↓ PDF
                                 </a>
 
                                 @if ($quote->quote_status === 'draft')

@@ -5,56 +5,77 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerRequest;
 use App\Models\Quote;
+use App\Models\QuoteItem;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class QuoteController extends Controller
 {
     public function edit(CustomerRequest $customerRequest): View
     {
+        $quote = $customerRequest->quote;
+
+        if ($quote) {
+            $quote->ensureDefaultItem();
+            $quote->load('items');
+        }
+
         return view('admin.quotes.edit', [
             'customerRequest' => $customerRequest,
-            'quote'           => $customerRequest->quote,
+            'quote'           => $quote,
         ]);
     }
 
     public function store(Request $request, CustomerRequest $customerRequest): RedirectResponse
     {
         $validated = $request->validate([
-            'title'           => ['nullable', 'string', 'max:200'],
-            'description'     => ['nullable', 'string'],
-            'amount_excl_vat' => ['nullable', 'numeric', 'min:0'],
-            'vat_rate'        => ['nullable', 'numeric', 'min:0'],
-            'valid_until'     => ['nullable', 'date'],
+            'title'                           => ['nullable', 'string', 'max:200'],
+            'description'                     => ['nullable', 'string'],
+            'valid_until'                     => ['nullable', 'date'],
+            'items'                           => ['required', 'array', 'min:1'],
+            'items.*.description'             => ['required', 'string', 'max:500'],
+            'items.*.quantity'                => ['required', 'numeric', 'min:0'],
+            'items.*.unit_price_excl_vat'     => ['required', 'numeric', 'min:0'],
+            'items.*.vat_rate'                => ['required', 'numeric', 'min:0'],
         ]);
-
-        $amountExclVat = isset($validated['amount_excl_vat']) ? (float) $validated['amount_excl_vat'] : null;
-        $vatRate       = isset($validated['vat_rate']) ? (float) $validated['vat_rate'] : 21.0;
-        $amountVat     = null;
-        $amountInclVat = null;
-
-        if ($amountExclVat !== null) {
-            $amountVat     = round($amountExclVat * ($vatRate / 100), 2);
-            $amountInclVat = round($amountExclVat + $amountVat, 2);
-        }
 
         $existingQuote = $customerRequest->quote;
         $quoteNumber   = $existingQuote?->quote_number ?? $this->generateQuoteNumber();
 
-        Quote::updateOrCreate(
+        $quote = Quote::updateOrCreate(
             ['customer_request_id' => $customerRequest->id],
             [
-                'quote_number'    => $quoteNumber,
-                'title'           => $validated['title'] ?? null,
-                'description'     => $validated['description'] ?? null,
-                'amount_excl_vat' => $amountExclVat,
-                'vat_rate'        => $vatRate,
-                'amount_vat'      => $amountVat,
-                'amount_incl_vat' => $amountInclVat,
-                'valid_until'     => $validated['valid_until'] ?? null,
+                'quote_number' => $quoteNumber,
+                'title'        => $validated['title'] ?? null,
+                'description'  => $validated['description'] ?? null,
+                'valid_until'  => $validated['valid_until'] ?? null,
             ]
         );
+
+        // Sync items: delete all existing, recreate in submitted order
+        $quote->items()->delete();
+
+        foreach ($validated['items'] as $index => $itemData) {
+            $lineTotals = QuoteItem::calculateLine(
+                (float) $itemData['quantity'],
+                (float) $itemData['unit_price_excl_vat'],
+                (float) $itemData['vat_rate']
+            );
+
+            $quote->items()->create([
+                'position'            => $index + 1,
+                'description'         => $itemData['description'],
+                'quantity'            => $itemData['quantity'],
+                'unit_price_excl_vat' => $itemData['unit_price_excl_vat'],
+                'vat_rate'            => $itemData['vat_rate'],
+                ...$lineTotals,
+            ]);
+        }
+
+        $quote->recalculateTotals();
 
         return redirect()->route('admin.requests.show', $customerRequest)
             ->with('success', 'quote_saved');
@@ -79,6 +100,26 @@ class QuoteController extends Controller
         };
 
         return back()->with('success', 'quote_action_applied');
+    }
+
+    public function pdf(CustomerRequest $customerRequest): Response
+    {
+        $quote = $customerRequest->quote;
+
+        abort_if(! $quote, 404, 'Geen offerte gevonden.');
+
+        $quote->load('items');
+
+        $pdf = Pdf::loadView('admin.quotes.pdf', [
+            'quote'           => $quote,
+            'customerRequest' => $customerRequest,
+        ]);
+
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = strtolower($quote->quote_number ?? 'offerte') . '-mastechnics-offerte.pdf';
+
+        return $pdf->stream($filename);
     }
 
     private function applyMarkSent(Quote $quote, CustomerRequest $customerRequest): void

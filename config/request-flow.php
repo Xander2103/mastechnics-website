@@ -8,12 +8,13 @@ return [
     // Step 2  : lek_dringend_details         (conditional: dringend_lek)
     // Step 3  : airco_offerte_details        (conditional: airco_offerte)
     // Step 4  : airco_onderhoud_details      (conditional: airco_onderhoud)
-    // Step 5  : customer_context
-    // Step 6  : description                  (file upload lives here)
-    // Step 7  : technical_details
-    // Step 8  : location_availability
-    // Step 9  : contact_details
-    // Step 10 : summary
+    // Step 5  : airco_customer_context       (conditional: airco_offerte, airco_onderhoud)
+    // Step 6  : customer_context             (conditional: non-airco categories)
+    // Step 7  : description                  (conditional: non-airco_offerte; file upload lives here)
+    // Step 8  : technical_details
+    // Step 9  : location_availability
+    // Step 10 : contact_details
+    // Step 11 : summary
     // ─────────────────────────────────────────────────────────────────────────
     'steps' => [
 
@@ -299,9 +300,9 @@ return [
                     'en' => 'Upload a photo of the nameplate',
                 ],
                 'text'          => [
-                    'nl' => 'U vindt dit op of in de ketel, vaak achter het klepje. Zorg dat merk, model en serienummer leesbaar zijn. Upload de foto bij \'Probleem of project\' hieronder.',
-                    'fr' => 'Vous la trouverez sur ou dans la chaudière, souvent derrière le panneau. Assurez-vous que la marque, le modèle et le numéro de série sont lisibles. Téléchargez la photo dans \'Problème ou projet\' ci-dessous.',
-                    'en' => 'You will find it on or inside the boiler, often behind the front panel. Make sure the brand, model and serial number are legible. Upload the photo in \'Issue or project\' below.',
+                    'nl' => 'U vindt dit op of in de ketel, vaak achter het klepje. Zorg dat merk, model en serienummer leesbaar zijn. Upload de foto bij \'Technische gegevens\' hieronder.',
+                    'fr' => 'Vous la trouverez sur ou dans la chaudière, souvent derrière le panneau. Assurez-vous que la marque, le modèle et le numéro de série sont lisibles. Téléchargez la photo dans \'Informations techniques\' ci-dessous.',
+                    'en' => 'You will find it on or inside the boiler, often behind the front panel. Make sure the brand, model and serial number are legible. Upload the photo in \'Technical details\' below.',
                 ],
             ],
         ],
@@ -452,9 +453,9 @@ return [
                     'en' => 'Add a photo or video',
                 ],
                 'text'          => [
-                    'nl' => 'Voeg een foto of video toe van het lek of het probleem bij \'Probleem of project\' hieronder. Dit helpt ons de ernst inschatten.',
-                    'fr' => 'Ajoutez une photo ou vidéo de la fuite ou du problème dans \'Problème ou projet\' ci-dessous. Cela nous aide à évaluer la gravité.',
-                    'en' => 'Add a photo or video of the leak or problem in \'Issue or project\' below. This helps us assess the severity.',
+                    'nl' => 'Voeg een foto of video toe van het lek of het probleem bij \'Beschrijf het probleem\' hieronder. Dit helpt ons de ernst inschatten.',
+                    'fr' => 'Ajoutez une photo ou vidéo de la fuite ou du problème dans \'Décrivez le problème\' ci-dessous. Cela nous aide à évaluer la gravité.',
+                    'en' => 'Add a photo or video of the leak or problem in \'Describe the problem\' below. This helps us assess the severity.',
                 ],
             ],
         ],
@@ -547,32 +548,68 @@ return [
                     ],
                 ],
                 [
-                    'name'        => 'preferred_time',
-                    'type'        => 'text',
+                    'name'     => 'airco_installation_timing',
+                    'type'     => 'select',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Gewenste termijn van plaatsing',
+                        'fr' => 'Délai souhaité pour l\'installation',
+                        'en' => 'Desired installation timeframe',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'asap',
+                            'labels' => [
+                                'nl' => 'Zo snel mogelijk',
+                                'fr' => 'Dès que possible',
+                                'en' => 'As soon as possible',
+                            ],
+                        ],
+                        [
+                            'value'  => 'within_3_months',
+                            'labels' => [
+                                'nl' => 'Binnen 1 tot 3 maanden',
+                                'fr' => 'Dans 1 à 3 mois',
+                                'en' => 'Within 1 to 3 months',
+                            ],
+                        ],
+                        [
+                            'value'  => 'exploring',
+                            'labels' => [
+                                'nl' => 'Ik ben me nog aan het oriënteren',
+                                'fr' => 'Je suis encore en phase de réflexion',
+                                'en' => 'I am still exploring options',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name'        => 'airco_installation_timing_notes',
+                    'type'        => 'textarea',
                     'required'    => false,
                     'labels'      => [
-                        'nl' => 'Gewenste timing',
-                        'fr' => 'Timing souhaité',
-                        'en' => 'Desired timing',
+                        'nl' => 'Extra toelichting of voorkeursperiode',
+                        'fr' => 'Précision ou période souhaitée',
+                        'en' => 'Extra details or preferred period',
                     ],
                     'placeholder' => [
-                        'nl' => 'Voor de zomer, zo snel mogelijk...',
-                        'fr' => 'Avant l\'été, dès que possible...',
-                        'en' => 'Before summer, as soon as possible...',
+                        'nl' => 'Bijv. vóór de zomer, na het schooljaar...',
+                        'fr' => 'P.ex. avant l\'été, après l\'année scolaire...',
+                        'en' => 'E.g. before summer, after the school year...',
                     ],
                 ],
             ],
             'helper_box' => [
                 'render_upload' => false,
                 'title'         => [
-                    'nl' => 'Foto\'s toevoegen (optioneel)',
-                    'fr' => 'Ajouter des photos (facultatif)',
-                    'en' => 'Add photos (optional)',
+                    'nl' => 'Foto\'s van de ruimtes (optioneel)',
+                    'fr' => 'Photos des pièces (facultatif)',
+                    'en' => 'Room photos (optional)',
                 ],
                 'text'          => [
-                    'nl' => 'Foto\'s van de ruimtes of de geplande buitenunit-locatie helpen bij de offerte. Upload ze bij \'Probleem of project\' verderop.',
-                    'fr' => 'Des photos des pièces ou de l\'emplacement prévu pour l\'unité extérieure facilitent le devis. Téléchargez-les via \'Problème ou projet\' plus bas.',
-                    'en' => 'Photos of the rooms or the planned outdoor unit location help with the quote. Upload them via \'Issue or project\' below.',
+                    'nl' => 'Foto\'s van de ruimtes of de geplande locatie voor de buitenunit helpen bij het opmaken van uw offerte. U kunt ze uploaden bij \'Technische gegevens\' hieronder.',
+                    'fr' => 'Des photos des pièces ou de l\'emplacement prévu pour l\'unité extérieure facilitent l\'établissement de votre devis. Vous pouvez les télécharger dans \'Informations techniques\' ci-dessous.',
+                    'en' => 'Photos of the rooms or the planned outdoor unit location help with your quote. You can upload them in \'Technical details\' below.',
                 ],
             ],
         ],
@@ -621,6 +658,21 @@ return [
                     ],
                 ],
                 [
+                    'name'        => 'airco_outdoor_units',
+                    'type'        => 'number',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Aantal buitenunits',
+                        'fr' => 'Nombre d\'unités extérieures',
+                        'en' => 'Number of outdoor units',
+                    ],
+                    'placeholder' => [
+                        'nl' => '1',
+                        'fr' => '1',
+                        'en' => '1',
+                    ],
+                ],
+                [
                     'name'        => 'airco_last_maintenance',
                     'type'        => 'text',
                     'required'    => false,
@@ -654,9 +706,56 @@ return [
             // No helper_box for this step
         ],
 
-        // ── Step 5 ───────────────────────────────────────────────────────────
+        // ── Step 5 (conditional) — airco only ────────────────────────────────
         [
-            'code'   => 'customer_context',
+            'code'      => 'airco_customer_context',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['airco_offerte', 'airco_onderhoud'],
+            ],
+            'labels' => [
+                'nl' => 'Uw situatie',
+                'fr' => 'Votre situation',
+                'en' => 'Your situation',
+            ],
+            'fields' => [
+                [
+                    'name'     => 'customer_type',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Klanttype',
+                        'fr' => 'Type de client',
+                        'en' => 'Customer type',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'residential',
+                            'labels' => [
+                                'nl' => 'Particulier',
+                                'fr' => 'Particulier',
+                                'en' => 'Residential',
+                            ],
+                        ],
+                        [
+                            'value'  => 'business',
+                            'labels' => [
+                                'nl' => 'Bedrijf',
+                                'fr' => 'Entreprise',
+                                'en' => 'Business',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+
+        // ── Step 6 (conditional) — non-airco ─────────────────────────────────
+        [
+            'code'      => 'customer_context',
+            'condition' => [
+                'service_categories' => ['onderhoud_cv', 'herstelling_cv', 'dringend_lek', 'sanitair', 'ventilatie', 'waterverzachter', 'koeling', 'andere'],
+            ],
             'labels' => [
                 'nl' => 'Klant en urgentie',
                 'fr' => 'Client et urgence',
@@ -731,13 +830,16 @@ return [
             ],
         ],
 
-        // ── Step 6 ───────────────────────────────────────────────────────────
+        // ── Step 7 (conditional) — non-airco_offerte ──────────────────────────
         [
-            'code'   => 'description',
+            'code'      => 'description',
+            'condition' => [
+                'service_categories' => ['airco_onderhoud', 'onderhoud_cv', 'herstelling_cv', 'dringend_lek', 'sanitair', 'ventilatie', 'waterverzachter', 'koeling', 'andere'],
+            ],
             'labels' => [
-                'nl' => 'Probleem of project',
-                'fr' => 'Problème ou projet',
-                'en' => 'Issue or project',
+                'nl' => 'Beschrijf het probleem',
+                'fr' => 'Décrivez le problème',
+                'en' => 'Describe the problem',
             ],
             'type'   => 'fields',
             'fields' => [
@@ -746,9 +848,9 @@ return [
                     'type'        => 'textarea',
                     'required'    => true,
                     'labels'      => [
-                        'nl' => 'Beschrijf kort je probleem of project',
-                        'fr' => 'Décrivez brièvement votre problème ou projet',
-                        'en' => 'Briefly describe your issue or project',
+                        'nl' => 'Beschrijf kort je situatie of het probleem',
+                        'fr' => 'Décrivez brièvement votre situation ou le problème',
+                        'en' => 'Briefly describe your situation or problem',
                     ],
                     'placeholder' => [
                         'nl' => 'Beschrijf wat er aan de hand is...',
@@ -771,8 +873,8 @@ return [
             ],
         ],
 
-        // ── Step 7 ───────────────────────────────────────────────────────────
-        // Always shown; brand/device_model here serve categories without a dedicated detail step (herstelling_cv, sanitair, ventilatie, waterverzachter, koeling, andere).
+        // ── Step 8 ────────────────────────────────────────────────────────────
+        // Always shown; brand/device_model here serve categories without a dedicated detail step.
         [
             'code'   => 'technical_details',
             'labels' => [
@@ -840,7 +942,7 @@ return [
             ],
         ],
 
-        // ── Step 8 ───────────────────────────────────────────────────────────
+        // ── Step 9 ────────────────────────────────────────────────────────────
         [
             'code'   => 'location_availability',
             'labels' => [
@@ -913,7 +1015,7 @@ return [
             ],
         ],
 
-        // ── Step 9 ───────────────────────────────────────────────────────────
+        // ── Step 10 ───────────────────────────────────────────────────────────
         [
             'code'   => 'contact_details',
             'labels' => [
@@ -956,7 +1058,7 @@ return [
             ],
         ],
 
-        // ── Step 10 ──────────────────────────────────────────────────────────
+        // ── Step 11 ───────────────────────────────────────────────────────────
         [
             'code'   => 'summary',
             'labels' => [
@@ -970,7 +1072,7 @@ return [
 
     // ─────────────────────────────────────────────────────────────────────────
     // SERVICE CATEGORIES
-    // Controller reads this to resolve service_key + request_type from the
+    // Controller reads this to resolve service_slug + request_type from the
     // category value the user selected in step 0.
     // ─────────────────────────────────────────────────────────────────────────
     'service_categories' => [

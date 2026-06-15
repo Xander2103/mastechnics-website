@@ -118,10 +118,15 @@ class CustomerRequestController extends Controller
             // New workflow fields
             'service_category' => $submittedCategory,
             'urgency_level'    => $answers['urgency_level'] ?? null,
-            'preferred_time'   => $answers['preferred_time'] ?? $answers['availability'] ?? null,
             'customer_message' => $answers['description'] ?? null,
             'ai_summary'                => null,
             'ai_detected_missing_fields' => null,
+
+            // Preferred time: text from most flows, or structured timing value for airco installation
+            'preferred_time' => $answers['preferred_time']
+                ?? $answers['airco_installation_timing']
+                ?? $answers['availability']
+                ?? null,
 
             // Customer info
             'customer_name'  => $answers['customer_name'] ?? '',

@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\CustomerRequest;
 use App\Models\Quote;
+use App\Models\QuoteItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -37,17 +38,28 @@ class QuoteTest extends TestCase
         ], $attrs));
     }
 
-    // --- store: VAT calculation ---
+    private function singleItemPayload(float $price = 1000.00, float $vat = 21.0): array
+    {
+        return [
+            'items' => [
+                [
+                    'description'         => 'Test post',
+                    'quantity'            => '1',
+                    'unit_price_excl_vat' => (string) $price,
+                    'vat_rate'            => (string) $vat,
+                ],
+            ],
+        ];
+    }
+
+    // ── Items: calculation ──────────────────────────────────────────────────
 
     public function test_store_creates_quote_with_vat_calculation(): void
     {
         $req = $this->makeRequest();
 
         $this->withSession($this->adminSession())
-            ->post(route('admin.requests.quote.store', $req), [
-                'amount_excl_vat' => '1000.00',
-                'vat_rate'        => '21',
-            ])
+            ->post(route('admin.requests.quote.store', $req), $this->singleItemPayload(1000.00, 21.0))
             ->assertRedirect(route('admin.requests.show', $req));
 
         $quote = $req->fresh()->quote;
@@ -56,15 +68,132 @@ class QuoteTest extends TestCase
         $this->assertSame('1210.00', $quote->amount_incl_vat);
     }
 
+    public function test_single_item_line_totals_are_correct(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.store', $req), $this->singleItemPayload(500.00, 6.0));
+
+        $item = $req->fresh()->quote->items->first();
+        $this->assertNotNull($item);
+        $this->assertSame('500.00', $item->line_total_excl_vat);
+        $this->assertSame('30.00', $item->line_vat_amount);
+        $this->assertSame('530.00', $item->line_total_incl_vat);
+    }
+
+    public function test_multiple_items_sum_to_quote_totals(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.store', $req), [
+                'items' => [
+                    ['description' => 'Post A', 'quantity' => '2', 'unit_price_excl_vat' => '100.00', 'vat_rate' => '21'],
+                    ['description' => 'Post B', 'quantity' => '1', 'unit_price_excl_vat' => '50.00',  'vat_rate' => '6'],
+                ],
+            ]);
+
+        $quote = $req->fresh()->quote;
+        // A: 2 × 100 = 200 excl, 42 VAT; B: 1 × 50 = 50 excl, 3 VAT
+        $this->assertSame('250.00', $quote->amount_excl_vat);
+        $this->assertSame('45.00',  $quote->amount_vat);
+        $this->assertSame('295.00', $quote->amount_incl_vat);
+        $this->assertSame(2, $quote->items()->count());
+    }
+
+    public function test_editing_item_updates_quote_totals(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.store', $req), $this->singleItemPayload(1000.00, 21.0));
+
+        // Edit: change price
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.store', $req), $this->singleItemPayload(2000.00, 21.0));
+
+        $quote = $req->fresh()->quote;
+        $this->assertSame('2000.00', $quote->amount_excl_vat);
+        $this->assertSame('420.00',  $quote->amount_vat);
+        $this->assertSame('2420.00', $quote->amount_incl_vat);
+    }
+
+    public function test_removing_item_updates_quote_totals(): void
+    {
+        $req = $this->makeRequest();
+
+        // Create with 2 items
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.store', $req), [
+                'items' => [
+                    ['description' => 'A', 'quantity' => '1', 'unit_price_excl_vat' => '300.00', 'vat_rate' => '21'],
+                    ['description' => 'B', 'quantity' => '1', 'unit_price_excl_vat' => '200.00', 'vat_rate' => '21'],
+                ],
+            ]);
+
+        // Update with only 1 item (B removed)
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.store', $req), [
+                'items' => [
+                    ['description' => 'A', 'quantity' => '1', 'unit_price_excl_vat' => '300.00', 'vat_rate' => '21'],
+                ],
+            ]);
+
+        $quote = $req->fresh()->quote;
+        $this->assertSame('300.00', $quote->amount_excl_vat);
+        $this->assertSame(1, $quote->items()->count());
+    }
+
+    // ── ensure_default_item backward compat ─────────────────────────────────
+
+    public function test_ensure_default_item_seeds_from_legacy_amount(): void
+    {
+        $req   = $this->makeRequest();
+        $quote = $this->makeQuote($req, [
+            'amount_excl_vat' => 500.00,
+            'vat_rate'        => 21.00,
+            'amount_vat'      => 105.00,
+            'amount_incl_vat' => 605.00,
+        ]);
+
+        $this->assertSame(0, $quote->items()->count());
+
+        $quote->ensureDefaultItem();
+
+        $item = $quote->items()->first();
+        $this->assertNotNull($item);
+        $this->assertSame('500.00', $item->unit_price_excl_vat);
+        $this->assertSame('21.00', $item->vat_rate);
+        $this->assertSame('Offertebedrag', $item->description);
+    }
+
+    public function test_ensure_default_item_is_idempotent(): void
+    {
+        $req   = $this->makeRequest();
+        $quote = $this->makeQuote($req, [
+            'amount_excl_vat' => 500.00,
+            'vat_rate'        => 21.00,
+        ]);
+
+        $quote->ensureDefaultItem();
+        $quote->ensureDefaultItem(); // second call must not create duplicate
+
+        $this->assertSame(1, $quote->items()->count());
+    }
+
+    // ── quote number ────────────────────────────────────────────────────────
+
     public function test_store_updates_existing_quote_without_duplicate(): void
     {
         $req = $this->makeRequest();
         $this->makeQuote($req, ['title' => 'Oud']);
 
         $this->withSession($this->adminSession())
-            ->post(route('admin.requests.quote.store', $req), [
-                'title' => 'Nieuw',
-            ]);
+            ->post(route('admin.requests.quote.store', $req), array_merge(
+                ['title' => 'Nieuw'],
+                $this->singleItemPayload()
+            ));
 
         $this->assertSame(1, Quote::count());
         $this->assertSame('Nieuw', $req->fresh()->quote->title);
@@ -75,7 +204,7 @@ class QuoteTest extends TestCase
         $req = $this->makeRequest();
 
         $this->withSession($this->adminSession())
-            ->post(route('admin.requests.quote.store', $req), []);
+            ->post(route('admin.requests.quote.store', $req), $this->singleItemPayload());
 
         $quote = $req->fresh()->quote;
         $this->assertNotNull($quote->quote_number);
@@ -88,7 +217,10 @@ class QuoteTest extends TestCase
         $this->makeQuote($req, ['quote_number' => 'OFF-2026-0001']);
 
         $this->withSession($this->adminSession())
-            ->post(route('admin.requests.quote.store', $req), ['title' => 'Update']);
+            ->post(route('admin.requests.quote.store', $req), array_merge(
+                ['title' => 'Update'],
+                $this->singleItemPayload()
+            ));
 
         $this->assertSame('OFF-2026-0001', $req->fresh()->quote->quote_number);
     }
@@ -99,31 +231,40 @@ class QuoteTest extends TestCase
         $req2 = $this->makeRequest();
 
         $this->withSession($this->adminSession())
-            ->post(route('admin.requests.quote.store', $req1), []);
+            ->post(route('admin.requests.quote.store', $req1), $this->singleItemPayload());
 
         $this->withSession($this->adminSession())
-            ->post(route('admin.requests.quote.store', $req2), []);
+            ->post(route('admin.requests.quote.store', $req2), $this->singleItemPayload());
 
         $num1 = $req1->fresh()->quote->quote_number;
         $num2 = $req2->fresh()->quote->quote_number;
 
         $this->assertNotSame($num1, $num2);
-        $suffix1 = (int) substr($num1, -4);
-        $suffix2 = (int) substr($num2, -4);
-        $this->assertSame(1, $suffix2 - $suffix1);
+        $this->assertSame(1, ((int) substr($num2, -4)) - ((int) substr($num1, -4)));
     }
 
-    // --- store: validation ---
+    // ── validation ──────────────────────────────────────────────────────────
 
-    public function test_store_validates_amount_must_be_numeric(): void
+    public function test_store_validates_items_required(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.store', $req), [])
+            ->assertSessionHasErrors('items');
+    }
+
+    public function test_store_validates_item_description_required(): void
     {
         $req = $this->makeRequest();
 
         $this->withSession($this->adminSession())
             ->post(route('admin.requests.quote.store', $req), [
-                'amount_excl_vat' => 'niet-numeriek',
+                'items' => [
+                    ['description' => '', 'quantity' => '1', 'unit_price_excl_vat' => '100', 'vat_rate' => '21'],
+                ],
             ])
-            ->assertSessionHasErrors('amount_excl_vat');
+            ->assertSessionHasErrors('items.0.description');
     }
 
     public function test_store_validates_amount_must_be_non_negative(): void
@@ -132,9 +273,11 @@ class QuoteTest extends TestCase
 
         $this->withSession($this->adminSession())
             ->post(route('admin.requests.quote.store', $req), [
-                'amount_excl_vat' => '-10',
+                'items' => [
+                    ['description' => 'Test', 'quantity' => '1', 'unit_price_excl_vat' => '-10', 'vat_rate' => '21'],
+                ],
             ])
-            ->assertSessionHasErrors('amount_excl_vat');
+            ->assertSessionHasErrors('items.0.unit_price_excl_vat');
     }
 
     public function test_store_validates_vat_rate_must_be_non_negative(): void
@@ -143,12 +286,14 @@ class QuoteTest extends TestCase
 
         $this->withSession($this->adminSession())
             ->post(route('admin.requests.quote.store', $req), [
-                'vat_rate' => '-5',
+                'items' => [
+                    ['description' => 'Test', 'quantity' => '1', 'unit_price_excl_vat' => '100', 'vat_rate' => '-5'],
+                ],
             ])
-            ->assertSessionHasErrors('vat_rate');
+            ->assertSessionHasErrors('items.0.vat_rate');
     }
 
-    // --- performAction: mark_sent ---
+    // ── performAction ────────────────────────────────────────────────────────
 
     public function test_mark_sent_sets_quote_status_and_request_status(): void
     {
@@ -175,8 +320,6 @@ class QuoteTest extends TestCase
         $this->assertSame($original->timestamp, $quote->fresh()->sent_at->timestamp);
     }
 
-    // --- performAction: mark_accepted ---
-
     public function test_mark_accepted_sets_quote_status_and_request_status(): void
     {
         $req   = $this->makeRequest(['status' => 'quote_sent']);
@@ -201,8 +344,6 @@ class QuoteTest extends TestCase
 
         $this->assertSame($original->timestamp, $quote->fresh()->accepted_at->timestamp);
     }
-
-    // --- performAction: mark_rejected ---
 
     public function test_mark_rejected_sets_quote_status_and_request_status(): void
     {
@@ -229,8 +370,6 @@ class QuoteTest extends TestCase
         $this->assertSame($original->timestamp, $quote->fresh()->rejected_at->timestamp);
     }
 
-    // --- validation / auth ---
-
     public function test_invalid_action_returns_validation_error(): void
     {
         $req   = $this->makeRequest();
@@ -247,5 +386,48 @@ class QuoteTest extends TestCase
 
         $this->post(route('admin.requests.quote.store', $req), [])
             ->assertRedirect(route('admin.login'));
+    }
+
+    // ── PDF route ────────────────────────────────────────────────────────────
+
+    public function test_admin_can_access_quote_pdf(): void
+    {
+        $req   = $this->makeRequest();
+        $quote = $this->makeQuote($req, ['quote_number' => 'OFF-2026-0001']);
+        QuoteItem::create([
+            'quote_id'            => $quote->id,
+            'position'            => 1,
+            'description'         => 'Test post',
+            'quantity'            => 1.00,
+            'unit_price_excl_vat' => 500.00,
+            'vat_rate'            => 21.00,
+            'line_total_excl_vat' => 500.00,
+            'line_vat_amount'     => 105.00,
+            'line_total_incl_vat' => 605.00,
+        ]);
+
+        $response = $this->withSession($this->adminSession())
+            ->get(route('admin.requests.quote.pdf', $req));
+
+        $response->assertOk();
+        $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public function test_unauthenticated_pdf_redirects_to_login(): void
+    {
+        $req = $this->makeRequest();
+        $this->makeQuote($req);
+
+        $this->get(route('admin.requests.quote.pdf', $req))
+            ->assertRedirect(route('admin.login'));
+    }
+
+    public function test_pdf_returns_404_when_no_quote(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.quote.pdf', $req))
+            ->assertNotFound();
     }
 }

@@ -36,6 +36,25 @@
         return in_array($selectedCategory, $allowedCategories, true);
     };
 
+    // Serial number help text per locale
+    $serialHelpText = [
+        'nl' => 'U vindt het serienummer meestal op het typeplaatje van het toestel. Dit zit vaak aan de zijkant, onderkant, binnenkant van een klep of op een sticker.',
+        'fr' => 'Le numéro de série se trouve généralement sur la plaque signalétique de l\'appareil, souvent sur le côté, en dessous, derrière un clapet ou sur une étiquette.',
+        'en' => 'The serial number is usually on the appliance rating plate, often on the side, underneath, behind a flap or on a sticker.',
+    ];
+
+    // Early photo upload labels for technical_details step
+    $techUploadLabel = [
+        'nl' => 'Foto van toestel of typeplaatje toevoegen',
+        'fr' => 'Ajouter une photo de l\'appareil ou de la plaque signalétique',
+        'en' => 'Add a photo of the appliance or rating plate',
+    ];
+    $techUploadText = [
+        'nl' => 'Weet u het merk of serienummer niet? Upload een foto van het typeplaatje — dat vinden wij zelf op.',
+        'fr' => 'Vous ne connaissez pas la marque ou le numéro de série ? Téléchargez une photo de la plaque signalétique — nous le trouverons nous-mêmes.',
+        'en' => 'Don\'t know the brand or serial number? Upload a photo of the rating plate — we\'ll look it up ourselves.',
+    ];
+
     $labels = [
         'nl' => [
             'hero_badge'     => 'Slimme aanvraag',
@@ -84,15 +103,17 @@
             'summary_large_windows'   => 'Grote ramen',
             'summary_house_age'       => 'Woning ouder dan 10 jaar',
             'summary_outdoor_unit'    => 'Buitenunit aanwezig',
-            'summary_timing'          => 'Gewenste timing',
+            'summary_timing'          => 'Gewenste termijn',
+            'summary_timing_notes'    => 'Toelichting',
             'summary_customer'        => 'Klant en urgentie',
-            'summary_problem'         => 'Probleem of project',
+            'summary_problem'         => 'Situatie / probleem',
             'summary_technical'       => 'Technische gegevens',
             'summary_unknown_device'  => 'Merk/model/serienummer niet gekend',
             'summary_location'        => 'Locatie',
             'summary_contact'         => 'Contactgegevens',
             'summary_uploads'         => 'Bijlagen',
             'summary_empty'           => '(niet ingevuld)',
+            'serial_help_aria'        => 'Waar vind ik het serienummer?',
         ],
         'fr' => [
             'hero_badge'     => 'Demande intelligente',
@@ -141,15 +162,17 @@
             'summary_large_windows'   => 'Grandes fenêtres',
             'summary_house_age'       => 'Logement de plus de 10 ans',
             'summary_outdoor_unit'    => 'Unité extérieure présente',
-            'summary_timing'          => 'Timing souhaité',
+            'summary_timing'          => 'Délai souhaité',
+            'summary_timing_notes'    => 'Précision',
             'summary_customer'        => 'Client et urgence',
-            'summary_problem'         => 'Problème ou projet',
+            'summary_problem'         => 'Situation / problème',
             'summary_technical'       => 'Informations techniques',
             'summary_unknown_device'  => 'Marque/modèle/numéro de série inconnus',
             'summary_location'        => 'Lieu',
             'summary_contact'         => 'Coordonnées',
             'summary_uploads'         => 'Pièces jointes',
             'summary_empty'           => '(non renseigné)',
+            'serial_help_aria'        => 'Où trouver le numéro de série ?',
         ],
         'en' => [
             'hero_badge'     => 'Smart request',
@@ -198,15 +221,17 @@
             'summary_large_windows'   => 'Large windows',
             'summary_house_age'       => 'Property older than 10 years',
             'summary_outdoor_unit'    => 'Outdoor unit present',
-            'summary_timing'          => 'Desired timing',
+            'summary_timing'          => 'Desired timeframe',
+            'summary_timing_notes'    => 'Details',
             'summary_customer'        => 'Customer and urgency',
-            'summary_problem'         => 'Issue or project',
+            'summary_problem'         => 'Situation / problem',
             'summary_technical'       => 'Technical details',
             'summary_unknown_device'  => 'Brand/model/serial number unknown',
             'summary_location'        => 'Location',
             'summary_contact'         => 'Contact details',
             'summary_uploads'         => 'Attachments',
             'summary_empty'           => '(not filled in)',
+            'serial_help_aria'        => 'Where can I find the serial number?',
         ],
     ];
 
@@ -290,28 +315,15 @@
                 @csrf
 
                 <div class="request-layout">
-                    <aside class="request-steps" id="wizardSidebar">
-                        @foreach ($steps as $index => $step)
-                            @php
-                                $conditionCategories = $getConditionCategories($step);
-                                $isVisibleByDefault = $stepMatchesOldInput($step);
-                            @endphp
-
-                            <div
-                                class="request-step {{ $index === 0 ? 'is-active' : '' }} {{ $isVisibleByDefault ? '' : 'is-condition-hidden' }}"
-                                data-step-nav="{{ $index }}"
-                                @if (!empty($conditionCategories))
-                                    data-condition-service-categories="{{ implode(',', $conditionCategories) }}"
-                                @endif
-                            >
-                                {{ $getLabel($step) }}
-                            </div>
-                        @endforeach
-                    </aside>
-
                     <div class="request-form-area">
-                        <div class="wizard-progress-wrap" id="wizardProgressWrap" aria-hidden="true">
-                            <div class="wizard-progress-fill" id="wizardProgressFill"></div>
+                        {{-- Top progress area --}}
+                        <div class="wizard-progress-area" id="wizardProgressArea" aria-hidden="true">
+                            <div class="wizard-progress-meta">
+                                <span class="wizard-step-count" id="wizardStepCount" data-template="{{ $text['step_indicator'] }}"></span>
+                            </div>
+                            <div class="wizard-progress-wrap" id="wizardProgressWrap">
+                                <div class="wizard-progress-fill" id="wizardProgressFill"></div>
+                            </div>
                         </div>
 
                         <div class="request-form-card" id="requestFormCard">
@@ -325,7 +337,6 @@
                                     } elseif ($stepType === 'summary') {
                                         $sectionFields = '';
                                     } else {
-                                        // airco_rooms type will use 'rooms' prefix; standard fields use their name
                                         $sectionFields = collect($step['fields'] ?? [])
                                             ->pluck('name')
                                             ->filter()
@@ -339,6 +350,7 @@
                                 <section
                                     class="form-section {{ $isVisibleByDefault ? '' : 'is-condition-hidden' }}"
                                     data-step="{{ $stepIndex }}"
+                                    data-step-code="{{ $step['code'] ?? '' }}"
                                     data-fields="{{ $sectionFields }}"
                                     @if (!empty($conditionCategories))
                                         data-condition-service-categories="{{ implode(',', $conditionCategories) }}"
@@ -486,6 +498,13 @@
                                                                     </option>
                                                                 @endforeach
                                                             </select>
+                                                        @elseif (($field['type'] ?? '') === 'textarea')
+                                                            <textarea
+                                                                name="{{ $field['name'] }}"
+                                                                placeholder="{{ $getPlaceholder($field) }}"
+                                                                @if ($isRequiredField($field)) data-required="true" @endif
+                                                                style="grid-column: 1 / -1"
+                                                            >{{ old($field['name']) }}</textarea>
                                                         @else
                                                             <input type="{{ $field['type'] ?? 'text' }}"
                                                                    name="{{ $field['name'] }}"
@@ -538,7 +557,7 @@
                                                         @enderror
                                                     </label>
                                                 @elseif (($field['type'] ?? '') === 'textarea')
-                                                    <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
+                                                    <label class="field-full {{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
                                                         <span>
                                                             {{ $getLabel($field) }}
 
@@ -585,11 +604,25 @@
                                                     <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
                                                         <span>
                                                             {{ $getLabel($field) }}
-
                                                             @if ($isRequiredField($field))
                                                                 <span class="required-star">*</span>
                                                             @endif
+                                                            @if ($field['name'] === 'serial_number')
+                                                                <button
+                                                                    type="button"
+                                                                    class="serial-help-btn"
+                                                                    aria-label="{{ $text['serial_help_aria'] }}"
+                                                                    aria-expanded="false"
+                                                                    aria-controls="serialHelpBox"
+                                                                >?</button>
+                                                            @endif
                                                         </span>
+
+                                                        @if ($field['name'] === 'serial_number')
+                                                            <div class="serial-help-box" id="serialHelpBox" hidden>
+                                                                {{ $serialHelpText[$locale] ?? $serialHelpText['nl'] }}
+                                                            </div>
+                                                        @endif
 
                                                         <input
                                                             type="{{ $field['type'] ?? 'text' }}"
@@ -606,6 +639,28 @@
                                                 @endif
                                             @endforeach
                                         </div>
+
+                                        {{-- Early photo upload in technical_details step --}}
+                                        @if (($step['code'] ?? '') === 'technical_details')
+                                            <div class="upload-box {{ $errors->has('attachments') || $errors->has('attachments.*') ? 'field-has-error' : '' }}" style="margin-top: 20px;">
+                                                <strong>{{ $techUploadLabel[$locale] ?? $techUploadLabel['nl'] }}</strong>
+                                                <p>{{ $techUploadText[$locale] ?? $techUploadText['nl'] }}</p>
+
+                                                <label class="upload-file-control">
+                                                    <span>{{ $text['choose_files'] }}</span>
+                                                    <input
+                                                        id="techAttachmentsInput"
+                                                        type="file"
+                                                        name="attachments[]"
+                                                        multiple
+                                                        accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                                    >
+                                                </label>
+
+                                                <div id="techSelectedAttachments" class="selected-attachments"
+                                                     data-remove-label="{{ $locale === 'fr' ? 'Supprimer' : ($locale === 'en' ? 'Remove' : 'Verwijder') }}"></div>
+                                            </div>
+                                        @endif
 
                                         @if (isset($step['helper_box']))
                                             <div class="upload-box {{ $errors->has('attachments') || $errors->has('attachments.*') ? 'field-has-error' : '' }}">
@@ -680,8 +735,6 @@
                                 &larr; {{ $text['terug'] }}
                             </button>
 
-                            <span class="wizard-step-count" id="wizardStepCount" data-template="{{ $text['step_indicator'] }}"></span>
-
                             <div class="wizard-nav-forward">
                                 <button type="button" id="wizardVerder" class="button button-primary">
                                     {{ $text['verder'] }} &rarr;
@@ -707,18 +760,19 @@
     'use strict';
 
     // ── DOM refs ─────────────────────────────────────────────────────────────
-    var formCard       = document.getElementById('requestFormCard');
-    var wizardTerug    = document.getElementById('wizardTerug');
-    var wizardVerder   = document.getElementById('wizardVerder');
-    var wizardSubmit   = document.getElementById('wizardSubmit');
+    var formCard        = document.getElementById('requestFormCard');
+    var wizardTerug     = document.getElementById('wizardTerug');
+    var wizardVerder    = document.getElementById('wizardVerder');
+    var wizardSubmit    = document.getElementById('wizardSubmit');
     var wizardSubmitTop = document.getElementById('wizardSubmitTop');
-    var wizardCount    = document.getElementById('wizardStepCount');
-    var progressFill   = document.getElementById('wizardProgressFill');
-    var sidebarItems   = document.querySelectorAll('.request-step[data-step-nav]');
-    var allSections    = Array.from(document.querySelectorAll('.form-section[data-step]'));
-    var categoryInputs = document.querySelectorAll('input[name="service_category"]');
-    var attachInput    = document.getElementById('attachmentsInput');
-    var attachList     = document.getElementById('selectedAttachments');
+    var wizardCount     = document.getElementById('wizardStepCount');
+    var progressFill    = document.getElementById('wizardProgressFill');
+    var allSections     = Array.from(document.querySelectorAll('.form-section[data-step]'));
+    var categoryInputs  = document.querySelectorAll('input[name="service_category"]');
+    var attachInput     = document.getElementById('attachmentsInput');
+    var attachList      = document.getElementById('selectedAttachments');
+    var techAttachInput = document.getElementById('techAttachmentsInput');
+    var techAttachList  = document.getElementById('techSelectedAttachments');
 
     // ── State ─────────────────────────────────────────────────────────────────
     var currentIndex    = 0;
@@ -754,18 +808,6 @@
         // Wizard step visibility
         allSections.forEach(function (s) { s.classList.remove('wizard-current'); });
         if (sections[index]) { sections[index].classList.add('wizard-current'); }
-
-        // Sidebar active
-        var activeDomStep = sections[index] ? parseInt(sections[index].dataset.step, 10) : -1;
-        sidebarItems.forEach(function (item) {
-            var isActive = parseInt(item.dataset.stepNav, 10) === activeDomStep;
-            item.classList.toggle('is-active', isActive);
-            if (isActive) {
-                item.setAttribute('aria-current', 'step');
-            } else {
-                item.removeAttribute('aria-current');
-            }
-        });
 
         // Step count text
         var total   = sections.length;
@@ -832,15 +874,10 @@
         if (currentIndex === 0) { showStep(visibleSections, 0); }
     }
 
-    // change listener handles keyboard navigation (arrow keys between radios)
     categoryInputs.forEach(function (input) {
         input.addEventListener('change', onCategoryChange);
     });
 
-    // click listener on the card is required because pointer-events:none on the
-    // hidden radio may prevent the label's synthetic click from firing 'change'
-    // reliably. Explicitly set checked before reading so getSelectedCategory()
-    // returns the right value at call time.
     document.querySelectorAll('.option-card').forEach(function (card) {
         card.addEventListener('click', function () {
             var inp = card.querySelector('input[type="radio"]');
@@ -852,7 +889,6 @@
     // ── Nav buttons ───────────────────────────────────────────────────────────
     wizardVerder.addEventListener('click', function () {
         if (currentIndex === 0) {
-            // Step 0: category selection — Verder disabled until selection; no field validation
             if (currentIndex < visibleSections.length - 1) {
                 showStep(visibleSections, currentIndex + 1);
             }
@@ -884,7 +920,6 @@
         });
         formCard.addEventListener('change', function (e) {
             var field = e.target;
-            // When unknown_device_details is checked, clear brand/model JS errors immediately
             if (field.name === 'unknown_device_details') {
                 if (field.checked) {
                     var sec = field.closest('.form-section');
@@ -902,7 +937,6 @@
                 }
                 return;
             }
-            // Auto-clear JS error for any data-required field when user fills it
             if (!field.dataset || field.dataset.required !== 'true') return;
             if (!isFieldFilled(field)) return;
             var label = field.closest('label');
@@ -913,7 +947,7 @@
         });
     }
 
-    // ── File attachment preview ────────────────────────────────────────────────
+    // ── File attachment preview (description step upload) ─────────────────────
     // SECURITY: file.name is rendered via textContent only — never innerHTML
     if (attachInput && attachList) {
         var files = [];
@@ -934,12 +968,12 @@
                 item.className = 'selected-attachment-item';
 
                 var nameSpan = document.createElement('span');
-                nameSpan.textContent = file.name; // textContent — safe, no HTML parsing
+                nameSpan.textContent = file.name;
 
                 var removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
                 removeBtn.setAttribute('aria-label', attachList.dataset.removeLabel || 'Verwijder');
-                removeBtn.textContent = '×'; // ×
+                removeBtn.textContent = '×';
 
                 removeBtn.addEventListener('click', (function (index) {
                     return function () {
@@ -954,6 +988,58 @@
             });
         }
     }
+
+    // ── Technical photo upload preview ─────────────────────────────────────────
+    if (techAttachInput && techAttachList) {
+        var techFiles = [];
+
+        techAttachInput.addEventListener('change', function () {
+            Array.from(techAttachInput.files).forEach(function (file) {
+                if (!techFiles.find(function (f) { return f.name === file.name && f.size === file.size; })) {
+                    techFiles.push(file);
+                }
+            });
+            renderTechAttachments();
+        });
+
+        function renderTechAttachments() {
+            techAttachList.innerHTML = '';
+            techFiles.forEach(function (file, i) {
+                var item = document.createElement('div');
+                item.className = 'selected-attachment-item';
+
+                var nameSpan = document.createElement('span');
+                nameSpan.textContent = file.name;
+
+                var removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.setAttribute('aria-label', techAttachList.dataset.removeLabel || 'Verwijder');
+                removeBtn.textContent = '×';
+
+                removeBtn.addEventListener('click', (function (index) {
+                    return function () {
+                        techFiles.splice(index, 1);
+                        renderTechAttachments();
+                    };
+                })(i));
+
+                item.appendChild(nameSpan);
+                item.appendChild(removeBtn);
+                techAttachList.appendChild(item);
+            });
+        }
+    }
+
+    // ── Serial number help tooltip ─────────────────────────────────────────────
+    document.querySelectorAll('.serial-help-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var helpBox = document.getElementById('serialHelpBox');
+            if (!helpBox) return;
+            var isHidden = helpBox.hidden;
+            helpBox.hidden = !isHidden;
+            btn.setAttribute('aria-expanded', String(isHidden));
+        });
+    });
 
     // ── Room manager ─────────────────────────────────────────────────────────
     function initRoomManager() {
@@ -982,16 +1068,13 @@
             getEntries().forEach(function (entry, idx) {
                 entry.dataset.roomIndex = idx;
 
-                // Update name attributes
                 entry.querySelectorAll('[name]').forEach(function (el) {
                     el.name = el.name.replace(/rooms\[\d+\]/, 'rooms[' + idx + ']');
                 });
 
-                // Update title via textContent (safe — idx is an integer, roomLabel is a PHP-rendered string)
                 var title = entry.querySelector('.room-entry-title');
                 if (title) title.textContent = roomLabel + ' ' + (idx + 1);
 
-                // Show/hide remove button
                 var removeBtn = entry.querySelector('.room-remove-btn');
                 if (removeBtn) {
                     removeBtn.style.display = idx === 0 ? 'none' : '';
@@ -1000,14 +1083,12 @@
             });
         }
 
-        // Surface calculation — delegated to manager
         manager.addEventListener('input', function (e) {
             if (e.target.classList.contains('room-dim-input')) {
                 calcSurface(e.target.closest('.room-entry'));
             }
         });
 
-        // Remove room — delegated
         manager.addEventListener('click', function (e) {
             var btn = e.target.closest('.room-remove-btn');
             if (!btn) return;
@@ -1017,36 +1098,29 @@
             renumber();
         });
 
-        // Add room
         if (addBtn) {
             addBtn.addEventListener('click', function () {
                 var entries = getEntries();
                 var newIdx  = entries.length;
 
-                // Build new room entry via createElement (never innerHTML with user data)
                 var clone = entries[entries.length - 1].cloneNode(true);
                 clone.dataset.roomIndex = newIdx;
 
-                // Clear all input/select values
                 clone.querySelectorAll('input, select').forEach(function (el) {
                     el.value = '';
                 });
 
-                // Fix name attributes to new index
                 clone.querySelectorAll('[name]').forEach(function (el) {
                     el.name = el.name.replace(/rooms\[\d+\]/, 'rooms[' + newIdx + ']');
                 });
 
-                // Title and remove button updated by renumber()
                 manager.insertBefore(clone, addBtn);
                 renumber();
 
-                // Scroll new room into view
                 clone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
         }
 
-        // Init: renumber and calculate surface for server-rendered rooms (old input)
         renumber();
         getEntries().forEach(calcSurface);
     }
@@ -1059,7 +1133,6 @@
             for (var f = 0; f < sectionFields.length; f++) {
                 var name = sectionFields[f];
                 for (var e = 0; e < errorFields.length; e++) {
-                    // Exact match OR prefix match for array fields (e.g. 'rooms' matches 'rooms.0.type')
                     if (errorFields[e] === name || errorFields[e].indexOf(name + '.') === 0) {
                         return i;
                     }
@@ -1163,6 +1236,7 @@
             'houseAge'      => $text['summary_house_age'],
             'outdoorUnit'   => $text['summary_outdoor_unit'],
             'timing'        => $text['summary_timing'],
+            'timingNotes'   => $text['summary_timing_notes'],
             'customer'      => $text['summary_customer'],
             'problem'       => $text['summary_problem'],
             'technical'     => $text['summary_technical'],
@@ -1180,19 +1254,16 @@
         var container = document.getElementById('wizardSummaryContent');
         if (!container) return;
 
-        // Clear existing content safely
         while (container.firstChild) { container.removeChild(container.firstChild); }
 
         var form = container.closest('form');
         var category = getSelectedCategory();
 
-        // Get a text input/textarea value by name (searches full form)
         function qVal(name) {
             var el = form ? form.querySelector('[name="' + name + '"]') : null;
             return el ? el.value.trim() : '';
         }
 
-        // Get the displayed text of a selected option (not raw value)
         function qSelectText(name) {
             var el = form ? form.querySelector('select[name="' + name + '"]') : null;
             if (!el || !el.value) return '';
@@ -1200,7 +1271,6 @@
             return opt ? opt.text : '';
         }
 
-        // Get a value from the first filled field across all visible sections (for repeated names like preferred_time)
         function qAnyVal(name) {
             var all = form ? Array.from(form.querySelectorAll('[name="' + name + '"]')) : [];
             for (var i = 0; i < all.length; i++) {
@@ -1209,7 +1279,6 @@
             return '';
         }
 
-        // Render a summary section with title and item rows; skips sections with no filled items
         function addSection(titleText, items) {
             var filled = items.filter(function (it) { return it.value && it.value.trim(); });
             if (!filled.length) return;
@@ -1240,7 +1309,7 @@
             container.appendChild(sec);
         }
 
-        // 1. Service category (from selected radio option card)
+        // 1. Service category
         var catRadio = form ? form.querySelector('input[name="service_category"]:checked') : null;
         if (catRadio) {
             var catCardLabel = catRadio.closest('label');
@@ -1282,12 +1351,15 @@
                 }
             });
 
-            var houseAgeText  = qSelectText('airco_house_age');
-            var outdoorText   = qSelectText('airco_has_outdoor_unit');
-            var timingText    = qAnyVal('preferred_time');
-            if (houseAgeText) roomItems.push({ label: summaryLabels.houseAge, value: houseAgeText });
-            if (outdoorText)  roomItems.push({ label: summaryLabels.outdoorUnit, value: outdoorText });
-            if (timingText)   roomItems.push({ label: summaryLabels.timing, value: timingText });
+            var houseAgeText = qSelectText('airco_house_age');
+            var outdoorText  = qSelectText('airco_has_outdoor_unit');
+            var aircoTimingText  = qSelectText('airco_installation_timing');
+            var aircoTimingNotes = qVal('airco_installation_timing_notes');
+
+            if (houseAgeText)    roomItems.push({ label: summaryLabels.houseAge, value: houseAgeText });
+            if (outdoorText)     roomItems.push({ label: summaryLabels.outdoorUnit, value: outdoorText });
+            if (aircoTimingText) roomItems.push({ label: summaryLabels.timing, value: aircoTimingText });
+            if (aircoTimingNotes) roomItems.push({ label: summaryLabels.timingNotes, value: aircoTimingNotes });
 
             addSection(summaryLabels.rooms, roomItems);
         }
@@ -1298,7 +1370,7 @@
             { label: 'Urgentie', value: qSelectText('urgency') },
         ]);
 
-        // 4. Problem / project description (truncate at 300 chars for display)
+        // 4. Problem description (truncate at 300 chars)
         var descVal = qVal('description');
         if (descVal) {
             var displayDesc = descVal.length > 300 ? descVal.slice(0, 297) + '…' : descVal;
@@ -1331,7 +1403,7 @@
             { value: qVal('customer_phone') },
         ]);
 
-        // 8. Uploaded files — count rendered attachment items (textContent only, no filenames)
+        // 8. Uploaded files — count both upload inputs
         var fileCount = document.querySelectorAll('.selected-attachment-item').length;
         if (fileCount > 0) {
             addSection(summaryLabels.uploads, [{ value: String(fileCount) }]);

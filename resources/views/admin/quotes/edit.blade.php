@@ -366,9 +366,13 @@
                                         </td>
                                         <td class="col-total-val js-line-total">
                                             @php
-                                                $qty   = is_array($item) ? ($item['quantity'] ?? 1) : (float) $item->quantity;
-                                                $price = is_array($item) ? ($item['unit_price_excl_vat'] ?? 0) : (float) $item->unit_price_excl_vat;
-                                                $lt    = round($qty * $price, 2);
+                                                if (is_array($item)) {
+                                                    $qty   = (float) ($item['quantity'] ?? 1);
+                                                    $price = (float) ($item['unit_price_excl_vat'] ?? 0);
+                                                    $lt    = round($qty * $price, 2);
+                                                } else {
+                                                    $lt = (float) $item->line_total_excl_vat;
+                                                }
                                             @endphp
                                             € {{ number_format($lt, 2, ',', '.') }}
                                         </td>

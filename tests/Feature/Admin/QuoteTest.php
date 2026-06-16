@@ -430,4 +430,51 @@ class QuoteTest extends TestCase
             ->get(route('admin.requests.quote.pdf', $req))
             ->assertNotFound();
     }
+
+    // ── edit page rendering ─────────────────────────────────────────────────
+
+    public function test_edit_page_renders_for_request_without_quote(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.quote.edit', $req))
+            ->assertOk();
+    }
+
+    public function test_edit_page_renders_for_request_with_existing_quote(): void
+    {
+        $req   = $this->makeRequest();
+        $quote = $this->makeQuote($req);
+        QuoteItem::create([
+            'quote_id'            => $quote->id,
+            'position'            => 1,
+            'description'         => 'Test post',
+            'quantity'            => 2.00,
+            'unit_price_excl_vat' => 150.00,
+            'vat_rate'            => 21.00,
+            'line_total_excl_vat' => 300.00,
+            'line_vat_amount'     => 63.00,
+            'line_total_incl_vat' => 363.00,
+        ]);
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.quote.edit', $req))
+            ->assertOk()
+            ->assertSee('300,00', false);
+    }
+
+    public function test_edit_page_renders_with_old_input_containing_empty_price(): void
+    {
+        $req = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->withSession(['_old_input' => [
+                'items' => [
+                    ['description' => 'Onvolledige regel', 'quantity' => '1', 'unit_price_excl_vat' => '', 'vat_rate' => '21'],
+                ],
+            ]])
+            ->get(route('admin.requests.quote.edit', $req))
+            ->assertOk();
+    }
 }

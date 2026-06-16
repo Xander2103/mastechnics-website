@@ -2,7 +2,7 @@
 $content = [
     'nl' => [
         'who_title'       => 'Wie zijn wij?',
-        'who_body'        => 'mastechnics is een technisch servicebedrijf gevestigd in België, actief in verwarming, airconditioning, sanitair, ventilatie, waterverzachters en koeling. Contactpersoon en verantwoordelijke voor gegevensverwerking: Martin — martin@mastechnics.be.',
+        'who_body'        => 'Mastechnics is een technisch servicebedrijf gevestigd in België, actief in verwarming, airconditioning, sanitair, ventilatie, waterverzachters en koeling. Contactpersoon en verantwoordelijke voor gegevensverwerking: Martin — martin@mastechnics.be.',
 
         'what_title'      => 'Welke gegevens verzamelen wij?',
         'what_body'       => 'Via het aanvraagformulier verzamelen wij: naam en voornaam, e-mailadres, telefoonnummer, adresgegevens indien opgegeven, beschrijving van het probleem of project, technische informatie over de installatie (type toestel, merk, model), en foto\'s of bijlagen die je zelf uploadt.',
@@ -14,10 +14,10 @@ $content = [
         'uploads_body'    => 'Bestanden die je uploadt (foto\'s, pdf-documenten) worden veilig opgeslagen op onze server. Ze worden enkel gebruikt om de technische situatie beter te begrijpen en worden niet gedeeld met derden. Toegestane formaten: jpg, png, webp, pdf. Maximumgrootte: 5 MB per bestand.',
 
         'email_title'     => 'E-mailcommunicatie',
-        'email_body'      => 'Na het indienen van je aanvraag ontvang je een automatische bevestigingsmail. Verdere communicatie verloopt rechtstreeks via e-mail of telefoon vanuit mastechnics. Wij sturen geen commerciële nieuwsbrieven tenzij je daar apart toestemming voor hebt gegeven.',
+        'email_body'      => 'Na het indienen van je aanvraag ontvang je een automatische bevestigingsmail. Verdere communicatie verloopt rechtstreeks via e-mail of telefoon vanuit Mastechnics. Wij sturen geen commerciële nieuwsbrieven tenzij je daar apart toestemming voor hebt gegeven.',
 
         'admin_title'     => 'Toegang tot je gegevens',
-        'admin_body'      => 'Enkel de beheerder van mastechnics heeft toegang tot ingediende aanvragen. Er is geen toegang voor externe partijen.',
+        'admin_body'      => 'Enkel de beheerder van Mastechnics heeft toegang tot ingediende aanvragen. Er is geen toegang voor externe partijen.',
 
         'cookies_title'   => 'Cookies en sessies',
         'cookies_body'    => 'Wij gebruiken uitsluitend technische sessiecookies die noodzakelijk zijn voor de werking van het formulier (bijv. CSRF-beveiliging). Er worden geen tracking- of analytische cookies gebruikt.',
@@ -38,7 +38,7 @@ $content = [
     ],
     'fr' => [
         'who_title'       => 'Qui sommes-nous?',
-        'who_body'        => 'mastechnics est une entreprise de service technique basée en Belgique, active dans le chauffage, la climatisation, la plomberie, la ventilation, les adoucisseurs d\'eau et la réfrigération. Personne de contact et responsable du traitement des données : Martin — martin@mastechnics.be.',
+        'who_body'        => 'Mastechnics est une entreprise de service technique basée en Belgique, active dans le chauffage, la climatisation, la plomberie, la ventilation, les adoucisseurs d\'eau et la réfrigération. Personne de contact et responsable du traitement des données : Martin — martin@mastechnics.be.',
 
         'what_title'      => 'Quelles données collectons-nous?',
         'what_body'       => 'Via le formulaire de demande, nous collectons : nom et prénom, adresse e-mail, numéro de téléphone, adresse si fournie, description du problème ou du projet, informations techniques sur l\'installation (type d\'appareil, marque, modèle), et photos ou pièces jointes que vous téléchargez vous-même.',
@@ -50,10 +50,10 @@ $content = [
         'uploads_body'    => 'Les fichiers que vous téléchargez (photos, documents PDF) sont stockés de manière sécurisée sur notre serveur. Ils sont utilisés uniquement pour mieux comprendre la situation technique et ne sont pas partagés avec des tiers. Formats autorisés : jpg, png, webp, pdf. Taille maximale : 5 Mo par fichier.',
 
         'email_title'     => 'Communication par e-mail',
-        'email_body'      => 'Après avoir soumis votre demande, vous recevrez un e-mail de confirmation automatique. La communication ultérieure se fait directement par e-mail ou par téléphone depuis mastechnics. Nous n\'envoyons pas de newsletters commerciales sauf si vous y avez consenti séparément.',
+        'email_body'      => 'Après avoir soumis votre demande, vous recevrez un e-mail de confirmation automatique. La communication ultérieure se fait directement par e-mail ou par téléphone depuis Mastechnics. Nous n\'envoyons pas de newsletters commerciales sauf si vous y avez consenti séparément.',
 
         'admin_title'     => 'Accès à vos données',
-        'admin_body'      => 'Seul l\'administrateur de mastechnics a accès aux demandes soumises. Aucun accès n\'est accordé à des tiers.',
+        'admin_body'      => 'Seul l\'administrateur de Mastechnics a accès aux demandes soumises. Aucun accès n\'est accordé à des tiers.',
 
         'cookies_title'   => 'Cookies et sessions',
         'cookies_body'    => 'Nous utilisons uniquement des cookies de session techniques nécessaires au fonctionnement du formulaire (par ex. protection CSRF). Aucun cookie de suivi ou analytique n\'est utilisé.',
@@ -74,7 +74,7 @@ $content = [
     ],
     'en' => [
         'who_title'       => 'Who are we?',
-        'who_body'        => 'mastechnics is a technical service company based in Belgium, active in heating, air conditioning, plumbing, ventilation, water softeners and refrigeration. Contact person and data processing controller: Martin — martin@mastechnics.be.',
+        'who_body'        => 'Mastechnics is a technical service company based in Belgium, active in heating, air conditioning, plumbing, ventilation, water softeners and refrigeration. Contact person and data processing controller: Martin — martin@mastechnics.be.',
 
         'what_title'      => 'What data do we collect?',
         'what_body'       => 'Through the request form we collect: first and last name, email address, phone number, address if provided, description of the problem or project, technical information about the installation (appliance type, brand, model), and photos or attachments you upload yourself.',
@@ -86,10 +86,10 @@ $content = [
         'uploads_body'    => 'Files you upload (photos, PDF documents) are stored securely on our server. They are only used to better understand the technical situation and are not shared with third parties. Allowed formats: jpg, png, webp, pdf. Maximum size: 5 MB per file.',
 
         'email_title'     => 'Email communication',
-        'email_body'      => 'After submitting your request you will receive an automatic confirmation email. Further communication takes place directly by email or phone from mastechnics. We do not send commercial newsletters unless you have separately consented.',
+        'email_body'      => 'After submitting your request you will receive an automatic confirmation email. Further communication takes place directly by email or phone from Mastechnics. We do not send commercial newsletters unless you have separately consented.',
 
         'admin_title'     => 'Access to your data',
-        'admin_body'      => 'Only the mastechnics administrator has access to submitted requests. No access is granted to external parties.',
+        'admin_body'      => 'Only the Mastechnics administrator has access to submitted requests. No access is granted to external parties.',
 
         'cookies_title'   => 'Cookies and sessions',
         'cookies_body'    => 'We use only technical session cookies that are necessary for the operation of the form (e.g. CSRF protection). No tracking or analytical cookies are used.',

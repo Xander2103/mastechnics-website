@@ -102,8 +102,9 @@
                     </div>
 
                     <div class="contact-item">
-                        <span>{{ $text['messenger'] }}</span>
-                        <strong>{{ $siteContact['messenger'] }}</strong>
+                        <a href="https://m.me/mastechnics" target="_blank" rel="noopener noreferrer">
+                            Messenger
+                        </a>
                     </div>
                 </div>
 

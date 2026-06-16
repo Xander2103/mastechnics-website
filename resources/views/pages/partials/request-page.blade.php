@@ -36,6 +36,14 @@
         return in_array($selectedCategory, $allowedCategories, true);
     };
 
+    // Privacy policy link slug per locale (mirrors layouts/app.blade.php)
+    $privacySlugs = [
+        'nl' => 'privacybeleid',
+        'fr' => 'politique-confidentialite',
+        'en' => 'privacy-policy',
+    ];
+    $privacySlug = $privacySlugs[$locale] ?? $privacySlugs['nl'];
+
     // Serial number help text per locale
     $serialHelpText = [
         'nl' => 'U vindt het serienummer meestal op het typeplaatje van het toestel. Dit zit vaak aan de zijkant, onderkant, binnenkant van een klep of op een sticker.',
@@ -114,6 +122,10 @@
             'summary_uploads'         => 'Bijlagen',
             'summary_empty'           => '(niet ingevuld)',
             'serial_help_aria'        => 'Waar vind ik het serienummer?',
+            'consent_intro'           => 'Ik ga akkoord dat mijn gegevens en eventuele foto\'s gebruikt worden om mijn aanvraag te behandelen.',
+            'consent_pre'             => 'Ik heb de ',
+            'consent_link'            => 'privacyverklaring',
+            'consent_post'            => ' gelezen.',
         ],
         'fr' => [
             'hero_badge'     => 'Demande intelligente',
@@ -173,6 +185,10 @@
             'summary_uploads'         => 'Pièces jointes',
             'summary_empty'           => '(non renseigné)',
             'serial_help_aria'        => 'Où trouver le numéro de série ?',
+            'consent_intro'           => 'J\'accepte que mes données et éventuelles photos soient utilisées pour traiter ma demande.',
+            'consent_pre'             => 'J\'ai lu la ',
+            'consent_link'            => 'déclaration de confidentialité',
+            'consent_post'            => '.',
         ],
         'en' => [
             'hero_badge'     => 'Smart request',
@@ -232,6 +248,10 @@
             'summary_uploads'         => 'Attachments',
             'summary_empty'           => '(not filled in)',
             'serial_help_aria'        => 'Where can I find the serial number?',
+            'consent_intro'           => 'I agree that my details and any photos may be used to process my request.',
+            'consent_pre'             => 'I have read the ',
+            'consent_link'            => 'privacy policy',
+            'consent_post'            => '.',
         ],
     ];
 
@@ -335,7 +355,7 @@
                                     if ($stepType === 'service_category_selection') {
                                         $sectionFields = 'service_category';
                                     } elseif ($stepType === 'summary') {
-                                        $sectionFields = '';
+                                        $sectionFields = 'privacy_consent';
                                     } else {
                                         $sectionFields = collect($step['fields'] ?? [])
                                             ->pluck('name')
@@ -714,6 +734,25 @@
 
                                         <div id="wizardSummaryContent" class="wizard-summary-content"></div>
 
+                                        <label class="checkbox-field {{ $errors->has('privacy_consent') ? 'field-has-error' : '' }}" style="margin-top: 20px;">
+                                            <input
+                                                type="checkbox"
+                                                name="privacy_consent"
+                                                value="1"
+                                                data-required="true"
+                                                {{ old('privacy_consent') ? 'checked' : '' }}
+                                            >
+
+                                            <span>
+                                                {{ $text['consent_intro'] }}
+                                                {{ $text['consent_pre'] }}<a href="{{ route('pages.show', ['locale' => $locale, 'slug' => $privacySlug]) }}" target="_blank" rel="noopener">{{ $text['consent_link'] }}</a>{{ $text['consent_post'] }}
+                                            </span>
+
+                                            @error('privacy_consent')
+                                                <p class="field-error-text">{{ $message }}</p>
+                                            @enderror
+                                        </label>
+
                                         <div class="request-summary-box" style="margin-top: 20px;">
                                             <h3>{{ $text['estimate_title'] }}</h3>
                                             <p>{{ $text['estimate_text'] }}</p>
@@ -799,6 +838,13 @@
             var allowed = cond.split(',').map(function (v) { return v.trim(); }).filter(Boolean);
             var matches = allowed.length === 0 || allowed.indexOf(category) !== -1;
             el.classList.toggle('is-condition-hidden', !matches);
+
+            // Disable fields in hidden conditional sections so duplicate-named
+            // fields (e.g. customer_type, preferred_time) from mutually exclusive
+            // flows aren't submitted alongside the visible step's values.
+            el.querySelectorAll('input, select, textarea').forEach(function (field) {
+                field.disabled = !matches;
+            });
         });
     }
 

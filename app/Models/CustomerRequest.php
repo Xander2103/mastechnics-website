@@ -16,6 +16,7 @@ class CustomerRequest extends Model
         'customer_email',
         'customer_phone',
         'description',
+        'privacy_consent',
         'brand',
         'device_model',
         'serial_number',
@@ -39,6 +40,7 @@ class CustomerRequest extends Model
     protected $casts = [
         'metadata'                   => 'array',
         'unknown_device_details'     => 'boolean',
+        'privacy_consent'            => 'boolean',
         'ai_detected_missing_fields' => 'array',
         'contacted_at'               => 'datetime',
         'quote_sent_at'              => 'datetime',

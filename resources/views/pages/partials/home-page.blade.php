@@ -22,7 +22,7 @@
             'services_label' => 'Diensten',
             'services_title' => 'Waarvoor zoekt u hulp?',
             'services_intro' =>
-                'Kies een dienst en bekijk meteen wat Mastechnics voor u kan doen.' .
+                'Kies een dienst en bekijk meteen wat Mastechnics voor u kan doen. ' .
                 $siteName . ' helpt zowel particulieren als professionele klanten snel verder.',
             'more_info'      => 'Meer info →',
 

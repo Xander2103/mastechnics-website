@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CustomerRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Mail\NewCustomerRequestMail;
 use Illuminate\Support\Facades\Mail;
@@ -14,6 +15,8 @@ class CustomerRequestController extends Controller
 {
     public function store(Request $request, string $locale): RedirectResponse
     {
+        app()->setLocale($locale);
+
         $serviceCategories = collect(config('request-flow.service_categories', []));
         $allowedCategoryValues = $serviceCategories->pluck('value')->toArray();
 
@@ -24,6 +27,11 @@ class CustomerRequestController extends Controller
                 'required',
                 'string',
                 Rule::in($allowedCategoryValues),
+            ],
+            'privacy_consent' => [
+                'bail',
+                'required',
+                'accepted',
             ],
             'attachments' => [
                 'nullable',
@@ -52,7 +60,9 @@ class CustomerRequestController extends Controller
             $rules['rooms.*.large_windows']          = ['nullable', 'string', 'in:yes,no'];
         }
 
-        $validatedData = $request->validate($rules);
+        $attributes = $this->buildValidationAttributes($dynamicFields, $locale);
+
+        $validatedData = $request->validate($rules, [], $attributes);
 
         // Derive service_slug and request_type from the selected service_category
         $submittedCategory = $validatedData['service_category'];
@@ -140,6 +150,7 @@ class CustomerRequestController extends Controller
             'unknown_device_details' => $answers['unknown_device_details'] ?? false,
 
             'description' => $answers['description'] ?? '',
+            'privacy_consent' => $request->boolean('privacy_consent'),
             'status'      => 'new',
 
             'metadata' => [
@@ -177,6 +188,26 @@ class CustomerRequestController extends Controller
         );
 
         return back()->with('success', 'request_created');
+    }
+
+    private function buildValidationAttributes(array $dynamicFields, string $locale): array
+    {
+        $staticAttributes = [
+            'service_category' => ['nl' => 'dienst', 'fr' => 'service', 'en' => 'service'],
+            'attachments'       => ['nl' => 'bijlagen', 'fr' => 'pièces jointes', 'en' => 'attachments'],
+        ];
+
+        $attributes = [];
+        foreach ($staticAttributes as $name => $labels) {
+            $attributes[$name] = $labels[$locale] ?? $labels['nl'];
+        }
+
+        foreach ($dynamicFields as $field) {
+            $label = $field['labels'][$locale] ?? $field['labels']['nl'] ?? $field['name'];
+            $attributes[$field['name']] = Str::lower($label);
+        }
+
+        return $attributes;
     }
 
     private function getDynamicFields(): array

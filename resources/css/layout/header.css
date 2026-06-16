@@ -170,8 +170,6 @@
     transition: transform 0.2s ease;
 }
 
-.services-dropdown:hover .services-dropdown-chevron,
-.services-dropdown:focus-within .services-dropdown-chevron,
 .services-dropdown.is-open .services-dropdown-chevron {
     transform: rotate(180deg);
 }
@@ -191,8 +189,18 @@
     display: none;
 }
 
-.services-dropdown:hover .services-dropdown-menu,
-.services-dropdown:focus-within .services-dropdown-menu,
+/* Hover-safe bridge: fills the visual gap above the menu so the pointer
+   never crosses "dead" space while moving down from the trigger. Counts
+   as part of the menu for mouseenter/mouseleave purposes (JS-driven). */
+.services-dropdown-menu::before {
+    content: "";
+    position: absolute;
+    top: -14px;
+    left: 0;
+    right: 0;
+    height: 14px;
+}
+
 .services-dropdown.is-open .services-dropdown-menu {
     display: grid;
     gap: 2px;
@@ -434,19 +442,13 @@
         box-shadow: none;
     }
 
+    /* Hover bridge is desktop-only; mobile uses static positioning and tap. */
+    .services-dropdown-menu::before {
+        content: none;
+    }
+
     .services-dropdown.is-open .services-dropdown-menu {
         display: grid;
-        gap: 4px;
-    }
-
-    /* Suppress hover-based open on mobile to avoid sticky hover states */
-    .services-dropdown:hover .services-dropdown-menu,
-    .services-dropdown:focus-within .services-dropdown-menu {
-        display: none;
-    }
-
-    .services-dropdown.is-open .services-dropdown-menu {
-        display: grid !important;
         gap: 4px;
     }
 

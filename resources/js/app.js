@@ -19,6 +19,58 @@ function initServicesDropdown() {
     if (!dropdown || !dropdownToggle) return;
 
     const isMobile = () => window.innerWidth <= 680;
+    const CLOSE_DELAY = 250;
+    let closeTimer = null;
+
+    function clearCloseTimer() {
+        if (closeTimer) {
+            clearTimeout(closeTimer);
+            closeTimer = null;
+        }
+    }
+
+    function openDropdown() {
+        clearCloseTimer();
+        dropdown.classList.add('is-open');
+        dropdownToggle.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDropdown() {
+        clearCloseTimer();
+        dropdown.classList.remove('is-open');
+        dropdownToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    function scheduleClose() {
+        clearCloseTimer();
+        closeTimer = setTimeout(closeDropdown, CLOSE_DELAY);
+    }
+
+    // Desktop: open immediately on hover, close after a short delay so the
+    // pointer has time to travel from the trigger into the dropdown panel.
+    // Re-entering (trigger or panel) cancels the pending close.
+    dropdown.addEventListener('mouseenter', () => {
+        if (isMobile()) return;
+        openDropdown();
+    });
+
+    dropdown.addEventListener('mouseleave', () => {
+        if (isMobile()) return;
+        scheduleClose();
+    });
+
+    // Keyboard: focus anywhere inside the dropdown keeps it open; focus
+    // moving outside closes it immediately.
+    dropdown.addEventListener('focusin', () => {
+        if (isMobile()) return;
+        openDropdown();
+    });
+
+    dropdown.addEventListener('focusout', (e) => {
+        if (isMobile()) return;
+        if (dropdown.contains(e.relatedTarget)) return;
+        closeDropdown();
+    });
 
     // Mobile: click/tap toggles accordion
     dropdownToggle.addEventListener('click', (e) => {
@@ -31,8 +83,7 @@ function initServicesDropdown() {
     // Close mobile dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (isMobile() && !dropdown.contains(e.target)) {
-            dropdown.classList.remove('is-open');
-            dropdownToggle.setAttribute('aria-expanded', 'false');
+            closeDropdown();
         }
     });
 
@@ -40,16 +91,14 @@ function initServicesDropdown() {
     const menuToggle = document.querySelector('.mobile-menu-toggle');
     if (menuToggle) {
         menuToggle.addEventListener('click', () => {
-            dropdown.classList.remove('is-open');
-            dropdownToggle.setAttribute('aria-expanded', 'false');
+            closeDropdown();
         });
     }
 
-    // Desktop: keyboard — Escape closes dropdown
+    // Escape closes the dropdown and returns focus to the trigger
     dropdown.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            dropdown.classList.remove('is-open');
-            dropdownToggle.setAttribute('aria-expanded', 'false');
+            closeDropdown();
             dropdownToggle.focus();
         }
     });

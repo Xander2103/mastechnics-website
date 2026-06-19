@@ -122,19 +122,32 @@
     position: relative;
 }
 
+.services-dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.services-dropdown-link {
+    color: var(--color-muted);
+    font-size: 0.96rem;
+    font-weight: 900;
+    text-decoration: none;
+    transition: color 0.18s ease;
+}
+
+.services-dropdown-link:hover {
+    color: var(--color-primary-dark);
+}
+
 .services-dropdown-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
     cursor: pointer;
     background: none;
     border: none;
-    padding: 0;
-    font: inherit;
-    font-size: 0.96rem;
-    font-weight: 900;
+    padding: 4px 2px;
     color: var(--color-muted);
-    text-decoration: none;
     transition: color 0.18s ease;
 }
 
@@ -143,11 +156,11 @@
 }
 
 @media (min-width: 681px) {
-    .services-dropdown-toggle {
+    .services-dropdown-link {
         position: relative;
     }
 
-    .services-dropdown-toggle::after {
+    .services-dropdown-link::after {
         content: "";
         position: absolute;
         left: 0;
@@ -159,8 +172,8 @@
         transition: width 0.20s ease;
     }
 
-    .services-dropdown-toggle:hover::after,
-    .services-dropdown:focus-within .services-dropdown-toggle::after {
+    .services-dropdown-link:hover::after,
+    .services-dropdown:focus-within .services-dropdown-link::after {
         width: 100%;
     }
 }
@@ -417,19 +430,42 @@
         grid-column: 1 / -1;
     }
 
-    .services-dropdown-toggle {
+    .services-dropdown-trigger {
         display: flex;
-        justify-content: center;
         align-items: center;
         width: 100%;
         min-height: 42px;
-        padding: 10px 12px;
         border: 1px solid var(--color-border);
         border-radius: 999px;
         background: var(--color-white);
+        overflow: hidden;
+    }
+
+    .services-dropdown-link {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px 16px;
         color: var(--color-primary-dark);
         font-size: 0.92rem;
         font-weight: 900;
+        text-decoration: none;
+    }
+
+    .services-dropdown-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 46px;
+        min-height: 42px;
+        padding: 0;
+        border: 0;
+        border-left: 1px solid var(--color-border);
+        border-radius: 0;
+        background: transparent;
+        color: var(--color-primary-dark);
     }
 
     .services-dropdown-menu {

@@ -170,19 +170,27 @@
         <div class="header-menu">
             <nav class="site-nav">
                 <div class="services-dropdown">
-                    <button
-                        type="button"
-                        class="services-dropdown-toggle"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        aria-label="{{ $nav['services'] }}"
-                    >
-                        {{ $nav['services'] }}
-                        <svg class="services-dropdown-chevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
-                            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                    <div class="services-dropdown-menu" role="menu">
+                    <div class="services-dropdown-trigger">
+                        <a
+                            class="services-dropdown-link"
+                            href="{{ route('pages.home', ['locale' => $currentLocale]) }}#diensten"
+                        >
+                            {{ $nav['services'] }}
+                        </a>
+                        <button
+                            type="button"
+                            class="services-dropdown-toggle"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="servicesDropdownMenu"
+                            aria-label="{{ $currentLocale === 'fr' ? 'Afficher le menu des services' : ($currentLocale === 'en' ? 'Show services menu' : 'Toon dienstenmenu') }}"
+                        >
+                            <svg class="services-dropdown-chevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+                                <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="services-dropdown-menu" id="servicesDropdownMenu" role="menu">
                         @foreach ($serviceNav as $service)
                             <a href="{{ route('pages.show', ['locale' => $currentLocale, 'slug' => $service['slug']]) }}" role="menuitem">
                                 {{ $service['title'] }}

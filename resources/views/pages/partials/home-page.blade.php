@@ -86,6 +86,10 @@
             'nav_werkwijze'  => 'Hoe werkt het?',
             'nav_aanvraag'   => 'Aanvraag',
             'nav_contact'    => 'Contact',
+            'reviews_eyebrow' => 'Klantenervaringen',
+            'reviews_title'   => 'Wat klanten zeggen',
+            'reviews_intro'   => 'Ervaringen van klanten die Mastechnics inschakelden voor installatie, onderhoud of herstelling.',
+            'reviews_cta'     => 'Laat een review achter',
         ],
 
         'fr' => [
@@ -162,6 +166,10 @@
             'nav_werkwijze'  => 'Comment ça fonctionne ?',
             'nav_aanvraag'   => 'Demande',
             'nav_contact'    => 'Contact',
+            'reviews_eyebrow' => 'Avis clients',
+            'reviews_title'   => 'Ce que disent les clients',
+            'reviews_intro'   => "Expériences de clients ayant fait appel à Mastechnics pour une installation, un entretien ou une réparation.",
+            'reviews_cta'     => 'Laisser un avis',
         ],
 
         'en' => [
@@ -238,6 +246,10 @@
             'nav_werkwijze'  => 'How it works',
             'nav_aanvraag'   => 'Request',
             'nav_contact'    => 'Contact',
+            'reviews_eyebrow' => 'Customer experiences',
+            'reviews_title'   => 'What customers say',
+            'reviews_intro'   => 'Experiences from customers who called on Mastechnics for installation, maintenance or repair.',
+            'reviews_cta'     => 'Leave a review',
         ],
     ];
 
@@ -425,6 +437,66 @@
         </div>
     </div>
 </section>
+
+@if (config('reviews.enabled'))
+<section class="section section-reviews" id="reviews">
+    <div class="container">
+        <div class="section-header">
+            <span class="eyebrow">{{ $text['reviews_eyebrow'] }}</span>
+            <h2>{{ $text['reviews_title'] }}</h2>
+            <p>{{ $text['reviews_intro'] }}</p>
+        </div>
+
+        <div class="reviews-carousel" aria-label="{{ $text['reviews_title'] }}">
+            <div class="reviews-track-wrapper">
+                <div class="reviews-track" id="reviewsTrack">
+                    @foreach (config('reviews.reviews', []) as $review)
+                        <article class="review-card">
+                            <div class="review-stars" aria-label="{{ $review['rating'] }} op 5 sterren">
+                                @for ($s = 1; $s <= 5; $s++)
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="{{ $s <= $review['rating'] ? '#f59e0b' : 'none' }}" stroke="#f59e0b" stroke-width="1.5" aria-hidden="true" focusable="false">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                    </svg>
+                                @endfor
+                            </div>
+                            <blockquote class="review-text">
+                                <p>{{ $review['text'] }}</p>
+                            </blockquote>
+                            <footer class="review-footer">
+                                <strong>{{ $review['name'] }}</strong>
+                                @if (!empty($review['location']))
+                                    <span class="review-location">— {{ $review['location'] }}</span>
+                                @endif
+                            </footer>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="reviews-controls">
+                <button class="reviews-prev" aria-label="{{ $locale === 'fr' ? 'Précédent' : ($locale === 'en' ? 'Previous' : 'Vorige') }}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <div class="reviews-dots" id="reviewsDots" role="tablist" aria-label="{{ $locale === 'fr' ? 'Navigation des avis' : ($locale === 'en' ? 'Review navigation' : 'Review navigatie') }}"></div>
+                <button class="reviews-next" aria-label="{{ $locale === 'fr' ? 'Suivant' : ($locale === 'en' ? 'Next' : 'Volgende') }}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="reviews-cta-row">
+            <a
+                href="{{ config('reviews.google_review_url') }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="button button-secondary"
+            >
+                {{ $text['reviews_cta'] }}
+            </a>
+        </div>
+    </div>
+</section>
+@endif
 
 <section class="section section-cta" id="aanvraag">
     <div class="container">

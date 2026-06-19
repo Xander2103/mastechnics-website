@@ -160,6 +160,74 @@ function initScrollReveal() {
     elements.forEach(el => observer.observe(el));
 }
 
+function initReviewsCarousel() {
+    var track = document.getElementById('reviewsTrack');
+    if (!track) return;
+
+    var cards = track.querySelectorAll('.review-card');
+    var total = cards.length;
+    if (total <= 1) return;
+
+    var dotsContainer = document.getElementById('reviewsDots');
+    var prevBtn = document.querySelector('.reviews-prev');
+    var nextBtn = document.querySelector('.reviews-next');
+    var carousel = track.closest('.reviews-carousel');
+
+    var current = 0;
+    var timer = null;
+    var DELAY = 5000;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    for (var i = 0; i < total; i++) {
+        (function (idx) {
+            var dot = document.createElement('button');
+            dot.className = 'reviews-dot' + (idx === 0 ? ' is-active' : '');
+            dot.setAttribute('aria-label', 'Review ' + (idx + 1));
+            dot.setAttribute('role', 'tab');
+            dot.addEventListener('click', function () { goTo(idx); restart(); });
+            dotsContainer.appendChild(dot);
+        }(i));
+    }
+
+    function goTo(idx) {
+        current = ((idx % total) + total) % total;
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        dotsContainer.querySelectorAll('.reviews-dot').forEach(function (d, i) {
+            d.classList.toggle('is-active', i === current);
+        });
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    function stop() {
+        clearInterval(timer);
+        timer = null;
+    }
+
+    function start() {
+        if (reduced) return;
+        stop();
+        timer = setInterval(next, DELAY);
+    }
+
+    function restart() { stop(); start(); }
+
+    if (prevBtn) { prevBtn.addEventListener('click', function () { prev(); restart(); }); }
+    if (nextBtn) { nextBtn.addEventListener('click', function () { next(); restart(); }); }
+
+    if (carousel) {
+        carousel.addEventListener('mouseenter', stop);
+        carousel.addEventListener('mouseleave', start);
+        carousel.addEventListener('focusin', stop);
+        carousel.addEventListener('focusout', function (e) {
+            if (!carousel.contains(e.relatedTarget)) start();
+        });
+    }
+
+    start();
+}
+
 function initCustomCursor() {
     // Desktop / fine-pointer only
     if (!window.matchMedia('(pointer: fine)').matches) return;
@@ -239,5 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initServicesDropdown();
     initPipeFlowAnimation();
     initScrollReveal();
+    initReviewsCarousel();
     initCustomCursor();
 });

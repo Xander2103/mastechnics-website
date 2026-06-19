@@ -9,6 +9,7 @@
             'services' => 'Diensten',
             'contact' => 'Contact',
             'request' => 'Start aanvraag',
+            'reviews' => 'Reviews',
             'footer_services_text' =>
                 'Technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koeling.',
             'footer_request_title' => 'Aanvraag',
@@ -18,6 +19,7 @@
             'services' => 'Services',
             'contact' => 'Contact',
             'request' => 'Démarrer ma demande',
+            'reviews' => 'Avis',
             'footer_services_text' =>
                 'Service technique pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d\'eau et réfrigération.',
             'footer_request_title' => 'Demande',
@@ -28,6 +30,7 @@
             'services' => 'Services',
             'contact' => 'Contact',
             'request' => 'Start request',
+            'reviews' => 'Reviews',
             'footer_services_text' =>
                 'Technical service for heating, air conditioning, plumbing, ventilation, water softeners and refrigeration.',
             'footer_request_title' => 'Request',
@@ -205,6 +208,10 @@
 
                 <a href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}#werkwijze">
                     {{ ($locale ?? 'nl') === 'fr' ? 'Méthode' : (($locale ?? 'nl') === 'en' ? 'Process' : 'Werkwijze') }}
+                </a>
+
+                <a href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}#reviews">
+                    {{ $nav['reviews'] }}
                 </a>
 
                 <a href="{{ route('pages.show', ['locale' => $locale ?? 'nl', 'slug' => ($locale ?? 'nl') === 'fr' ? 'contact' : 'contact']) }}">

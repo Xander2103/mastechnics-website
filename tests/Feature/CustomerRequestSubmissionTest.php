@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Mail\CustomerRequestConfirmationMail;
+use App\Mail\NewCustomerRequestMail;
 use App\Models\CustomerRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -115,5 +117,38 @@ class CustomerRequestSubmissionTest extends TestCase
         $request = CustomerRequest::first();
         $this->assertNotNull($request);
         $this->assertTrue($request->privacy_consent);
+    }
+
+    public function test_successful_submission_sends_notification_email_to_martin(): void
+    {
+        $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload());
+
+        Mail::assertSent(NewCustomerRequestMail::class, function (NewCustomerRequestMail $mail) {
+            return $mail->hasTo(config('site.request_notification_email'));
+        });
+    }
+
+    public function test_successful_submission_sends_confirmation_email_to_customer(): void
+    {
+        $this->post(
+            route('customer-requests.store', ['locale' => 'nl']),
+            $this->validPayload(['customer_email' => 'klant@example.com'])
+        );
+
+        Mail::assertSent(CustomerRequestConfirmationMail::class, function (CustomerRequestConfirmationMail $mail) {
+            return $mail->hasTo('klant@example.com');
+        });
+    }
+
+    public function test_mail_failure_does_not_prevent_request_from_being_stored(): void
+    {
+        Mail::shouldReceive('to')->andReturnSelf();
+        Mail::shouldReceive('send')->andThrow(new \RuntimeException('SMTP unavailable'));
+
+        $response = $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload());
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+        $this->assertDatabaseCount('customer_requests', 1);
     }
 }

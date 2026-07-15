@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Mail\NewCustomerRequestMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Mail\CustomerRequestConfirmationMail;
 
 class CustomerRequestController extends Controller
@@ -177,15 +178,34 @@ class CustomerRequestController extends Controller
 
         $customerRequest->load(['attachments', 'notes']);
 
-        $notificationEmails = config('admin.notification_emails', []);
+        $notificationEmails = collect(config('admin.notification_emails', []))
+            ->push(config('site.request_notification_email'))
+            ->filter()
+            ->unique()
+            ->values();
 
         foreach ($notificationEmails as $email) {
-            Mail::to($email)->send(new NewCustomerRequestMail($customerRequest));
+            try {
+                Mail::to($email)->send(new NewCustomerRequestMail($customerRequest));
+            } catch (\Throwable $e) {
+                Log::error('Failed to send new-customer-request notification email', [
+                    'email' => $email,
+                    'customer_request_id' => $customerRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
-        Mail::to($customerRequest->customer_email)->send(
-            new CustomerRequestConfirmationMail($customerRequest)
-        );
+        try {
+            Mail::to($customerRequest->customer_email)->send(
+                new CustomerRequestConfirmationMail($customerRequest)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Failed to send customer confirmation email', [
+                'customer_request_id' => $customerRequest->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return back()->with('success', 'request_created');
     }

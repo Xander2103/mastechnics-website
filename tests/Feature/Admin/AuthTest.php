@@ -52,4 +52,14 @@ class AuthTest extends TestCase
 
         $sixth->assertStatus(429);
     }
+
+    public function test_array_email_input_does_not_crash_the_login_throttle(): void
+    {
+        $response = $this->post(route('admin.login.submit'), [
+            'email' => ['a', 'b'],
+            'password' => 'whatever',
+        ]);
+
+        $response->assertSessionHasErrors('email');
+    }
 }

@@ -180,6 +180,14 @@ class CustomerRequestSubmissionTest extends TestCase
         $this->assertDatabaseCount('customer_requests', $limit);
     }
 
+    // This test verifies that the rate-limit error message is localized per locale on an
+    // already-rate-limited IP — it does NOT exercise independent quotas per locale. The
+    // daily/burst limiter is keyed by IP address only (not IP+locale), so the FR loop below
+    // already exhausts the shared per-IP daily quota; the EN loop's requests are then blocked
+    // by that same already-tripped counter, not by a fresh EN-specific quota. That IP-only
+    // scoping is correct real-world behavior (a visitor switching locale shouldn't reset
+    // their quota), and this test confirms the blocked response still returns the right
+    // localized message for whichever locale made the request.
     public function test_rate_limit_message_is_localized_per_locale(): void
     {
         $limit = (int) config('site.request_daily_limit', 5);

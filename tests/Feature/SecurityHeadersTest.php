@@ -18,4 +18,17 @@ class SecurityHeadersTest extends TestCase
             'geolocation=(), microphone=(), camera=(), payment=(), usb=()'
         );
     }
+
+    public function test_admin_pages_have_security_headers(): void
+    {
+        $response = $this->get('/admin/login');
+
+        $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
+        $response->assertHeader('X-Content-Type-Options', 'nosniff');
+        $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->assertHeader(
+            'Permissions-Policy',
+            'geolocation=(), microphone=(), camera=(), payment=(), usb=()'
+        );
+    }
 }

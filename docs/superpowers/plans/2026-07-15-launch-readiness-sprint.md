@@ -337,7 +337,7 @@ Add to `tests/Feature/CustomerRequestSubmissionTest.php`:
     }
 ```
 
-Note: the FR/EN half of `test_rate_limit_message_is_localized_per_locale` shares the same test-client IP as the FR loop before it, but each locale block submits its own fresh quota of successes before tripping the limiter, so this is really exercising the burst limiter's per-IP nature across locales — which is correct real-world behavior (the limiter is per-IP, not per-locale).
+Note: the FR and EN halves of `test_rate_limit_message_is_localized_per_locale` share the same test-client IP, and the limiter is keyed by IP only (not IP+locale). The FR loop already exhausts the shared per-IP daily quota, so the EN loop's requests are blocked by that same already-tripped counter rather than a fresh EN-specific quota. This test is really verifying message localization per-locale on an already-rate-limited IP — which correctly reflects real-world behavior (the limiter is per-IP, not per-locale).
 
 - [ ] **Step 6: Run the tests**
 

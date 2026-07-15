@@ -16,6 +16,7 @@ Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])
     ->name('admin.login');
 
 Route::post('/admin/login', [AdminAuthController::class, 'login'])
+    ->middleware('throttle:admin-login')
     ->name('admin.login.submit');
 
 Route::post('/admin/logout', [AdminAuthController::class, 'logout'])

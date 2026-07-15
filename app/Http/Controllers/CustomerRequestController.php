@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Mail\NewCustomerRequestMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use App\Mail\CustomerRequestConfirmationMail;
 
 class CustomerRequestController extends Controller
@@ -16,6 +18,20 @@ class CustomerRequestController extends Controller
     public function store(Request $request, string $locale): RedirectResponse
     {
         app()->setLocale($locale);
+
+        $ip = $request->ip();
+        $dailyKey = "request-form-daily:{$ip}";
+        $burstKey = "request-form-burst:{$ip}";
+        $dailyLimit = (int) config('site.request_daily_limit', 5);
+        $burstLimit = (int) config('site.request_burst_limit_per_hour', 10);
+
+        if (RateLimiter::tooManyAttempts($dailyKey, $dailyLimit)
+            || RateLimiter::tooManyAttempts($burstKey, $burstLimit)
+        ) {
+            return back()
+                ->withErrors(['rate_limit' => $this->rateLimitMessage($locale)])
+                ->withInput();
+        }
 
         $serviceCategories = collect(config('request-flow.service_categories', []));
         $allowedCategoryValues = $serviceCategories->pluck('value')->toArray();
@@ -162,6 +178,9 @@ class CustomerRequestController extends Controller
             ],
         ]);
 
+        RateLimiter::hit($dailyKey, 86400);
+        RateLimiter::hit($burstKey, 3600);
+
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $uploadedFile) {
                 $path = $uploadedFile->store('customer-requests', 'public');
@@ -177,17 +196,47 @@ class CustomerRequestController extends Controller
 
         $customerRequest->load(['attachments', 'notes']);
 
-        $notificationEmails = config('admin.notification_emails', []);
+        $notificationEmails = collect(config('admin.notification_emails', []))
+            ->push(config('site.request_notification_email'))
+            ->filter()
+            ->unique()
+            ->values();
 
         foreach ($notificationEmails as $email) {
-            Mail::to($email)->send(new NewCustomerRequestMail($customerRequest));
+            try {
+                Mail::to($email)->send(new NewCustomerRequestMail($customerRequest));
+            } catch (\Throwable $e) {
+                Log::error('Failed to send new-customer-request notification email', [
+                    'email' => $email,
+                    'customer_request_id' => $customerRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
-        Mail::to($customerRequest->customer_email)->send(
-            new CustomerRequestConfirmationMail($customerRequest)
-        );
+        try {
+            Mail::to($customerRequest->customer_email)->send(
+                new CustomerRequestConfirmationMail($customerRequest)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Failed to send customer confirmation email', [
+                'customer_request_id' => $customerRequest->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return back()->with('success', 'request_created');
+    }
+
+    private function rateLimitMessage(string $locale): string
+    {
+        $messages = [
+            'nl' => 'U heeft vandaag al meerdere aanvragen verstuurd. Probeer later opnieuw of neem rechtstreeks contact op.',
+            'fr' => "Vous avez déjà envoyé plusieurs demandes aujourd'hui. Veuillez réessayer plus tard ou nous contacter directement.",
+            'en' => 'You have already sent several requests today. Please try again later or contact us directly.',
+        ];
+
+        return $messages[$locale] ?? $messages['nl'];
     }
 
     private function buildValidationAttributes(array $dynamicFields, string $locale): array

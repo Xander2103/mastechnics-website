@@ -491,6 +491,10 @@
             </div>
         </div>
 
+            @if (!empty(config('site.contact.company_number')))
+                <p>{{ config('site.name') }} — {{ config('site.contact.company_number') }}</p>
+            @endif
+
     </div>
 
     {{-- ── Footer ───────────────────────────────────────── --}}

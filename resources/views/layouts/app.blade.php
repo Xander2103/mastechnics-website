@@ -278,6 +278,14 @@
                             Messenger
                         </a>
                     </li>
+
+                    @if (!empty($siteContact['address']))
+                    <li>{{ $siteContact['address'] }}</li>
+                    @endif
+
+                    @if (!empty($siteContact['company_number']))
+                    <li>{{ $siteContact['company_number'] }}</li>
+                    @endif
                 </ul>
             </div>
 

@@ -151,4 +151,87 @@ class CustomerRequestSubmissionTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseCount('customer_requests', 1);
     }
+
+    public function test_first_five_requests_per_day_are_allowed_and_sixth_is_blocked(): void
+    {
+        $limit = (int) config('site.request_daily_limit', 5);
+
+        for ($i = 1; $i <= $limit; $i++) {
+            $response = $this->post(
+                route('customer-requests.store', ['locale' => 'nl']),
+                $this->validPayload(['customer_email' => "jan{$i}@example.com"])
+            );
+
+            $response->assertSessionHasNoErrors();
+        }
+
+        $this->assertDatabaseCount('customer_requests', $limit);
+
+        $blocked = $this->post(
+            route('customer-requests.store', ['locale' => 'nl']),
+            $this->validPayload(['customer_email' => 'jan-extra@example.com'])
+        );
+
+        $blocked->assertSessionHasErrors('rate_limit');
+        $this->assertSame(
+            'U heeft vandaag al meerdere aanvragen verstuurd. Probeer later opnieuw of neem rechtstreeks contact op.',
+            $blocked->getSession()->get('errors')->first('rate_limit')
+        );
+        $this->assertDatabaseCount('customer_requests', $limit);
+    }
+
+    public function test_rate_limit_message_is_localized_per_locale(): void
+    {
+        $limit = (int) config('site.request_daily_limit', 5);
+
+        for ($i = 1; $i <= $limit; $i++) {
+            $this->post(
+                route('customer-requests.store', ['locale' => 'fr']),
+                $this->validPayload(['customer_email' => "marie{$i}@example.com"])
+            );
+        }
+
+        $frResponse = $this->post(
+            route('customer-requests.store', ['locale' => 'fr']),
+            $this->validPayload(['customer_email' => 'marie-extra@example.com'])
+        );
+
+        $this->assertSame(
+            "Vous avez déjà envoyé plusieurs demandes aujourd'hui. Veuillez réessayer plus tard ou nous contacter directement.",
+            $frResponse->getSession()->get('errors')->first('rate_limit')
+        );
+
+        for ($i = 1; $i <= $limit; $i++) {
+            $this->post(
+                route('customer-requests.store', ['locale' => 'en']),
+                $this->validPayload(['customer_email' => "john{$i}@example.com"])
+            );
+        }
+
+        $enResponse = $this->post(
+            route('customer-requests.store', ['locale' => 'en']),
+            $this->validPayload(['customer_email' => 'john-extra@example.com'])
+        );
+
+        $this->assertSame(
+            'You have already sent several requests today. Please try again later or contact us directly.',
+            $enResponse->getSession()->get('errors')->first('rate_limit')
+        );
+    }
+
+    public function test_failed_validation_does_not_consume_daily_quota(): void
+    {
+        $payload = $this->validPayload();
+        unset($payload['privacy_consent']);
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->post(route('customer-requests.store', ['locale' => 'nl']), $payload);
+        }
+
+        $this->assertDatabaseCount('customer_requests', 0);
+
+        $response = $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload());
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('customer_requests', 1);
+    }
 }

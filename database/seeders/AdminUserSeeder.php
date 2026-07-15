@@ -10,13 +10,22 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        $email = env('ADMIN_EMAIL');
+        $password = env('ADMIN_PASSWORD');
+
+        if (app()->environment('production') && (empty($email) || empty($password))) {
+            throw new \RuntimeException(
+                'Refusing to seed an admin user in production without ADMIN_EMAIL and ADMIN_PASSWORD set in the environment.'
+            );
+        }
+
         AdminUser::updateOrCreate(
             [
-                'email' => env('ADMIN_EMAIL', 'admin@example.com'),
+                'email' => $email ?: 'admin@example.com',
             ],
             [
                 'name' => env('ADMIN_NAME', 'Admin'),
-                'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
+                'password' => Hash::make($password ?: 'password'),
             ]
         );
     }

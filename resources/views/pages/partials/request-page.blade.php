@@ -917,7 +917,13 @@
 
         visibleSections = computeVisible(category);
         updateConditionalVisibility(category);
-        if (currentIndex === 0) { showStep(visibleSections, 0); }
+        if (currentIndex === 0) {
+            if (category && visibleSections.length > 1) {
+                showStep(visibleSections, 1);
+            } else {
+                showStep(visibleSections, 0);
+            }
+        }
     }
 
     categoryInputs.forEach(function (input) {

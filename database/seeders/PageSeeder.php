@@ -30,8 +30,8 @@ class PageSeeder extends Seeder
                 'title' => 'Technische service voor verwarming, airco, sanitair en koeling',
                 'intro' => 'Start een slimme aanvraag voor herstelling, onderhoud of installatie. Vul meteen de juiste informatie in en ontvang sneller een richtprijs of duidelijke vervolgstap.',
                 'content' => null,
-                'meta_title' => 'mastechnics | Technische service en slimme aanvraag',
-                'meta_description' => 'Start een slimme technische aanvraag voor verwarming, airco, sanitair, ventilatie, waterverzachters en koeling.',
+                'meta_title' => 'Mastechnics — Technische service voor verwarming, airco, sanitair en meer',
+                'meta_description' => 'Mastechnics biedt technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koeling. Vraag online een offerte of interventie aan.',
             ],
             [
                 'locale' => 'fr',
@@ -39,8 +39,8 @@ class PageSeeder extends Seeder
                 'title' => 'Service technique pour chauffage, climatisation, plomberie et réfrigération',
                 'intro' => 'Démarrez une demande intelligente pour une réparation, un entretien ou une installation. Ajoutez directement les bonnes informations et recevez plus rapidement une estimation ou une prochaine étape claire.',
                 'content' => null,
-                'meta_title' => 'mastechnics | Service technique et demande intelligente',
-                'meta_description' => 'Démarrez une demande technique intelligente pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d’eau et réfrigération.',
+                'meta_title' => 'Mastechnics — Service technique pour chauffage, climatisation, plomberie et plus',
+                'meta_description' => 'Mastechnics propose un service technique pour chauffage, climatisation, plomberie, ventilation, adoucisseurs et réfrigération. Demandez un devis en ligne.',
             ],
             [
                 'locale' => 'en',
@@ -48,8 +48,8 @@ class PageSeeder extends Seeder
                 'title' => 'Technical service for heating, air conditioning, plumbing and refrigeration',
                 'intro' => 'Start a smart request for repair, maintenance or installation. Add the right information from the start and receive a faster estimate or clear next step.',
                 'content' => null,
-                'meta_title' => 'mastechnics | Technical service and smart request',
-                'meta_description' => 'Start a smart technical request for heating, air conditioning, plumbing, ventilation, water softeners and refrigeration.',
+                'meta_title' => 'Mastechnics — Technical service for heating, air conditioning, plumbing and more',
+                'meta_description' => 'Mastechnics provides technical services for heating, air conditioning, plumbing, ventilation, water softeners and refrigeration. Request a quote online.',
             ],
         ]);
     }

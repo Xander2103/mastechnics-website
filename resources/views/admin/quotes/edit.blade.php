@@ -166,6 +166,8 @@
     }
 
     /* ── Mobile ──────────────────────────────────── */
+    .quote-items-mobile { display: none; }
+
     @media (max-width: 680px) {
         .quote-fields-grid {
             grid-template-columns: 1fr;
@@ -173,8 +175,6 @@
         .quote-items-table { display: none; }
         .quote-items-mobile { display: block; }
     }
-
-    .quote-items-mobile { display: none; }
 
     .quote-mobile-item {
         border: 1px solid var(--color-border);
@@ -341,6 +341,7 @@
                                                    name="items[{{ $idx }}][description]"
                                                    value="{{ is_array($item) ? ($item['description'] ?? '') : $item->description }}"
                                                    placeholder="Omschrijving van de post..."
+                                                   class="js-desc"
                                                    required>
                                         </td>
                                         <td>
@@ -398,28 +399,28 @@
                                         <label class="field-full">
                                             <span>Omschrijving</span>
                                             <input type="text"
-                                                   name="items[{{ $idx }}][description]"
+                                                   data-mirror-of="description"
                                                    value="{{ is_array($item) ? ($item['description'] ?? '') : $item->description }}"
-                                                   placeholder="Omschrijving..." required>
+                                                   placeholder="Omschrijving..." class="js-desc-m" required>
                                         </label>
                                         <label>
                                             <span>Aantal</span>
                                             <input type="number"
-                                                   name="items[{{ $idx }}][quantity]"
+                                                   data-mirror-of="quantity"
                                                    value="{{ is_array($item) ? ($item['quantity'] ?? '1') : $item->quantity }}"
                                                    min="0" step="0.01" class="js-qty-m" required>
                                         </label>
                                         <label>
                                             <span>Prijs excl. BTW (€)</span>
                                             <input type="number"
-                                                   name="items[{{ $idx }}][unit_price_excl_vat]"
+                                                   data-mirror-of="unit_price_excl_vat"
                                                    value="{{ is_array($item) ? ($item['unit_price_excl_vat'] ?? '') : $item->unit_price_excl_vat }}"
                                                    min="0" step="0.01" placeholder="0.00" class="js-price-m" required>
                                         </label>
                                         <label>
                                             <span>BTW (%)</span>
                                             <input type="number"
-                                                   name="items[{{ $idx }}][vat_rate]"
+                                                   data-mirror-of="vat_rate"
                                                    value="{{ is_array($item) ? ($item['vat_rate'] ?? '21') : $item->vat_rate }}"
                                                    min="0" step="0.01" class="js-vat-m" required>
                                         </label>
@@ -483,6 +484,30 @@
             return Math.round(qty * price * 100) / 100;
         }
 
+        // Desktop inputs (name="items[...]") are the only fields submitted.
+        // Mobile card inputs are unnamed display/edit mirrors kept in sync via these listeners.
+        var FIELD_CLASSES = ['desc', 'qty', 'price', 'vat'];
+
+        function mirrorValue(sourceEl, targetContainerId) {
+            var row = sourceEl.closest('[data-row]');
+            if (!row) return;
+            var idx = row.dataset.row;
+            var targetContainer = document.getElementById(targetContainerId);
+            if (!targetContainer) return;
+            var targetRow = targetContainer.querySelector('[data-row="' + idx + '"]');
+            if (!targetRow) return;
+
+            var field = FIELD_CLASSES.find(function (f) {
+                return sourceEl.classList.contains('js-' + f) || sourceEl.classList.contains('js-' + f + '-m');
+            });
+            if (!field) return;
+
+            var isMobileSource = sourceEl.classList.contains('js-' + field + '-m');
+            var targetClass = isMobileSource ? ('js-' + field) : ('js-' + field + '-m');
+            var targetField = targetRow.querySelector('.' + targetClass);
+            if (targetField) targetField.value = sourceEl.value;
+        }
+
         function recalcAll() {
             var excl = 0, vat = 0, incl = 0;
 
@@ -519,9 +544,6 @@
             mobileRows.forEach(function (card, i) {
                 card.dataset.row = i;
                 card.querySelector('.row-num').textContent = i + 1;
-                card.querySelectorAll('[name]').forEach(function (el) {
-                    el.name = el.name.replace(/items\[\d+\]/, 'items[' + i + ']');
-                });
             });
         }
 
@@ -550,7 +572,6 @@
                 if (inp.classList.contains('js-qty-m')) { inp.value = '1'; }
                 else if (inp.classList.contains('js-vat-m')) { inp.value = '21'; }
                 else { inp.value = ''; }
-                inp.name = inp.name.replace(/items\[\d+\]/, 'items[' + idx + ']');
             });
             mobile.appendChild(newCard);
         }
@@ -565,6 +586,9 @@
 
         if (tbody) {
             tbody.addEventListener('input', function (e) {
+                if (e.target.matches('.js-desc, .js-qty, .js-price, .js-vat')) {
+                    mirrorValue(e.target, 'itemsMobileContainer');
+                }
                 if (e.target.matches('.js-qty, .js-price, .js-vat')) {
                     recalcAll();
                 }
@@ -587,6 +611,13 @@
         }
 
         if (mobile) {
+            mobile.addEventListener('input', function (e) {
+                if (e.target.matches('.js-desc-m, .js-qty-m, .js-price-m, .js-vat-m')) {
+                    mirrorValue(e.target, 'itemsTableBody');
+                    recalcAll();
+                }
+            });
+
             mobile.addEventListener('click', function (e) {
                 var btn = e.target.closest('.js-del-row-mobile');
                 if (!btn) return;

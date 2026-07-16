@@ -477,4 +477,40 @@ class QuoteTest extends TestCase
             ->get(route('admin.requests.quote.edit', $req))
             ->assertOk();
     }
+
+    // ── regression: duplicate mobile/desktop item field names ────────────────
+
+    public function test_edit_page_does_not_duplicate_item_field_names(): void
+    {
+        // Desktop + mobile item inputs used to share the same name="items[idx][...]"
+        // attribute, so the browser submitted both and the last one (mobile,
+        // untouched by the user) silently won and overwrote the real value.
+        $req   = $this->makeRequest();
+        $quote = $this->makeQuote($req);
+        QuoteItem::create([
+            'quote_id'            => $quote->id,
+            'position'            => 1,
+            'description'         => 'Test post',
+            'quantity'            => 2.00,
+            'unit_price_excl_vat' => 150.00,
+            'vat_rate'            => 21.00,
+            'line_total_excl_vat' => 300.00,
+            'line_vat_amount'     => 63.00,
+            'line_total_incl_vat' => 363.00,
+        ]);
+
+        $html = $this->withSession($this->adminSession())
+            ->get(route('admin.requests.quote.edit', $req))
+            ->assertOk()
+            ->getContent();
+
+        foreach (['description', 'quantity', 'unit_price_excl_vat', 'vat_rate'] as $field) {
+            $needle = 'name="items[0][' . $field . ']"';
+            $this->assertSame(
+                1,
+                substr_count($html, $needle),
+                "Expected exactly one {$needle} in the rendered form, found " . substr_count($html, $needle)
+            );
+        }
+    }
 }

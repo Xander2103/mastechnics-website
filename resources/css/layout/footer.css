@@ -94,6 +94,30 @@
     color: var(--color-white);
 }
 
+.footer-credit-link {
+    color: #D4AF37;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    animation: footer-credit-pulse 2.4s ease-in-out infinite;
+}
+
+.footer-credit-link:hover {
+    color: #E8C766;
+}
+
+@keyframes footer-credit-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .footer-credit-link {
+        animation: none;
+    }
+}
+
 .footer-admin-link {
     color: #9fb5ca;
     font-size: 0.85rem;

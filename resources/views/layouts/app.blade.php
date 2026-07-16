@@ -14,6 +14,7 @@
                 'Technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koeling.',
             'footer_request_title' => 'Aanvraag',
             'footer_request_text' => 'Start een slimme aanvraag en vul meteen de juiste technische informatie in.',
+            'designed_by' => 'Designed by VanMalderStudio',
         ],
         'fr' => [
             'services' => 'Services',
@@ -25,6 +26,7 @@
             'footer_request_title' => 'Demande',
             'footer_request_text' =>
                 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
+            'designed_by' => 'Designed by VanMalderStudio',
         ],
         'en' => [
             'services' => 'Services',
@@ -35,6 +37,7 @@
                 'Technical service for heating, air conditioning, plumbing, ventilation, water softeners and refrigeration.',
             'footer_request_title' => 'Request',
             'footer_request_text' => 'Start a smart request and add the right technical information immediately.',
+            'designed_by' => 'Designed by VanMalderStudio',
         ],
     ];
 
@@ -99,6 +102,13 @@
 
     {{-- Canonical URL --}}
     <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- Favicon / app icons --}}
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
 
     {{-- Open Graph --}}
     <meta property="og:title" content="@yield('title', $siteName)">
@@ -312,6 +322,10 @@
                 &nbsp;&middot;&nbsp;
                 <a class="footer-privacy-link" href="{{ route('pages.show', ['locale' => $currentLocale, 'slug' => $privacySlug]) }}">
                     {{ $privacyLabel }}
+                </a>
+                &nbsp;&middot;&nbsp;
+                <a class="footer-credit-link" href="https://vanmalderstudio.be/nl" target="_blank" rel="noopener">
+                    {{ $nav['designed_by'] }}
                 </a>
             </p>
 

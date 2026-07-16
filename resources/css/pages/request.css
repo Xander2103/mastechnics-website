@@ -211,7 +211,7 @@
     border-radius: 18px;
     background: #f8fbff;
     color: var(--color-primary-dark);
-    font-weight: 800;
+    font-weight: 500;
     transition:
         transform 0.18s ease,
         border-color 0.18s ease,
@@ -248,7 +248,7 @@
     max-width: 100%;
     overflow-wrap: break-word;
     line-height: 1.25;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .option-card-desc {

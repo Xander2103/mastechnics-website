@@ -232,13 +232,15 @@
                                 <button type="submit" class="admin-quick-action-btn">Offerte verstuurd</button>
                             </form>
 
-                            <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}">
+                            <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}"
+                                onsubmit="return confirm('Deze aanvraag markeren als gewonnen?');">
                                 @csrf
                                 <input type="hidden" name="action" value="mark_won">
                                 <button type="submit" class="admin-quick-action-btn admin-quick-action-won">Gewonnen</button>
                             </form>
 
-                            <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}">
+                            <form method="POST" action="{{ route('admin.requests.action', $customerRequest) }}"
+                                onsubmit="return confirm('Deze aanvraag markeren als verloren?');">
                                 @csrf
                                 <input type="hidden" name="action" value="mark_lost">
                                 <button type="submit" class="admin-quick-action-btn admin-quick-action-lost">Verloren</button>
@@ -458,7 +460,8 @@
                                 @endif
 
                                 @if ($quote->quote_status === 'sent')
-                                    <form method="POST" action="{{ route('admin.requests.quote.action', $customerRequest) }}">
+                                    <form method="POST" action="{{ route('admin.requests.quote.action', $customerRequest) }}"
+                                        onsubmit="return confirm('Deze offerte markeren als gewonnen?');">
                                         @csrf
                                         <input type="hidden" name="action" value="mark_accepted">
                                         <button type="submit" class="admin-quick-action-btn admin-quick-action-won">
@@ -466,7 +469,8 @@
                                         </button>
                                     </form>
 
-                                    <form method="POST" action="{{ route('admin.requests.quote.action', $customerRequest) }}">
+                                    <form method="POST" action="{{ route('admin.requests.quote.action', $customerRequest) }}"
+                                        onsubmit="return confirm('Deze offerte markeren als verloren?');">
                                         @csrf
                                         <input type="hidden" name="action" value="mark_rejected">
                                         <button type="submit" class="admin-quick-action-btn admin-quick-action-lost">

@@ -474,6 +474,35 @@
         var totalExcl = document.getElementById('totalExcl');
         var totalVat  = document.getElementById('totalVat');
         var totalIncl = document.getElementById('totalIncl');
+        var quoteForm = document.getElementById('quoteForm');
+
+        // Desktop table and mobile cards render the SAME field names
+        // (items[n][...]) so only one set may be enabled at a time —
+        // otherwise the browser submits both and the last one in DOM
+        // order (mobile) silently overwrites the visible desktop values.
+        var mobileMq = window.matchMedia('(max-width: 680px)');
+
+        function syncActiveInputs() {
+            var isMobile = mobileMq.matches;
+            tbody.querySelectorAll('input').forEach(function (el) { el.disabled = isMobile; });
+            mobile.querySelectorAll('input').forEach(function (el) { el.disabled = !isMobile; });
+        }
+
+        if (mobileMq.addEventListener) {
+            mobileMq.addEventListener('change', function () {
+                syncActiveInputs();
+                recalcAll();
+            });
+        } else if (mobileMq.addListener) {
+            mobileMq.addListener(function () {
+                syncActiveInputs();
+                recalcAll();
+            });
+        }
+
+        if (quoteForm) {
+            quoteForm.addEventListener('submit', syncActiveInputs);
+        }
 
         function fmt(n) {
             return '€ ' + n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -485,11 +514,15 @@
 
         function recalcAll() {
             var excl = 0, vat = 0, incl = 0;
+            var isMobile = mobileMq.matches;
 
             document.querySelectorAll('#itemsTableBody .quote-item-row').forEach(function (row) {
-                var q = parseFloat(row.querySelector('.js-qty').value) || 0;
-                var p = parseFloat(row.querySelector('.js-price').value) || 0;
-                var v = parseFloat(row.querySelector('.js-vat').value) || 0;
+                var mobileRow = document.querySelector('#itemsMobileContainer .quote-mobile-item[data-row="' + row.dataset.row + '"]');
+                var source = isMobile && mobileRow ? mobileRow : row;
+
+                var q = parseFloat(source.querySelector('.js-qty, .js-qty-m').value) || 0;
+                var p = parseFloat(source.querySelector('.js-price, .js-price-m').value) || 0;
+                var v = parseFloat(source.querySelector('.js-vat, .js-vat-m').value) || 0;
                 var lineExcl = Math.round(q * p * 100) / 100;
                 var lineVat  = Math.round(lineExcl * v / 100 * 100) / 100;
                 var lineIncl = Math.round((lineExcl + lineVat) * 100) / 100;
@@ -559,6 +592,7 @@
             addBtn.addEventListener('click', function () {
                 var count = document.querySelectorAll('#itemsTableBody .quote-item-row').length;
                 cloneRow(count);
+                syncActiveInputs();
                 recalcAll();
             });
         }
@@ -587,6 +621,12 @@
         }
 
         if (mobile) {
+            mobile.addEventListener('input', function (e) {
+                if (e.target.matches('.js-qty-m, .js-price-m, .js-vat-m')) {
+                    recalcAll();
+                }
+            });
+
             mobile.addEventListener('click', function (e) {
                 var btn = e.target.closest('.js-del-row-mobile');
                 if (!btn) return;
@@ -603,7 +643,9 @@
             });
         }
 
-        // Initial totals calculation
+        // Initial state: disable the inactive (desktop/mobile) input set
+        // so the form never submits duplicate-named fields, then compute totals.
+        syncActiveInputs();
         recalcAll();
     }());
     </script>

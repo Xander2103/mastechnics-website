@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerRequest;
+use App\Models\CustomerRequestNote;
+use App\Models\Quote;
+use App\Services\ActivityService;
+use App\Services\ReminderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -57,16 +61,12 @@ class RequestController extends Controller
             'new'        => $statusCounts->get('new', 0),
             'contacted'  => $statusCounts->get('contacted', 0),
             'quote_sent' => $statusCounts->get('quote_sent', 0),
-            'urgent'     => CustomerRequest::whereNotIn('status', ['won', 'lost'])
-                                ->where(function ($q): void {
-                                    $q->where('service_category', 'dringend_lek')
-                                      ->orWhereIn('urgency_level', ['water_leaking', 'small_leak', 'no_heating', 'no_hot_water', 'urgent']);
-                                })->count(),
+            'urgent'     => ReminderService::scopeUrgentOpen(CustomerRequest::query())->count(),
         ];
 
         $customerRequests = $this->buildFilteredQuery($request)->get();
 
-        return view('admin.requests.index', [
+        return view('admin.requests.index', array_merge([
             'stats'            => $stats,
             'customerRequests' => $customerRequests,
             'statuses' => $statuses,
@@ -85,13 +85,93 @@ class RequestController extends Controller
                 'customer_type'    => $request->string('customer_type')->toString(),
                 'date_from'        => $request->string('date_from')->toString(),
                 'date_to'          => $request->string('date_to')->toString(),
+                'has_quote'        => $request->string('has_quote')->toString(),
             ],
-        ]);
+        ], $this->buildDashboardData()));
+    }
+
+    private function buildDashboardData(): array
+    {
+        $now = now();
+
+        $activeReminderRequestIds = CustomerRequest::query()
+            ->whereNotIn('status', ['won', 'lost'])
+            ->get(['id', 'status', 'service_category', 'urgency_level', 'created_at', 'viewed_at', 'contacted_at', 'quote_sent_at', 'updated_at'])
+            ->filter(fn (CustomerRequest $r): bool => ! empty(ReminderService::activeReminders($r)))
+            ->count();
+
+        $quotesAwaitingAnswer = Quote::where('quote_status', 'sent')->count();
+        $openQuotes = Quote::whereIn('quote_status', ['draft', 'sent'])->count();
+        $quotesCreatedTotal = Quote::count();
+
+        $wonThisMonth = CustomerRequest::where('status', 'won')
+            ->whereYear('won_at', $now->year)
+            ->whereMonth('won_at', $now->month)
+            ->count();
+
+        $lostThisMonth = CustomerRequest::where('status', 'lost')
+            ->whereYear('lost_at', $now->year)
+            ->whereMonth('lost_at', $now->month)
+            ->count();
+
+        $wonTotal = CustomerRequest::where('status', 'won')->count();
+        $lostTotal = CustomerRequest::where('status', 'lost')->count();
+        $conversionRate = ($wonTotal + $lostTotal) > 0
+            ? round($wonTotal / ($wonTotal + $lostTotal) * 100, 1)
+            : null;
+
+        // Average response time (created_at -> contacted_at), computed in PHP
+        // to stay portable across SQLite (local/tests) and MySQL (production).
+        $responseTimes = CustomerRequest::whereNotNull('contacted_at')
+            ->get(['created_at', 'contacted_at'])
+            ->map(fn (CustomerRequest $r): float => $r->created_at->diffInMinutes($r->contacted_at));
+        $avgResponseHours = $responseTimes->isNotEmpty()
+            ? round($responseTimes->avg() / 60, 1)
+            : null;
+
+        // Requests per month, last 6 months
+        $requestsPerMonth = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = $now->copy()->subMonths($i);
+            $requestsPerMonth[$month->format('M Y')] = CustomerRequest::whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+        }
+
+        $serviceCategoryLabels = collect(config('request-flow.service_categories', []))
+            ->mapWithKeys(fn (array $cat): array => [$cat['value'] => $cat['labels']['nl'] ?? $cat['value']]);
+
+        $requestsByService = CustomerRequest::query()
+            ->selectRaw('service_category, count(*) as total')
+            ->whereNotNull('service_category')
+            ->groupBy('service_category')
+            ->pluck('total', 'service_category')
+            ->mapWithKeys(fn ($total, $category) => [
+                ($serviceCategoryLabels[$category] ?? $category) => $total,
+            ]);
+
+        return [
+            'todaysFollowUps'      => $activeReminderRequestIds,
+            'quotesAwaitingAnswer' => $quotesAwaitingAnswer,
+            'openQuotes'           => $openQuotes,
+            'wonThisMonth'         => $wonThisMonth,
+            'lostThisMonth'        => $lostThisMonth,
+            'recentActivity'       => ActivityService::recentActivity(6),
+            'statistics'           => [
+                'requestsPerMonth'  => $requestsPerMonth,
+                'requestsByService' => $requestsByService,
+                'conversionRate'    => $conversionRate,
+                'wonTotal'          => $wonTotal,
+                'lostTotal'         => $lostTotal,
+                'avgResponseHours'  => $avgResponseHours,
+                'quotesCreated'     => $quotesCreatedTotal,
+            ],
+        ];
     }
 
     public function show(CustomerRequest $customerRequest): View
     {
-        $customerRequest->load(['attachments', 'notes', 'quote']);
+        $customerRequest->load(['attachments', 'notes', 'quote', 'mailLogs', 'appointments']);
 
         $serviceCategoryLabels = collect(config('request-flow.service_categories', []))
             ->mapWithKeys(fn (array $cat): array => [
@@ -103,6 +183,8 @@ class RequestController extends Controller
             'customerRequest'       => $customerRequest,
             'statuses'              => $this->getStatuses(),
             'serviceCategoryLabels' => $serviceCategoryLabels,
+            'timeline'              => ActivityService::timelineFor($customerRequest),
+            'reminderBadge'         => ReminderService::primaryBadge($customerRequest),
         ]);
     }
 
@@ -131,6 +213,45 @@ class RequestController extends Controller
         ]);
 
         return back()->with('success', 'note_created');
+    }
+
+    public function updateNote(Request $request, CustomerRequest $customerRequest, CustomerRequestNote $note): RedirectResponse
+    {
+        abort_unless($note->customer_request_id === $customerRequest->id, 404);
+        abort_unless($note->author_email === session('admin_user_email'), 403, 'Je kan enkel je eigen notities bewerken.');
+
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'max:3000'],
+        ]);
+
+        $note->update(['body' => $validated['body']]);
+
+        return back()->with('success', 'note_updated');
+    }
+
+    public function destroyNote(CustomerRequest $customerRequest, CustomerRequestNote $note): RedirectResponse
+    {
+        abort_unless($note->customer_request_id === $customerRequest->id, 404);
+        abort_unless($note->author_email === session('admin_user_email'), 403, 'Je kan enkel je eigen notities verwijderen.');
+
+        $note->delete();
+
+        return back()->with('success', 'note_deleted');
+    }
+
+    public function storeAppointment(Request $request, CustomerRequest $customerRequest): RedirectResponse
+    {
+        $validated = $request->validate([
+            'date'       => ['required', 'date'],
+            'time'       => ['nullable', 'date_format:H:i'],
+            'technician' => ['nullable', 'string', 'max:255'],
+            'location'   => ['nullable', 'string', 'max:255'],
+            'notes'      => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $customerRequest->appointments()->create($validated);
+
+        return back()->with('success', 'appointment_created');
     }
 
     public function exportCsv(Request $request): StreamedResponse
@@ -166,6 +287,7 @@ class RequestController extends Controller
 
             // Header row
             fputcsv($handle, [
+                'Referentie',
                 'Datum',
                 'Naam',
                 'E-mail',
@@ -177,6 +299,10 @@ class RequestController extends Controller
                 'Gemeente',
                 'Postcode',
                 'Bron',
+                'Gecontacteerd op',
+                'Offerte verstuurd op',
+                'Gewonnen op',
+                'Verloren op',
             ], ';');
 
             foreach ($requests as $req) {
@@ -185,6 +311,7 @@ class RequestController extends Controller
                 $category = $serviceCategoryLabels[$req->service_category] ?? $req->service_slug;
 
                 fputcsv($handle, [
+                    $req->reference,
                     $req->created_at?->format('d/m/Y H:i') ?? '',
                     $this->sanitizeCsvCell($req->customer_name),
                     $this->sanitizeCsvCell($req->customer_email),
@@ -196,6 +323,10 @@ class RequestController extends Controller
                     $this->sanitizeCsvCell($answers['city'] ?? ''),
                     $this->sanitizeCsvCell($answers['postal_code'] ?? ''),
                     $this->sanitizeCsvCell($req->source),
+                    $req->contacted_at?->format('d/m/Y H:i') ?? '',
+                    $req->quote_sent_at?->format('d/m/Y H:i') ?? '',
+                    $req->won_at?->format('d/m/Y H:i') ?? '',
+                    $req->lost_at?->format('d/m/Y H:i') ?? '',
                 ], ';');
             }
 
@@ -238,7 +369,10 @@ class RequestController extends Controller
     private function applyMarkViewed(CustomerRequest $customerRequest): void
     {
         if ($customerRequest->status === 'new') {
-            $customerRequest->update(['status' => 'viewed']);
+            $customerRequest->update([
+                'status'    => 'viewed',
+                'viewed_at' => $customerRequest->viewed_at ?? now(),
+            ]);
         }
     }
 
@@ -308,6 +442,11 @@ class RequestController extends Controller
             })
             ->when($request->filled('date_to'), function ($query) use ($request): void {
                 $query->whereDate('created_at', '<=', $request->string('date_to')->toString());
+            })
+            ->when($request->filled('has_quote'), function ($query) use ($request): void {
+                $request->string('has_quote')->toString() === 'yes'
+                    ? $query->has('quote')
+                    : $query->doesntHave('quote');
             })
             ->latest();
     }

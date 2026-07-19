@@ -181,6 +181,30 @@
                 </div>
             @endif
 
+            @if (session('success') === 'quote_email_sent')
+                <div class="form-success">
+                    Offerte werd verstuurd naar de klant.
+                </div>
+            @endif
+
+            @if (session('success') === 'quote_email_failed')
+                <div class="form-error-list">
+                    De offerte-status werd bijgewerkt, maar de e-mail kon niet verstuurd worden. Controleer het e-mailadres of probeer later opnieuw.
+                </div>
+            @endif
+
+            @if (session('success') === 'note_updated')
+                <div class="form-success">Notitie werd bijgewerkt.</div>
+            @endif
+
+            @if (session('success') === 'note_deleted')
+                <div class="form-success">Notitie werd verwijderd.</div>
+            @endif
+
+            @if (session('success') === 'appointment_created')
+                <div class="form-success">Afspraak werd toegevoegd.</div>
+            @endif
+
             <div class="admin-detail-layout">
 
                 {{-- ===================== LEFT SIDEBAR ===================== --}}
@@ -450,13 +474,10 @@
                                 </a>
 
                                 @if ($quote->quote_status === 'draft')
-                                    <form method="POST" action="{{ route('admin.requests.quote.action', $customerRequest) }}">
-                                        @csrf
-                                        <input type="hidden" name="action" value="mark_sent">
-                                        <button type="submit" class="admin-quick-action-btn">
-                                            Verstuurd ▸
-                                        </button>
-                                    </form>
+                                    <button type="button" class="admin-quick-action-btn" id="sendQuoteBtn"
+                                        aria-haspopup="dialog" aria-controls="sendQuoteModal">
+                                        ✉ Offerte versturen
+                                    </button>
                                 @endif
 
                                 @if ($quote->quote_status === 'sent')
@@ -481,6 +502,96 @@
                             </div>
                         @endif
                     </div>
+
+                    @if ($quote && $quote->quote_status === 'draft')
+                        @php
+                            $quoteEmailDefaults = [
+                                'nl' => [
+                                    'subject' => 'Uw offerte ' . ($quote->quote_number ?: '') . ' — ' . config('site.name'),
+                                    'body' => "Beste {$customerRequest->customer_name},\n\nHierbij bezorgen we u de offerte voor uw aanvraag. U vindt alle details in de bijgevoegde PDF.\n\nHeeft u nog vragen? Neem gerust contact met ons op.\n\nMet vriendelijke groeten,\n" . config('site.name'),
+                                ],
+                                'fr' => [
+                                    'subject' => 'Votre devis ' . ($quote->quote_number ?: '') . ' — ' . config('site.name'),
+                                    'body' => "Bonjour {$customerRequest->customer_name},\n\nVeuillez trouver ci-joint le devis pour votre demande. Tous les détails figurent dans le PDF joint.\n\nN'hésitez pas à nous contacter pour toute question.\n\nCordialement,\n" . config('site.name'),
+                                ],
+                                'en' => [
+                                    'subject' => 'Your quote ' . ($quote->quote_number ?: '') . ' — ' . config('site.name'),
+                                    'body' => "Hello {$customerRequest->customer_name},\n\nPlease find attached the quote for your request. All details are in the attached PDF.\n\nFeel free to contact us with any questions.\n\nKind regards,\n" . config('site.name'),
+                                ],
+                            ];
+                            $quoteEmailDefault = $quoteEmailDefaults[$customerRequest->locale] ?? $quoteEmailDefaults['nl'];
+                        @endphp
+
+                        <div class="reviews-modal-backdrop" id="sendQuoteBackdrop" hidden></div>
+                        <div class="reviews-modal" id="sendQuoteModal" role="dialog" aria-modal="true" aria-labelledby="sendQuoteModalTitle" hidden>
+                            <div class="reviews-modal-inner">
+                                <button type="button" class="reviews-modal-close" id="sendQuoteModalClose" aria-label="Sluiten">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+
+                                <h2 id="sendQuoteModalTitle">Offerte versturen</h2>
+                                <p class="admin-muted-text">De PDF wordt automatisch als bijlage toegevoegd.</p>
+
+                                <form method="POST" action="{{ route('admin.requests.quote.send-email', $customerRequest) }}" class="admin-quote-send-form">
+                                    @csrf
+
+                                    <label>
+                                        <span>Aan</span>
+                                        <input type="email" name="to" value="{{ $customerRequest->customer_email }}" required>
+                                    </label>
+
+                                    <label>
+                                        <span>Onderwerp</span>
+                                        <input type="text" name="subject" value="{{ $quoteEmailDefault['subject'] }}" maxlength="200" required>
+                                    </label>
+
+                                    <label>
+                                        <span>Bericht</span>
+                                        <textarea name="body" rows="8" maxlength="5000" required>{{ $quoteEmailDefault['body'] }}</textarea>
+                                    </label>
+
+                                    <div class="admin-quote-send-actions">
+                                        <button type="submit" class="button button-primary">Versturen</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <script>
+                        (function () {
+                            'use strict';
+                            var trigger = document.getElementById('sendQuoteBtn');
+                            var modal = document.getElementById('sendQuoteModal');
+                            var backdrop = document.getElementById('sendQuoteBackdrop');
+                            var closeBtn = document.getElementById('sendQuoteModalClose');
+                            if (!trigger || !modal || !backdrop || !closeBtn) return;
+
+                            function open() {
+                                modal.hidden = false;
+                                backdrop.hidden = false;
+                                document.body.classList.add('reviews-modal-open');
+                                document.addEventListener('keydown', onKeydown);
+                                closeBtn.focus();
+                            }
+
+                            function close() {
+                                modal.hidden = true;
+                                backdrop.hidden = true;
+                                document.body.classList.remove('reviews-modal-open');
+                                document.removeEventListener('keydown', onKeydown);
+                                trigger.focus();
+                            }
+
+                            function onKeydown(e) {
+                                if (e.key === 'Escape') close();
+                            }
+
+                            trigger.addEventListener('click', open);
+                            closeBtn.addEventListener('click', close);
+                            backdrop.addEventListener('click', close);
+                        })();
+                        </script>
+                    @endif
 
                     {{-- Ontbrekende informatie — only render if there are missing items --}}
                     @php $missingItems = $customerRequest->getMissingInfoChecklist(); @endphp
@@ -768,17 +879,148 @@
                 @else
                     <div class="admin-notes-list">
                         @foreach ($customerRequest->notes as $note)
+                            @php $canEditNote = $note->author_email === session('admin_user_email'); @endphp
                             <article class="admin-note-item">
                                 <div class="admin-note-meta">
                                     <strong>{{ $note->author_email ?: 'Admin' }}</strong>
                                     <span>{{ $note->created_at->format('d/m/Y H:i') }}</span>
+
+                                    @if ($canEditNote)
+                                        <button type="button" class="admin-note-edit-toggle" data-note-id="{{ $note->id }}">
+                                            Bewerken
+                                        </button>
+
+                                        <form method="POST" action="{{ route('admin.requests.notes.destroy', [$customerRequest, $note]) }}"
+                                            onsubmit="return confirm('Deze notitie verwijderen?');" class="admin-note-delete-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="admin-note-delete-btn">Verwijderen</button>
+                                        </form>
+                                    @endif
                                 </div>
 
-                                <p>{{ $note->body }}</p>
+                                <p class="admin-note-body" id="note-body-{{ $note->id }}">{{ $note->body }}</p>
+
+                                @if ($canEditNote)
+                                    <form method="POST" action="{{ route('admin.requests.notes.update', [$customerRequest, $note]) }}"
+                                        class="admin-note-edit-form" id="note-edit-form-{{ $note->id }}" hidden>
+                                        @csrf
+                                        @method('PATCH')
+                                        <textarea name="body" rows="3" maxlength="3000">{{ $note->body }}</textarea>
+                                        <div class="admin-note-edit-actions">
+                                            <button type="submit" class="button button-secondary button-small">Opslaan</button>
+                                        </div>
+                                    </form>
+                                @endif
                             </article>
                         @endforeach
                     </div>
+
+                    <script>
+                    (function () {
+                        'use strict';
+                        document.querySelectorAll('.admin-note-edit-toggle').forEach(function (btn) {
+                            btn.addEventListener('click', function () {
+                                var id = btn.dataset.noteId;
+                                var body = document.getElementById('note-body-' + id);
+                                var form = document.getElementById('note-edit-form-' + id);
+                                if (!body || !form) return;
+                                var isHidden = form.hidden;
+                                form.hidden = !isHidden;
+                                body.hidden = isHidden;
+                            });
+                        });
+                    })();
+                    </script>
                 @endif
+            </div>
+
+            {{-- Activiteitstijdlijn --}}
+            <div class="admin-detail-card admin-timeline-card">
+                <h2>Tijdlijn</h2>
+
+                @if (empty($timeline))
+                    <p class="admin-muted-text">Nog geen activiteit geregistreerd.</p>
+                @else
+                    <ul class="admin-timeline-list">
+                        @foreach ($timeline as $event)
+                            <li>
+                                <span class="admin-timeline-date">{{ $event['date']->format('d/m/Y H:i') }}</span>
+                                <span class="admin-timeline-action">{{ $event['action'] }}</span>
+                                @if (!empty($event['user']))
+                                    <span class="admin-timeline-user">— {{ $event['user'] }}</span>
+                                @endif
+                                @if (!empty($event['note']))
+                                    <p class="admin-timeline-note">{{ \Illuminate\Support\Str::limit($event['note'], 200) }}</p>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+
+            {{-- Afspraken (future-ready — geen volledige planning nog) --}}
+            <div class="admin-detail-card admin-appointments-card">
+                <h2>Afspraken</h2>
+
+                @if ($customerRequest->appointments->isEmpty())
+                    <p class="admin-muted-text">Nog geen afspraak ingepland.</p>
+                @else
+                    <ul class="admin-appointments-list">
+                        @foreach ($customerRequest->appointments as $appointment)
+                            <li>
+                                <strong>{{ $appointment->date->format('d/m/Y') }}</strong>
+                                @if ($appointment->time)
+                                    <span>{{ \Illuminate\Support\Str::of((string) $appointment->time)->limit(5, '') }}</span>
+                                @endif
+                                @if ($appointment->technician)
+                                    <span>— {{ $appointment->technician }}</span>
+                                @endif
+                                @if ($appointment->location)
+                                    <span class="admin-appointment-location">{{ $appointment->location }}</span>
+                                @endif
+                                @if ($appointment->notes)
+                                    <p class="admin-appointment-notes">{{ $appointment->notes }}</p>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+
+                <details class="admin-appointment-form-toggle">
+                    <summary>+ Afspraak toevoegen</summary>
+
+                    <form method="POST" action="{{ route('admin.requests.appointments.store', $customerRequest) }}" class="admin-appointment-form">
+                        @csrf
+
+                        <label>
+                            <span>Datum</span>
+                            <input type="date" name="date" required>
+                        </label>
+
+                        <label>
+                            <span>Tijd (optioneel)</span>
+                            <input type="time" name="time">
+                        </label>
+
+                        <label>
+                            <span>Technicus (placeholder)</span>
+                            <input type="text" name="technician" maxlength="255" placeholder="Nog geen technicus-systeem — vrije tekst">
+                        </label>
+
+                        <label>
+                            <span>Locatie</span>
+                            <input type="text" name="location" maxlength="255" value="{{ trim(($answers['street'] ?? '') . ' ' . ($answers['city'] ?? '')) }}">
+                        </label>
+
+                        <label>
+                            <span>Notities</span>
+                            <textarea name="notes" rows="3" maxlength="2000"></textarea>
+                        </label>
+
+                        <button class="button button-primary" type="submit">Afspraak opslaan</button>
+                    </form>
+                </details>
             </div>
 
             {{-- Alle antwoorden — collapsed by default --}}

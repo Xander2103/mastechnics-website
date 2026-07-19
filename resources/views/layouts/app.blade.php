@@ -100,6 +100,11 @@
     {{-- Canonical URL --}}
     <link rel="canonical" href="{{ url()->current() }}">
 
+    {{-- Preload hero image (homepage only, it's the LCP element) --}}
+    @if (isset($page) && $page->type === 'home')
+        <link rel="preload" as="image" href="{{ asset('assets/images/hero.webp') }}" fetchpriority="high">
+    @endif
+
     {{-- Favicons / app icons --}}
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
@@ -130,20 +135,75 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- LocalBusiness schema (public pages only) --}}
+    {{-- Structured data (public pages only) --}}
     @if (isset($page))
-    <script type="application/ld+json">
-    {
-        "@@context": "https://schema.org",
-        "@type": "LocalBusiness",
-        "name": "{{ config('site.name') }}",
-        "telephone": "{{ config('site.contact.phone_display') }}",
-        "email": "{{ config('site.contact.email') }}",
-        "url": "{{ url('/nl') }}",
-        "priceRange": "€€",
-        "areaServed": "Belgium"
-    }
-    </script>
+        @php
+            $schemaLogoUrl = asset('assets/images/Logo.webp');
+            $schemaSameAs = array_values(array_filter([
+                config('reviews.platforms.facebook.url'),
+                config('reviews.platforms.trustpilot.url'),
+            ]));
+        @endphp
+
+        {{-- LocalBusiness + HVACBusiness (this also covers Organization: LocalBusiness extends it) --}}
+        <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@type": ["LocalBusiness", "HVACBusiness"],
+            "name": "{{ config('site.name') }}",
+            "telephone": "{{ config('site.contact.phone_display') }}",
+            "email": "{{ config('site.contact.email') }}",
+            "url": "{{ url('/nl') }}",
+            "logo": "{{ $schemaLogoUrl }}",
+            "image": "{{ $schemaLogoUrl }}",
+            "priceRange": "€€",
+            "areaServed": "Belgium"
+            @if (!empty($siteContact['address']))
+            ,"address": {
+                "@type": "PostalAddress",
+                "streetAddress": "{{ $siteContact['address'] }}",
+                "addressCountry": "BE"
+            }
+            @endif
+            @if (!empty($schemaSameAs))
+            ,"sameAs": @json($schemaSameAs)
+            @endif
+        }
+        </script>
+
+        @if ($page->type === 'home')
+            {{-- WebSite (homepage only) --}}
+            <script type="application/ld+json">
+            {
+                "@@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "{{ config('site.name') }}",
+                "url": "{{ url('/' . $currentLocale) }}"
+            }
+            </script>
+        @else
+            {{-- Breadcrumbs (all non-home pages) --}}
+            <script type="application/ld+json">
+            {
+                "@@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "{{ config('site.name') }}",
+                        "item": "{{ route('pages.home', ['locale' => $currentLocale]) }}"
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": "{{ $translation->title }}",
+                        "item": "{{ url()->current() }}"
+                    }
+                ]
+            }
+            </script>
+        @endif
     @endif
 </head>
 

@@ -612,6 +612,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="reviewsModalTitle"
+    aria-describedby="reviewsModalIntro"
     hidden
 >
     <div class="reviews-modal-inner">
@@ -620,7 +621,7 @@
         </button>
 
         <h2 id="reviewsModalTitle">{{ $text['reviews_modal_title'] }}</h2>
-        <p>{{ $text['reviews_modal_intro'] }}</p>
+        <p id="reviewsModalIntro">{{ $text['reviews_modal_intro'] }}</p>
 
         <div class="reviews-platform-grid">
             @foreach ($reviewPlatforms as $platform)

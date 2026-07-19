@@ -1338,6 +1338,13 @@ body.reviews-modal-open {
     border-color: var(--color-primary);
 }
 
+.reviews-platform-card:focus-visible,
+.reviews-modal-close:focus-visible {
+    outline: none;
+    border-color: rgba(15, 102, 194, 0.55);
+    box-shadow: 0 0 0 4px rgba(15, 102, 194, 0.15);
+}
+
 .reviews-platform-grid {
     display: grid;
     gap: 12px;

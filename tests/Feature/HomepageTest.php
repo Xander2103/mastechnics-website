@@ -145,4 +145,13 @@ class HomepageTest extends TestCase
             ->assertSee('href="https://vanmalderstudio.be/nl"', false)
             ->assertSee('VanMalderStudio');
     }
+
+    public function test_homepage_includes_structured_data(): void
+    {
+        $this->get(route('pages.home', ['locale' => 'nl']))
+            ->assertOk()
+            ->assertSee('"@type": ["LocalBusiness", "HVACBusiness"]', false)
+            ->assertSee('"@type": "WebSite"', false)
+            ->assertDontSee('"@type": "BreadcrumbList"', false);
+    }
 }

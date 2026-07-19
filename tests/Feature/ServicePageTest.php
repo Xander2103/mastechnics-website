@@ -35,6 +35,14 @@ class ServicePageTest extends TestCase
             ->assertSee('Sanitair');
     }
 
+    public function test_service_page_includes_breadcrumb_structured_data(): void
+    {
+        $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'verwarming']))
+            ->assertOk()
+            ->assertSee('"@type": "BreadcrumbList"', false)
+            ->assertSee('"@type": ["LocalBusiness", "HVACBusiness"]', false);
+    }
+
     public function test_all_six_core_service_pages_render_nl(): void
     {
         $slugs = ['verwarming', 'airco', 'sanitair', 'ventilatie', 'waterverzachters', 'koelcellen'];

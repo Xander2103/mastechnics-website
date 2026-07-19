@@ -31,6 +31,7 @@ class CustomerRequest extends Model
         'ai_summary',
         'ai_detected_missing_fields',
         'internal_notes',
+        'viewed_at',
         'contacted_at',
         'quote_sent_at',
         'won_at',
@@ -42,6 +43,7 @@ class CustomerRequest extends Model
         'unknown_device_details'     => 'boolean',
         'privacy_consent'            => 'boolean',
         'ai_detected_missing_fields' => 'array',
+        'viewed_at'                  => 'datetime',
         'contacted_at'               => 'datetime',
         'quote_sent_at'              => 'datetime',
         'won_at'                     => 'datetime',
@@ -61,6 +63,25 @@ class CustomerRequest extends Model
     public function quote(): HasOne
     {
         return $this->hasOne(Quote::class);
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(CustomerRequestAppointment::class)->orderBy('date')->orderBy('time');
+    }
+
+    public function mailLogs(): HasMany
+    {
+        return $this->hasMany(MailLog::class)->latest();
+    }
+
+    /**
+     * Human-readable reference shown to customers and staff (e.g. in emails, CSV export).
+     * Computed from the primary key — no schema change needed.
+     */
+    public function getReferenceAttribute(): string
+    {
+        return 'MT-' . str_pad((string) $this->id, 5, '0', STR_PAD_LEFT);
     }
 
     public function getMissingInfoChecklist(): array

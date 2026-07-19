@@ -76,4 +76,21 @@ class HomepageTest extends TestCase
             ->assertOk()
             ->assertDontSee('id="reviews"', false);
     }
+
+    public function test_homepage_includes_favicon_links(): void
+    {
+        $this->get(route('pages.home', ['locale' => 'nl']))
+            ->assertOk()
+            ->assertSee('rel="icon" href="' . asset('favicon.ico') . '"', false)
+            ->assertSee('rel="apple-touch-icon"', false)
+            ->assertSee('rel="manifest" href="' . asset('site.webmanifest') . '"', false);
+    }
+
+    public function test_homepage_includes_footer_credit_link(): void
+    {
+        $this->get(route('pages.home', ['locale' => 'nl']))
+            ->assertOk()
+            ->assertSee('href="https://vanmalderstudio.be/nl"', false)
+            ->assertSee('VanMalderStudio');
+    }
 }

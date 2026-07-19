@@ -100,6 +100,14 @@
     {{-- Canonical URL --}}
     <link rel="canonical" href="{{ url()->current() }}">
 
+    {{-- Favicons / app icons --}}
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('favicon-48x48.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+
     {{-- Open Graph --}}
     <meta property="og:title" content="@yield('title', $siteName)">
     <meta property="og:description" content="@yield('meta_description', '')">
@@ -315,25 +323,32 @@
                 </a>
             </p>
 
-            @if (session()->has('admin_user_email'))
-                <div class="footer-admin-actions">
-                    <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
-                        Admin panel
-                    </a>
-
-                    <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
-                        @csrf
-
-                        <button type="submit" class="footer-admin-link">
-                            Uitloggen
-                        </button>
-                    </form>
-                </div>
-            @else
-                <a class="footer-admin-link" href="{{ route('admin.login') }}">
-                    Admin
+            <div class="footer-bottom-right">
+                <a class="footer-credit" href="https://vanmalderstudio.be/nl" target="_blank" rel="noopener noreferrer">
+                    {{ $currentLocale === 'fr' ? 'Conçu par' : ($currentLocale === 'en' ? 'Designed by' : 'Ontworpen door') }}
+                    <span class="footer-credit-name">VanMalderStudio</span>
                 </a>
-            @endif
+
+                @if (session()->has('admin_user_email'))
+                    <div class="footer-admin-actions">
+                        <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
+                            Admin panel
+                        </a>
+
+                        <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
+                            @csrf
+
+                            <button type="submit" class="footer-admin-link">
+                                Uitloggen
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <a class="footer-admin-link" href="{{ route('admin.login') }}">
+                        Admin
+                    </a>
+                @endif
+            </div>
         </div>
     </footer>
 </body>

@@ -413,6 +413,20 @@ class QuoteTest extends TestCase
         $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
     }
 
+    public function test_pdf_view_includes_company_logo(): void
+    {
+        $req   = $this->makeRequest();
+        $quote = $this->makeQuote($req, ['quote_number' => 'OFF-2026-0099']);
+
+        $html = view('admin.quotes.pdf', [
+            'quote'           => $quote,
+            'customerRequest' => $req,
+        ])->render();
+
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+        $this->assertStringContainsString('header-logo-img', $html);
+    }
+
     public function test_unauthenticated_pdf_redirects_to_login(): void
     {
         $req = $this->makeRequest();

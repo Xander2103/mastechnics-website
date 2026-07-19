@@ -1,3 +1,11 @@
+@php
+    // Embed the logo as a base64 data URI — dompdf resolves relative/asset
+    // paths unreliably, so this is the most robust way to guarantee it renders.
+    $logoPath = public_path('logo-full.png');
+    $logoDataUri = is_readable($logoPath)
+        ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+        : null;
+@endphp
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -28,6 +36,33 @@
         }
 
         .header-company {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .header-company-inner {
+            display: table;
+        }
+
+        .header-logo-cell {
+            display: table-cell;
+            vertical-align: middle;
+            padding-right: 14px;
+        }
+
+        .header-logo-badge {
+            display: inline-block;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+
+        .header-logo-img {
+            display: block;
+            height: 26px;
+        }
+
+        .header-text-cell {
             display: table-cell;
             vertical-align: middle;
         }
@@ -341,9 +376,20 @@
     <div class="header-bar">
         <div class="header-bar-inner">
             <div class="header-company">
-                <div class="header-company-name">MAS Technics</div>
-                <div class="header-company-tagline">
-                    Verwarming · Airco · Sanitair · Ventilatie · Waterverzachters · Koeling
+                <div class="header-company-inner">
+                    @if ($logoDataUri)
+                        <div class="header-logo-cell">
+                            <span class="header-logo-badge">
+                                <img src="{{ $logoDataUri }}" alt="MAS Technics" class="header-logo-img">
+                            </span>
+                        </div>
+                    @endif
+                    <div class="header-text-cell">
+                        <div class="header-company-name">MAS Technics</div>
+                        <div class="header-company-tagline">
+                            Verwarming · Airco · Sanitair · Ventilatie · Waterverzachters · Koeling
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="header-doc-info">

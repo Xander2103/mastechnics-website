@@ -8,10 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Mail\NewCustomerRequestMail;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use App\Mail\CustomerRequestConfirmationMail;
+use App\Services\MailDispatcher;
 
 class CustomerRequestController extends Controller
 {
@@ -203,27 +202,14 @@ class CustomerRequestController extends Controller
             ->values();
 
         foreach ($notificationEmails as $email) {
-            try {
-                Mail::to($email)->send(new NewCustomerRequestMail($customerRequest));
-            } catch (\Throwable $e) {
-                Log::error('Failed to send new-customer-request notification email', [
-                    'email' => $email,
-                    'customer_request_id' => $customerRequest->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
+            MailDispatcher::send($email, new NewCustomerRequestMail($customerRequest), $customerRequest);
         }
 
-        try {
-            Mail::to($customerRequest->customer_email)->send(
-                new CustomerRequestConfirmationMail($customerRequest)
-            );
-        } catch (\Throwable $e) {
-            Log::error('Failed to send customer confirmation email', [
-                'customer_request_id' => $customerRequest->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        MailDispatcher::send(
+            $customerRequest->customer_email,
+            new CustomerRequestConfirmationMail($customerRequest),
+            $customerRequest
+        );
 
         return back()->with('success', 'request_created');
     }

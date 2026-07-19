@@ -140,6 +140,21 @@ class CustomerRequestSubmissionTest extends TestCase
         });
     }
 
+    public function test_confirmation_email_includes_request_reference(): void
+    {
+        $this->post(
+            route('customer-requests.store', ['locale' => 'nl']),
+            $this->validPayload(['customer_email' => 'klant@example.com'])
+        );
+
+        $request = CustomerRequest::first();
+
+        Mail::assertSent(CustomerRequestConfirmationMail::class, function (CustomerRequestConfirmationMail $mail) use ($request) {
+            $mail->assertSeeInHtml($request->reference);
+            return true;
+        });
+    }
+
     public function test_mail_failure_does_not_prevent_request_from_being_stored(): void
     {
         Mail::shouldReceive('to')->andReturnSelf();

@@ -88,8 +88,22 @@
             'nav_contact'    => 'Contact',
             'reviews_eyebrow' => 'Klantenervaringen',
             'reviews_title'   => 'Wat klanten zeggen',
-            'reviews_intro'   => 'Ervaringen van klanten die Mastechnics inschakelden voor installatie, onderhoud of herstelling.',
-            'reviews_cta'     => 'Laat een review achter',
+            'reviews_intro'   => 'Lees ervaringen van klanten die Mastechnics inschakelden voor installatie, onderhoud of herstelling.',
+            'reviews_button'  => 'Bekijk alle reviews',
+            'reviews_modal_title' => 'Reviews en sociale kanalen',
+            'reviews_modal_intro' => 'Bekijk ervaringen of laat zelf een beoordeling achter via uw favoriete platform.',
+            'reviews_modal_close' => 'Sluiten',
+            'reviews_read_more'   => 'Lees verder',
+            'reviews_platform_helpers' => [
+                'google'     => 'Bekijk Google-reviews of schrijf er zelf één.',
+                'trustpilot' => 'Bekijk de beoordelingen op Trustpilot.',
+                'facebook'   => 'Bezoek Mastechnics op Facebook.',
+            ],
+            'reviews_translated_from' => [
+                'fr' => 'Vertaald uit het Frans',
+                'en' => 'Vertaald uit het Engels',
+            ],
+            'reviews_rating_aria' => ':rating van 5 sterren',
         ],
 
         'fr' => [
@@ -167,9 +181,23 @@
             'nav_aanvraag'   => 'Demande',
             'nav_contact'    => 'Contact',
             'reviews_eyebrow' => 'Avis clients',
-            'reviews_title'   => 'Ce que disent les clients',
-            'reviews_intro'   => "Expériences de clients ayant fait appel à Mastechnics pour une installation, un entretien ou une réparation.",
-            'reviews_cta'     => 'Laisser un avis',
+            'reviews_title'   => 'Ce que disent nos clients',
+            'reviews_intro'   => "Découvrez l'expérience de clients ayant fait appel à Mastechnics pour une installation, un entretien ou une réparation.",
+            'reviews_button'  => 'Voir tous les avis',
+            'reviews_modal_title' => 'Avis et réseaux sociaux',
+            'reviews_modal_intro' => 'Consultez les expériences de nos clients ou laissez vous-même un avis sur la plateforme de votre choix.',
+            'reviews_modal_close' => 'Fermer',
+            'reviews_read_more'   => 'Lire la suite',
+            'reviews_platform_helpers' => [
+                'google'     => 'Consultez les avis Google ou laissez le vôtre.',
+                'trustpilot' => 'Consultez les évaluations sur Trustpilot.',
+                'facebook'   => 'Retrouvez Mastechnics sur Facebook.',
+            ],
+            'reviews_translated_from' => [
+                'nl' => 'Traduit du néerlandais',
+                'en' => "Traduit de l'anglais",
+            ],
+            'reviews_rating_aria' => ':rating sur 5 étoiles',
         ],
 
         'en' => [
@@ -247,15 +275,69 @@
             'nav_aanvraag'   => 'Request',
             'nav_contact'    => 'Contact',
             'reviews_eyebrow' => 'Customer experiences',
-            'reviews_title'   => 'What customers say',
-            'reviews_intro'   => 'Experiences from customers who called on Mastechnics for installation, maintenance or repair.',
-            'reviews_cta'     => 'Leave a review',
+            'reviews_title'   => 'What our customers say',
+            'reviews_intro'   => 'Read experiences from customers who chose Mastechnics for installation, maintenance or repairs.',
+            'reviews_button'  => 'View all reviews',
+            'reviews_modal_title' => 'Reviews and social channels',
+            'reviews_modal_intro' => 'Read customer experiences or leave your own review on your preferred platform.',
+            'reviews_modal_close' => 'Close',
+            'reviews_read_more'   => 'Read more',
+            'reviews_platform_helpers' => [
+                'google'     => 'Read Google reviews or leave your own.',
+                'trustpilot' => 'View ratings on Trustpilot.',
+                'facebook'   => 'Visit Mastechnics on Facebook.',
+            ],
+            'reviews_translated_from' => [
+                'nl' => 'Translated from Dutch',
+                'fr' => 'Translated from French',
+            ],
+            'reviews_rating_aria' => ':rating out of 5 stars',
         ],
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
     $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
     $hexServices = $services->keyBy('key');
+
+    // ── Reviews: source-labeled, locale-aware, faithfully translated ───────────
+    $platformIcons = [
+        'google' => '<svg viewBox="0 0 48 48" width="26" height="26" aria-hidden="true" focusable="false"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8.1 3l6-6C34.5 5.5 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3.1 0 5.9 1.1 8.1 3l6-6C34.5 5.5 29.5 3 24 3 16.1 3 9.2 7.5 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.4 0 10.3-1.8 14.1-5l-6.5-5.5C29.6 36 27 37 24 37c-5.2 0-9.6-3.3-11.2-8l-6.5 5C9.1 40.4 16 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.5 5.5C41.5 36.6 45 30.9 45 24c0-1.4-.1-2.7-.4-3.5z"/></svg>',
+        'trustpilot' => '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#00b67a"/><path fill="#ffffff" d="M12 5.5l1.9 4.4 4.8.4-3.6 3.2 1.1 4.7L12 15.9l-4.2 2.3 1.1-4.7-3.6-3.2 4.8-.4z"/></svg>',
+        'facebook' => '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#1877F2"/><path fill="#ffffff" d="M13.5 21v-7.5h2.5l.4-3H13.5V8.5c0-.9.2-1.5 1.5-1.5H16V4.3C15.7 4.3 14.7 4 13.6 4 11.3 4 9.8 5.4 9.8 8.2v2.3H7.3v3h2.5V21z"/></svg>',
+    ];
+
+    $reviewPlatforms = collect(config('reviews.platforms', []))
+        ->map(function ($platform, $key) use ($text) {
+            return array_merge($platform, [
+                'key'    => $key,
+                'helper' => $text['reviews_platform_helpers'][$key] ?? '',
+            ]);
+        });
+
+    $reviewExcerptLimit = 260;
+    $translatedFromLabels = $text['reviews_translated_from'] ?? [];
+
+    $reviewItems = collect(config('reviews.reviews', []))
+        ->map(function ($review) use ($locale, $reviewExcerptLimit, $translatedFromLabels) {
+            $originalLocale = $review['original_locale'] ?? $locale;
+            $displayText    = $review['translations'][$locale] ?? $review['original_text'];
+
+            $isTranslated        = $originalLocale !== $locale && isset($review['translations'][$locale]);
+            $translatedFromLabel = $isTranslated ? ($translatedFromLabels[$originalLocale] ?? null) : null;
+
+            $isLong  = mb_strlen($displayText) > $reviewExcerptLimit;
+            $excerpt = $isLong
+                ? rtrim(mb_substr($displayText, 0, $reviewExcerptLimit)) . '…'
+                : $displayText;
+
+            return array_merge($review, [
+                'display_text'          => $excerpt,
+                'is_truncated'          => $isLong,
+                'is_translated'         => $isTranslated,
+                'translated_from_label' => $translatedFromLabel,
+            ]);
+        })
+        ->values();
 @endphp
 
 <section class="home-hero">
@@ -447,55 +529,118 @@
             <p>{{ $text['reviews_intro'] }}</p>
         </div>
 
-        <div class="reviews-carousel" aria-label="{{ $text['reviews_title'] }}">
-            <div class="reviews-track-wrapper">
-                <div class="reviews-track" id="reviewsTrack">
-                    @foreach (config('reviews.reviews', []) as $review)
-                        <article class="review-card">
-                            <div class="review-stars" aria-label="{{ $review['rating'] }} op 5 sterren">
-                                @for ($s = 1; $s <= 5; $s++)
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="{{ $s <= $review['rating'] ? '#f59e0b' : 'none' }}" stroke="#f59e0b" stroke-width="1.5" aria-hidden="true" focusable="false">
-                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                                    </svg>
-                                @endfor
-                            </div>
-                            <blockquote class="review-text">
-                                <p>{{ $review['text'] }}</p>
-                            </blockquote>
-                            <footer class="review-footer">
-                                <strong>{{ $review['name'] }}</strong>
-                                @if (!empty($review['location']))
-                                    <span class="review-location">— {{ $review['location'] }}</span>
+        @if ($reviewItems->isNotEmpty())
+            <div class="reviews-carousel" aria-label="{{ $text['reviews_title'] }}">
+                <div class="reviews-track-wrapper">
+                    <div class="reviews-track" id="reviewsTrack">
+                        @foreach ($reviewItems as $review)
+                            <article class="review-card">
+                                <div class="review-card-head">
+                                    @if (!empty($platformIcons[$review['source']]))
+                                        <span class="review-source" aria-hidden="true">
+                                            {!! $platformIcons[$review['source']] !!}
+                                        </span>
+                                    @endif
+                                    <span class="review-source-label">
+                                        {{ config('reviews.platforms.' . $review['source'] . '.label', $review['source']) }}
+                                    </span>
+                                    @if (!empty($review['date']))
+                                        <span class="review-date">{{ $review['date'] }}</span>
+                                    @endif
+                                </div>
+
+                                <div class="review-stars" aria-label="{{ str_replace(':rating', $review['rating'], $text['reviews_rating_aria']) }}">
+                                    @for ($s = 1; $s <= 5; $s++)
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="{{ $s <= $review['rating'] ? '#f59e0b' : 'none' }}" stroke="#f59e0b" stroke-width="1.5" aria-hidden="true" focusable="false">
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                        </svg>
+                                    @endfor
+                                </div>
+
+                                <blockquote class="review-text">
+                                    <p>{{ $review['display_text'] }}</p>
+                                </blockquote>
+
+                                @if ($review['is_translated'] && $review['translated_from_label'])
+                                    <p class="review-translated-note">{{ $review['translated_from_label'] }}</p>
                                 @endif
-                            </footer>
-                        </article>
-                    @endforeach
+
+                                @if ($review['is_truncated'] && !empty($review['source_url']))
+                                    <a class="review-read-more" href="{{ $review['source_url'] }}" target="_blank" rel="noopener noreferrer">
+                                        {{ $text['reviews_read_more'] }}
+                                    </a>
+                                @endif
+
+                                <footer class="review-footer">
+                                    <strong>{{ $review['author'] }}</strong>
+                                </footer>
+                            </article>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="reviews-controls">
+                    <button class="reviews-prev" aria-label="{{ $locale === 'fr' ? 'Précédent' : ($locale === 'en' ? 'Previous' : 'Vorige') }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <div class="reviews-dots" id="reviewsDots" role="tablist" aria-label="{{ $locale === 'fr' ? 'Navigation des avis' : ($locale === 'en' ? 'Review navigation' : 'Review navigatie') }}"></div>
+                    <button class="reviews-next" aria-label="{{ $locale === 'fr' ? 'Suivant' : ($locale === 'en' ? 'Next' : 'Volgende') }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
                 </div>
             </div>
-
-            <div class="reviews-controls">
-                <button class="reviews-prev" aria-label="{{ $locale === 'fr' ? 'Précédent' : ($locale === 'en' ? 'Previous' : 'Vorige') }}">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <div class="reviews-dots" id="reviewsDots" role="tablist" aria-label="{{ $locale === 'fr' ? 'Navigation des avis' : ($locale === 'en' ? 'Review navigation' : 'Review navigatie') }}"></div>
-                <button class="reviews-next" aria-label="{{ $locale === 'fr' ? 'Suivant' : ($locale === 'en' ? 'Next' : 'Volgende') }}">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-            </div>
-        </div>
+        @endif
 
         <div class="reviews-cta-row">
-            <a
-                href="{{ config('reviews.google_review_url') }}"
-                target="_blank"
-                rel="noopener noreferrer"
+            <button
+                type="button"
+                id="reviewsModalTrigger"
                 class="button button-secondary"
+                aria-haspopup="dialog"
+                aria-controls="reviewsModal"
             >
-                {{ $text['reviews_cta'] }}
-            </a>
+                {{ $text['reviews_button'] }}
+            </button>
         </div>
     </div>
 </section>
+
+<div class="reviews-modal-backdrop" id="reviewsModalBackdrop" hidden></div>
+<div
+    class="reviews-modal"
+    id="reviewsModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reviewsModalTitle"
+    hidden
+>
+    <div class="reviews-modal-inner">
+        <button type="button" class="reviews-modal-close" id="reviewsModalClose" aria-label="{{ $text['reviews_modal_close'] }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+
+        <h2 id="reviewsModalTitle">{{ $text['reviews_modal_title'] }}</h2>
+        <p>{{ $text['reviews_modal_intro'] }}</p>
+
+        <div class="reviews-platform-grid">
+            @foreach ($reviewPlatforms as $platform)
+                <a
+                    class="reviews-platform-card"
+                    href="{{ $platform['url'] }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="{{ $platform['label'] }} — {{ $platform['helper'] }}"
+                >
+                    <span class="reviews-platform-icon" aria-hidden="true">
+                        {!! $platformIcons[$platform['key']] ?? '' !!}
+                    </span>
+                    <span class="reviews-platform-name">{{ $platform['label'] }}</span>
+                    <span class="reviews-platform-helper">{{ $platform['helper'] }}</span>
+                </a>
+            @endforeach
+        </div>
+    </div>
+</div>
 @endif
 
 <section class="section section-cta" id="aanvraag">

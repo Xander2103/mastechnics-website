@@ -302,6 +302,47 @@ function initCustomCursor() {
     });
 }
 
+function initContactForm() {
+    const form = document.getElementById('contactForm');
+    const button = document.getElementById('contactSubmitBtn');
+
+    if (!form || !button) return;
+
+    button.addEventListener('click', () => {
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const email = form.dataset.mailto;
+        if (!email) return;
+
+        const name = form.querySelector('#contactName').value.trim();
+        const senderEmail = form.querySelector('#contactEmail').value.trim();
+        const phone = form.querySelector('#contactPhone').value.trim();
+        const subject = form.querySelector('#contactSubject').value.trim() || form.dataset.defaultSubject;
+        const message = form.querySelector('#contactMessage').value.trim();
+
+        const bodyLines = [
+            `${form.dataset.labelName}: ${name}`,
+            `${form.dataset.labelEmail}: ${senderEmail}`,
+        ];
+
+        if (phone) {
+            bodyLines.push(`${form.dataset.labelPhone}: ${phone}`);
+        }
+
+        bodyLines.push('', message);
+
+        const mailtoUrl =
+            `mailto:${email}` +
+            `?subject=${encodeURIComponent(subject)}` +
+            `&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+
+        window.location.href = mailtoUrl;
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initServicesDropdown();
@@ -309,4 +350,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initScrollReveal();
     initReviewsCarousel();
     initCustomCursor();
+    initContactForm();
 });

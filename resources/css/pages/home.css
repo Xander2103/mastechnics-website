@@ -9,6 +9,21 @@
     background: var(--color-background);
 }
 
+/* Fill the first viewport cleanly on desktop so the services section
+   never starts partway up the fold. Left untouched on mobile so the
+   hero doesn't become unusably tall on short viewports. */
+@media (min-width: 681px) {
+    .home-hero {
+        display: flex;
+        align-items: center;
+        min-height: calc(100vh - var(--header-height));
+    }
+
+    .home-hero > .container {
+        width: 100%;
+    }
+}
+
 .home-hero-bg {
     position: absolute;
     inset: 0;

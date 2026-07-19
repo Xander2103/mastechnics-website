@@ -149,6 +149,11 @@
     align-items: center;
 }
 
+.wizard-nav-bar--top {
+    margin-top: 0;
+    margin-bottom: 18px;
+}
+
 /* Disabled Verder state */
 .wizard-nav-bar .button[disabled],
 .wizard-nav-bar .button[aria-disabled="true"] {
@@ -211,7 +216,7 @@
     border-radius: 18px;
     background: #f8fbff;
     color: var(--color-primary-dark);
-    font-weight: 800;
+    font-weight: 600;
     transition:
         transform 0.18s ease,
         border-color 0.18s ease,
@@ -248,7 +253,7 @@
     max-width: 100%;
     overflow-wrap: break-word;
     line-height: 1.25;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .option-card-desc {
@@ -256,7 +261,7 @@
     min-width: 0;
     max-width: 100%;
     font-size: 0.8rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--color-muted);
     line-height: 1.35;
     overflow-wrap: break-word;

@@ -405,10 +405,7 @@
             </p>
 
             <div class="footer-bottom-right">
-                <a class="footer-credit" href="https://vanmalderstudio.be/nl" target="_blank" rel="noopener noreferrer">
-                    Designed by
-                    <span class="footer-credit-name">VanMalderStudio</span>
-                </a>
+
 
                 @if (session()->has('admin_user_email'))
                     <div class="footer-admin-actions">

@@ -62,13 +62,13 @@ class HomepageTest extends TestCase
 
     public function test_homepage_reviews_section_shows_no_placeholder_reviews(): void
     {
-        // config/reviews.php ships with an empty 'reviews' array — no fake
-        // testimonials should ever render.
+        // config/reviews.php now ships 11 manually-verified real reviews —
+        // the old fake testimonial names must never appear.
         $this->get(route('pages.home', ['locale' => 'nl']))
             ->assertOk()
             ->assertDontSee('Thomas V.')
             ->assertDontSee('Nathalie D.')
-            ->assertDontSee('class="reviews-carousel"', false);
+            ->assertSee('class="reviews-carousel"', false);
     }
 
     public function test_homepage_review_card_shows_source_and_translation_note(): void

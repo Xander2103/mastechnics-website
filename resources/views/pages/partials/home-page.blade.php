@@ -321,18 +321,37 @@
         ->map(function ($review) use ($locale, $reviewExcerptLimit, $translatedFromLabels) {
             $originalLocale = $review['original_locale'] ?? $locale;
             $displayText    = $review['translations'][$locale] ?? $review['original_text'];
+            $displayTitle = $review['translated_titles'][$locale] ?? $review['original_title'] ?? null;
 
             $isTranslated        = $originalLocale !== $locale && isset($review['translations'][$locale]);
             $translatedFromLabel = $isTranslated ? ($translatedFromLabels[$originalLocale] ?? null) : null;
+
+            // "Source-truncated" (Google/Trustpilot themselves cut the review
+            // off with an ellipsis) is independent from our own excerpt limit
+            // — a review can be short enough to display in full and still be
+            // an incomplete copy of a longer original.
+            $isSourceTruncated = $review['truncated'] ?? false;
 
             $isLong  = mb_strlen($displayText) > $reviewExcerptLimit;
             $excerpt = $isLong
                 ? rtrim(mb_substr($displayText, 0, $reviewExcerptLimit)) . '…'
                 : $displayText;
 
+            // Google only ever exposes an approximate relative date ("a year
+            // ago"); Trustpilot gives an exact published date. Never mix the
+            // two up or invent one the other platform doesn't provide.
+            $displayDate = null;
+            if (!empty($review['date_label'])) {
+                $displayDate = $review['date_label'][$locale] ?? $review['date_label']['nl'] ?? null;
+            } elseif (!empty($review['published_date'])) {
+                $displayDate = \Illuminate\Support\Carbon::parse($review['published_date'])->format('d/m/Y');
+            }
+
             return array_merge($review, [
+                'display_title'         => $displayTitle,
                 'display_text'          => $excerpt,
-                'is_truncated'          => $isLong,
+                'display_date'          => $displayDate,
+                'is_truncated'          => $isLong || $isSourceTruncated,
                 'is_translated'         => $isTranslated,
                 'translated_from_label' => $translatedFromLabel,
             ]);
@@ -544,8 +563,8 @@
                                     <span class="review-source-label">
                                         {{ config('reviews.platforms.' . $review['source'] . '.label', $review['source']) }}
                                     </span>
-                                    @if (!empty($review['date']))
-                                        <span class="review-date">{{ $review['date'] }}</span>
+                                    @if (!empty($review['display_date']))
+                                        <span class="review-date">{{ $review['display_date'] }}</span>
                                     @endif
                                 </div>
 
@@ -556,6 +575,10 @@
                                         </svg>
                                     @endfor
                                 </div>
+
+                                @if (!empty($review['display_title']))
+                                    <strong class="review-title">{{ $review['display_title'] }}</strong>
+                                @endif
 
                                 <blockquote class="review-text">
                                     <p>{{ $review['display_text'] }}</p>

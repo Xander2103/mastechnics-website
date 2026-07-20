@@ -1157,6 +1157,13 @@
     gap: 3px;
 }
 
+.review-title {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 900;
+    color: var(--color-primary-dark);
+}
+
 .review-text {
     margin: 0;
     padding: 0;
@@ -1165,6 +1172,7 @@
     line-height: 1.7;
     color: var(--color-text);
     font-style: italic;
+    white-space: pre-line;
 }
 
 .review-text p {

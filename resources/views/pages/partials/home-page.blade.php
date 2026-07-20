@@ -15,7 +15,7 @@
         'nl' => [
             'primary_cta'    => 'Start aanvraag',
             'secondary_cta'  => 'Bekijk diensten',
-            'hero_badge'     => 'Technische service — particulieren & bedrijven',
+            'hero_badge'     => 'Technische service — Voor particulieren & bedrijven',
             'hero_headline'  => 'Technische oplossingen voor comfort en zekerheid.',
             'hero_intro'     => 'Uw partner voor sanitair, verwarming, airco, ventilatie, waterverzachters en koelcellen. Duurzame technologie, perfecte afwerking en service op maat.',
 

@@ -294,7 +294,7 @@ Replace the `$labels` PHP array in `home-page.blade.php`. Add `hero_intro`, `why
         'nl' => [
             'primary_cta'    => 'Vraag een offerte aan',
             'secondary_cta'  => 'Bekijk onze diensten',
-            'hero_badge'     => 'Technische service — particulieren & bedrijven',
+            'hero_badge'     => 'Technische service — Voor particulieren & bedrijven',
 
             'panel_label'  => 'Slimme intake',
             'panel_title'  => 'Beschrijf uw situatie eenmalig duidelijk.',

@@ -17,7 +17,7 @@
 
 @extends('emails.layout')
 
-@section('subject', 'Nieuwe contactaanvraag via ' . $siteName . ' – ' . $data['subject'])
+@section('subject', 'Nieuwe contactaanvraag via ' . $siteName . ' — ' . $data['name'])
 @section('heading', 'Nieuwe contactaanvraag')
 
 @section('content')

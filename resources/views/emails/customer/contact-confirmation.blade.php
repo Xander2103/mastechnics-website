@@ -4,7 +4,7 @@
 
     $labels = [
         'nl' => [
-            'title' => 'We hebben uw bericht goed ontvangen – Mastechnics',
+            'title' => 'We hebben uw bericht goed ontvangen — Mastechnics',
             'hello' => 'Beste',
             'intro' => 'Bedankt voor uw bericht. We hebben uw aanvraag goed ontvangen en nemen zo snel mogelijk contact met u op.',
             'subject_label' => 'Onderwerp',
@@ -13,7 +13,7 @@
             'automatic' => 'Dit is een automatisch verzonden bevestiging. Gelieve niet op dit bericht te antwoorden.',
         ],
         'fr' => [
-            'title' => 'Nous avons bien reçu votre message – Mastechnics',
+            'title' => 'Nous avons bien reçu votre message — Mastechnics',
             'hello' => 'Bonjour',
             'intro' => 'Merci pour votre message. Nous avons bien reçu votre demande et nous vous contacterons dès que possible.',
             'subject_label' => 'Sujet',
@@ -22,7 +22,7 @@
             'automatic' => 'Ceci est une confirmation envoyée automatiquement. Merci de ne pas répondre à ce message.',
         ],
         'en' => [
-            'title' => 'We have received your message – Mastechnics',
+            'title' => 'We have received your message — Mastechnics',
             'hello' => 'Dear',
             'intro' => 'Thank you for your message. We have received your request and will contact you as soon as possible.',
             'subject_label' => 'Subject',

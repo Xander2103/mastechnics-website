@@ -23,9 +23,9 @@ class ContactMessageConfirmationMail extends Mailable
         $locale = $this->data['locale'] ?? 'nl';
 
         $subjects = [
-            'nl' => 'We hebben uw bericht goed ontvangen – Mastechnics',
-            'fr' => 'Nous avons bien reçu votre message – Mastechnics',
-            'en' => 'We have received your message – Mastechnics',
+            'nl' => 'We hebben uw bericht goed ontvangen — Mastechnics',
+            'fr' => 'Nous avons bien reçu votre message — Mastechnics',
+            'en' => 'We have received your message — Mastechnics',
         ];
 
         return new Envelope(

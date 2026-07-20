@@ -4,16 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Mail\ContactMessageConfirmationMail;
 use App\Mail\ContactMessageMail;
+use App\Models\ContactSubmission;
 use App\Services\MailDispatcher;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class ContactController extends Controller
 {
     public function store(Request $request, string $locale): RedirectResponse
     {
         app()->setLocale($locale);
+
+        // A fresh random token is rendered into a hidden field on every GET
+        // of the contact page. A request replaying that same token (double
+        // click, refresh, client retry) is not a new attempt at all — it's
+        // handled before validation and before the rate limiter even sees
+        // it, so a retry can never be wrongly rejected as "too many
+        // attempts" and never eats into the visitor's quota.
+        $token = $request->string('submission_token')->toString();
+        if ($token === '') {
+            $token = (string) Str::uuid();
+        }
+
+        if ($this->submissionAlreadyProcessed($token)) {
+            return back()->with('success', 'contact_message_sent');
+        }
 
         $ip = $request->ip();
         $dailyKey = "contact-form-daily:{$ip}";
@@ -55,6 +74,17 @@ class ContactController extends Controller
             'source_url' => url()->previous(),
         ];
 
+        [$submission, $isNewSubmission] = $this->claimSubmission($token, $data);
+
+        if (!$isNewSubmission) {
+            // Either lost a race against another request with the same
+            // token between the check above and this insert, or the
+            // contact_submissions table itself is unavailable and
+            // claimSubmission() already logged that — either way, the
+            // idempotent outcome here is the same: don't send twice.
+            return back()->with('success', 'contact_message_sent');
+        }
+
         RateLimiter::hit($dailyKey, 86400);
         RateLimiter::hit($burstKey, 3600);
 
@@ -68,7 +98,73 @@ class ContactController extends Controller
             new ContactMessageConfirmationMail($data)
         );
 
+        $submission?->update(['mail_sent_at' => now()]);
+
         return back()->with('success', 'contact_message_sent');
+    }
+
+    /**
+     * Storing the submission before sending mail is the actual idempotency
+     * guard, but that supporting table must never be able to take the
+     * contact form down the way mail_logs did — a missing/unavailable
+     * contact_submissions table degrades to "always treat as new" (no
+     * dedup possible, but mail still sends) rather than a 500.
+     */
+    private function submissionAlreadyProcessed(string $token): bool
+    {
+        try {
+            return ContactSubmission::where('token', $token)->exists();
+        } catch (QueryException $e) {
+            Log::error('Contact submission idempotency check failed', ['error' => $e->getMessage()]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Atomically claim this submission token via the DB unique index — the
+     * real guard against a race between two near-simultaneous requests
+     * that both pass the exists() check in store() before either inserts.
+     *
+     * @return array{0: ?ContactSubmission, 1: bool} the submission row (null
+     *   if it couldn't be persisted at all) and whether this call is the
+     *   one that "won" and should proceed to send mail
+     */
+    private function claimSubmission(string $token, array $data): array
+    {
+        try {
+            $submission = ContactSubmission::create([
+                'token'   => $token,
+                'name'    => $data['name'],
+                'email'   => $data['email'],
+                'phone'   => $data['phone'],
+                'subject' => $data['subject'],
+                'message' => $data['message'],
+                'locale'  => $data['locale'],
+            ]);
+
+            return [$submission, true];
+        } catch (QueryException $e) {
+            $existing = ContactSubmission::where('token', $token)->first();
+
+            if ($existing) {
+                // Genuine duplicate: another request already claimed this
+                // token (the race the exists() check in store() can't
+                // fully close on its own).
+                return [$existing, false];
+            }
+
+            // Not a duplicate — contact_submissions is unavailable for some
+            // other reason (missing table, disk full, ...). Storing the
+            // submission is not the goal in itself, sending mail once is;
+            // fall back to always-new so the contact form keeps working.
+            Log::error('Contact submission storage failed', [
+                'token' => $token,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [null, true];
+        }
     }
 
     private function stripHeaderControlChars(string $value): string

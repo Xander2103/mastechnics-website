@@ -22,7 +22,11 @@ class ContactMessageMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Nieuwe contactaanvraag via ' . config('site.name') . ' – ' . $this->data['subject'],
+            // Distinct from the customer acknowledgement subject on purpose
+            // (customer name, not the message subject) — so if a visitor
+            // enters CONTACT_NOTIFICATION_EMAIL as their own address, the
+            // two mails in that inbox are still clearly not the same email.
+            subject: 'Nieuwe contactaanvraag via ' . config('site.name') . ' — ' . $this->data['name'],
             replyTo: [
                 new Address($this->data['email'], $this->data['name']),
             ],

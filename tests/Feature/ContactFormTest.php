@@ -82,16 +82,15 @@ class ContactFormTest extends TestCase
         });
     }
 
-    public function test_martin_mail_subject_includes_site_name_and_subject(): void
+    public function test_martin_mail_subject_includes_site_name_and_customer_name(): void
     {
         $this->post(
             route('contact.store', ['locale' => 'nl']),
-            $this->validPayload(['subject' => 'Offerte airco'])
+            $this->validPayload(['name' => 'Jan Janssens'])
         );
 
         Mail::assertSent(ContactMessageMail::class, function (ContactMessageMail $mail) {
-            return str_contains($mail->envelope()->subject, 'Mastechnics')
-                && str_contains($mail->envelope()->subject, 'Offerte airco');
+            return $mail->envelope()->subject === 'Nieuwe contactaanvraag via Mastechnics — Jan Janssens';
         });
     }
 
@@ -152,8 +151,10 @@ class ContactFormTest extends TestCase
         $this->post(route('contact.store', ['locale' => 'nl']), $payload)
             ->assertSessionHasNoErrors();
 
+        // The envelope subject is now always "... — {customer name}"; the
+        // fallback default text lives in the mail body instead.
         Mail::assertSent(ContactMessageMail::class, function (ContactMessageMail $mail) {
-            return str_contains($mail->envelope()->subject, 'Contactaanvraag via website');
+            return $mail->data['subject'] === 'Contactaanvraag via website';
         });
     }
 
@@ -266,5 +267,189 @@ class ContactFormTest extends TestCase
         $this->assertSame(1, substr_count($html, 'id="contactSubmitBtn"'));
         $this->assertSame(1, substr_count($html, '<form'));
         $this->assertSame(1, substr_count($html, '</form>'));
+    }
+
+    public function test_contact_page_renders_a_hidden_submission_token(): void
+    {
+        $this->seed(\Database\Seeders\PageSeeder::class);
+
+        $html = $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'contact']))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertSame(1, substr_count($html, 'name="submission_token"'));
+    }
+
+    /**
+     * Regression test for the reported bug: Martin received the same
+     * contact email many times because a retried/duplicated POST (double
+     * click, refresh, client retry) sent mail again each time. The hidden
+     * submission_token is identical across such retries, and the unique
+     * index on contact_submissions.token means only the first insert wins.
+     */
+    public function test_double_submission_with_same_token_sends_mail_only_once(): void
+    {
+        $payload = $this->validPayload(['submission_token' => 'repeat-token-123']);
+
+        $first = $this->post(route('contact.store', ['locale' => 'nl']), $payload);
+        $second = $this->post(route('contact.store', ['locale' => 'nl']), $payload);
+
+        $first->assertSessionHas('success', 'contact_message_sent');
+        $second->assertSessionHas('success', 'contact_message_sent');
+
+        Mail::assertSentTimes(ContactMessageMail::class, 1);
+        Mail::assertSentTimes(ContactMessageConfirmationMail::class, 1);
+
+        $this->assertDatabaseCount('contact_submissions', 1);
+    }
+
+    public function test_three_rapid_duplicate_submissions_still_send_mail_only_once(): void
+    {
+        $payload = $this->validPayload(['submission_token' => 'repeat-token-456']);
+
+        $this->post(route('contact.store', ['locale' => 'nl']), $payload);
+        $this->post(route('contact.store', ['locale' => 'nl']), $payload);
+        $this->post(route('contact.store', ['locale' => 'nl']), $payload);
+
+        Mail::assertSentTimes(ContactMessageMail::class, 1);
+        Mail::assertSentTimes(ContactMessageConfirmationMail::class, 1);
+    }
+
+    public function test_different_tokens_each_send_their_own_mail(): void
+    {
+        $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload([
+            'submission_token' => 'token-a',
+            'email' => 'a@example.com',
+        ]));
+        $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload([
+            'submission_token' => 'token-b',
+            'email' => 'b@example.com',
+        ]));
+
+        Mail::assertSentTimes(ContactMessageMail::class, 2);
+        Mail::assertSentTimes(ContactMessageConfirmationMail::class, 2);
+        $this->assertDatabaseCount('contact_submissions', 2);
+    }
+
+    public function test_submission_without_token_still_sends_mail_once(): void
+    {
+        // A direct POST that never loaded the GET form (no JS, a bot, an
+        // API client) carries no submission_token — that must not break
+        // the flow, it's simply always a "new" submission.
+        $payload = $this->validPayload();
+        unset($payload['submission_token']);
+
+        $response = $this->post(route('contact.store', ['locale' => 'nl']), $payload);
+
+        $response->assertSessionHas('success', 'contact_message_sent');
+        Mail::assertSentTimes(ContactMessageMail::class, 1);
+        Mail::assertSentTimes(ContactMessageConfirmationMail::class, 1);
+    }
+
+    public function test_successful_submission_is_stored_with_mail_sent_at(): void
+    {
+        $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload([
+            'submission_token' => 'stored-token',
+        ]));
+
+        $this->assertDatabaseHas('contact_submissions', [
+            'token' => 'stored-token',
+            'name'  => 'Jan Janssens',
+            'email' => 'jan@example.com',
+        ]);
+
+        $submission = \App\Models\ContactSubmission::where('token', 'stored-token')->first();
+        $this->assertNotNull($submission->mail_sent_at);
+    }
+
+    public function test_duplicate_submission_does_not_consume_extra_rate_limit_quota(): void
+    {
+        $limit = (int) config('site.contact_daily_limit', 10);
+        $payload = $this->validPayload(['submission_token' => 'quota-token']);
+
+        // Submit the same token (limit - 1) + 1 extra duplicate times — if
+        // duplicates consumed quota this would trip the limiter early.
+        for ($i = 0; $i < $limit - 1; $i++) {
+            $this->post(
+                route('contact.store', ['locale' => 'nl']),
+                $this->validPayload(['email' => "unique{$i}@example.com"])
+            )->assertSessionHasNoErrors();
+        }
+
+        // Two duplicate posts of the same already-claimed token.
+        $this->post(route('contact.store', ['locale' => 'nl']), $payload)->assertSessionHasNoErrors();
+        $dup = $this->post(route('contact.store', ['locale' => 'nl']), $payload);
+
+        $dup->assertSessionHasNoErrors();
+        $dup->assertSessionDoesntHaveErrors('rate_limit');
+    }
+
+    public function test_admin_and_customer_subjects_are_clearly_different_even_for_the_same_inbox(): void
+    {
+        config(['site.contact_notification_email' => 'martin@mastechnics.be']);
+
+        // Visitor enters Martin's own address as their contact email.
+        $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload([
+            'name'  => 'Jan Janssens',
+            'email' => 'martin@mastechnics.be',
+        ]));
+
+        Mail::assertSentTimes(ContactMessageMail::class, 1);
+        Mail::assertSentTimes(ContactMessageConfirmationMail::class, 1);
+
+        Mail::assertSent(ContactMessageMail::class, function (ContactMessageMail $mail) {
+            return $mail->hasTo('martin@mastechnics.be')
+                && $mail->envelope()->subject === 'Nieuwe contactaanvraag via Mastechnics — Jan Janssens';
+        });
+
+        Mail::assertSent(ContactMessageConfirmationMail::class, function (ContactMessageConfirmationMail $mail) {
+            return $mail->hasTo('martin@mastechnics.be')
+                && $mail->envelope()->subject === 'We hebben uw bericht goed ontvangen — Mastechnics';
+        });
+    }
+
+    public function test_neither_mailable_overrides_the_configured_sender(): void
+    {
+        // Regression for the "${Mastechnics}" sender-name bug: both
+        // Mailables must rely on config('mail.from'), never set their own
+        // envelope 'from', so a bad literal can't be introduced here again.
+        $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload());
+
+        Mail::assertSent(ContactMessageMail::class, function (ContactMessageMail $mail) {
+            return $mail->envelope()->from === null;
+        });
+
+        Mail::assertSent(ContactMessageConfirmationMail::class, function (ContactMessageConfirmationMail $mail) {
+            return $mail->envelope()->from === null;
+        });
+    }
+
+    public function test_configured_mail_from_name_is_not_a_malformed_literal(): void
+    {
+        $fromName = config('mail.from.name');
+
+        $this->assertIsString($fromName);
+        $this->assertNotEmpty($fromName);
+        $this->assertStringNotContainsString('${', $fromName);
+    }
+
+    /**
+     * The new idempotency table must never become another instance of the
+     * mail_logs bug: if contact_submissions is unavailable, the form still
+     * has to work (mail sends once, just without dedup tracking) instead
+     * of 500ing.
+     */
+    public function test_submission_still_succeeds_when_contact_submissions_table_is_missing(): void
+    {
+        Schema::dropIfExists('contact_submissions');
+
+        $response = $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload());
+
+        $response->assertStatus(302);
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success', 'contact_message_sent');
+
+        Mail::assertSentTimes(ContactMessageMail::class, 1);
+        Mail::assertSentTimes(ContactMessageConfirmationMail::class, 1);
     }
 }

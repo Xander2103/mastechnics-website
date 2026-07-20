@@ -155,6 +155,10 @@
 
                 <form id="contactForm" method="POST" action="{{ route('contact.store', ['locale' => $locale]) }}">
                     @csrf
+                    {{-- Fresh per page-load; lets the server detect and ignore an
+                         exact resubmission (double-click, refresh, retry) without
+                         relying on JavaScript. See ContactController::firstOrCreateByToken(). --}}
+                    <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
 
                     <div class="contact-field-grid">
                         <label class="{{ $errors->has('name') ? 'field-has-error' : '' }}">

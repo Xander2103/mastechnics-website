@@ -44,7 +44,16 @@ class ContactFormTest extends TestCase
         $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload());
 
         Mail::assertSent(ContactMessageMail::class, function (ContactMessageMail $mail) {
-            return $mail->hasTo(config('site.contact.email'));
+            return $mail->hasTo(config('site.contact_notification_email'));
+        });
+    }
+
+    public function test_notification_mail_never_goes_to_old_placeholder_address(): void
+    {
+        $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload());
+
+        Mail::assertSent(ContactMessageMail::class, function (ContactMessageMail $mail) {
+            return ! $mail->hasTo('hello@example.com');
         });
     }
 
@@ -216,5 +225,24 @@ class ContactFormTest extends TestCase
         $response->assertDontSee('data-mailto', false);
         $response->assertSee('method="POST"', false);
         $response->assertSee('action="' . route('contact.store', ['locale' => 'nl']) . '"', false);
+    }
+
+    public function test_contact_page_renders_each_field_and_form_exactly_once(): void
+    {
+        $this->seed(\Database\Seeders\PageSeeder::class);
+
+        $html = $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'contact']))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertSame(1, substr_count($html, 'id="contactForm"'));
+        $this->assertSame(1, substr_count($html, 'name="name"'));
+        $this->assertSame(1, substr_count($html, 'name="email"'));
+        $this->assertSame(1, substr_count($html, 'name="phone"'));
+        $this->assertSame(1, substr_count($html, 'name="subject"'));
+        $this->assertSame(1, substr_count($html, 'name="message"'));
+        $this->assertSame(1, substr_count($html, 'id="contactSubmitBtn"'));
+        $this->assertSame(1, substr_count($html, '<form'));
+        $this->assertSame(1, substr_count($html, '</form>'));
     }
 }

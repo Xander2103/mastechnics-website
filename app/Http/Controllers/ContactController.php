@@ -59,7 +59,7 @@ class ContactController extends Controller
         RateLimiter::hit($burstKey, 3600);
 
         MailDispatcher::send(
-            config('site.contact.email'),
+            config('site.contact_notification_email'),
             new ContactMessageMail($data)
         );
 

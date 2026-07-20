@@ -6,6 +6,7 @@ use App\Mail\ContactMessageConfirmationMail;
 use App\Mail\ContactMessageMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class ContactFormTest extends TestCase
@@ -213,6 +214,27 @@ class ContactFormTest extends TestCase
 
         $response->assertSessionHasNoErrors();
         $response->assertSessionHas('success', 'contact_message_sent');
+    }
+
+    /**
+     * Regression test for the reported production 500: mail_logs existed as
+     * a migration but had never actually been applied to the database, so
+     * MailLog::create() threw "no such table: mail_logs" right after a
+     * successful send, and that exception was not caught — it propagated
+     * all the way out of the request and returned HTTP 500 to the visitor.
+     */
+    public function test_submission_succeeds_even_when_mail_log_table_is_missing(): void
+    {
+        Schema::dropIfExists('mail_logs');
+
+        $response = $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload());
+
+        $response->assertStatus(302);
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success', 'contact_message_sent');
+
+        Mail::assertSent(ContactMessageMail::class);
+        Mail::assertSent(ContactMessageConfirmationMail::class);
     }
 
     public function test_contact_page_no_longer_uses_mailto_form_submission(): void

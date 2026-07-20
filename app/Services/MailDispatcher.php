@@ -23,14 +23,7 @@ class MailDispatcher
         try {
             Mail::to($recipient)->send($mailable);
 
-            MailLog::create([
-                'customer_request_id' => $customerRequest?->id,
-                'mailable'            => class_basename($mailable),
-                'recipient'           => $recipient,
-                'subject'             => $subject,
-                'status'              => 'sent',
-                'sent_at'             => now(),
-            ]);
+            self::log($customerRequest, $mailable, $recipient, $subject, 'sent');
 
             return true;
         } catch (\Throwable $e) {
@@ -41,16 +34,44 @@ class MailDispatcher
                 'error'                => $e->getMessage(),
             ]);
 
+            self::log($customerRequest, $mailable, $recipient, $subject, 'failed', $e->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
+     * Writing the audit trail must never be able to break the calling
+     * request. If mail_logs is unavailable (e.g. the migration hasn't been
+     * run against this database yet) the send/failure outcome above already
+     * stands — only the log entry itself is lost, and that failure is
+     * reported here rather than rethrown.
+     */
+    private static function log(
+        ?CustomerRequest $customerRequest,
+        Mailable $mailable,
+        string $recipient,
+        string $subject,
+        string $status,
+        ?string $error = null
+    ): void {
+        try {
             MailLog::create([
                 'customer_request_id' => $customerRequest?->id,
                 'mailable'            => class_basename($mailable),
                 'recipient'           => $recipient,
                 'subject'             => $subject,
-                'status'              => 'failed',
-                'error'               => $e->getMessage(),
+                'status'              => $status,
+                'error'               => $error,
+                'sent_at'             => $status === 'sent' ? now() : null,
             ]);
-
-            return false;
+        } catch (\Throwable $e) {
+            Log::error('Mail log write failed', [
+                'mailable'  => class_basename($mailable),
+                'recipient' => $recipient,
+                'status'    => $status,
+                'error'     => $e->getMessage(),
+            ]);
         }
     }
 }

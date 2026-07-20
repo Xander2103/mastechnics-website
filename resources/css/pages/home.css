@@ -10,9 +10,9 @@
 }
 
 /* Fill the first viewport cleanly on desktop so the services section
-   never starts partway up the fold. Left untouched on mobile so the
+   never starts partway up the fold. Left untouched on tablet/mobile so the
    hero doesn't become unusably tall on short viewports. */
-@media (min-width: 681px) {
+@media (min-width: 1024px) {
     .home-hero {
         display: flex;
         align-items: center;
@@ -570,10 +570,13 @@
 }
 
 /* ================================
-   Mobile
+   Tablet & mobile hero
+   Treated as one "mobile-style" layout from 1023px down, so the two-column
+   hero grid never gets squeezed into a cramped tablet width (see header.css
+   for the matching nav breakpoint).
 ================================ */
 
-@media (max-width: 680px) {
+@media (max-width: 1023px) {
     .home-hero {
         padding: 48px 0 56px;
     }
@@ -651,7 +654,9 @@
         font-size: 1rem;
         line-height: 1.6;
     }
+}
 
+@media (max-width: 680px) {
     .about-intro {
         gap: 20px;
     }

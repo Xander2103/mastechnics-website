@@ -241,14 +241,21 @@
                 </svg>
             </a>
 
-            <button class="mobile-menu-toggle" type="button" aria-label="Menu openen">
+            <button
+                class="mobile-menu-toggle"
+                type="button"
+                aria-label="{{ $currentLocale === 'fr' ? 'Ouvrir le menu' : ($currentLocale === 'en' ? 'Open menu' : 'Menu openen') }}"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="siteHeaderMenu"
+            >
                 <span></span>
                 <span></span>
                 <span></span>
             </button>
         </div>
 
-        <div class="header-menu">
+        <div class="header-menu" id="siteHeaderMenu">
             <nav class="site-nav">
                 <div class="services-dropdown">
                     <div class="services-dropdown-trigger">
@@ -399,7 +406,7 @@
 
             <div class="footer-bottom-right">
                 <a class="footer-credit" href="https://vanmalderstudio.be/nl" target="_blank" rel="noopener noreferrer">
-                    {{ $currentLocale === 'fr' ? 'Conçu par' : ($currentLocale === 'en' ? 'Designed by' : 'Ontworpen door') }}
+                    Designed by
                     <span class="footer-credit-name">VanMalderStudio</span>
                 </a>
 

@@ -407,9 +407,6 @@
                                                         {{ old('service_category', '') === $option['value'] ? 'checked' : '' }}
                                                     >
                                                     <span class="option-card-label">{{ $getLabel($option) }}</span>
-                                                    @if (isset($option['description']))
-                                                        <span class="option-card-desc">{{ $option['description'][$locale] ?? $option['description']['nl'] }}</span>
-                                                    @endif
                                                 </label>
                                             @endforeach
                                         </div>

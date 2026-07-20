@@ -146,6 +146,43 @@ class HomepageTest extends TestCase
             ->assertSee('VanMalderStudio');
     }
 
+    public function test_footer_has_single_designed_by_credit_and_no_duplicate(): void
+    {
+        foreach (['nl', 'fr', 'en'] as $locale) {
+            $response = $this->get(route('pages.home', ['locale' => $locale]));
+
+            $response->assertOk();
+            $response->assertSee('Designed by');
+            $response->assertDontSee('Ontworpen door');
+            $response->assertDontSee('Conçu par');
+
+            // Only one footer-credit link should render, not two.
+            $html = $response->getContent();
+            $this->assertSame(1, substr_count($html, 'class="footer-credit"'));
+        }
+    }
+
+    public function test_footer_keeps_admin_and_privacy_links(): void
+    {
+        $response = $this->get(route('pages.home', ['locale' => 'nl']));
+
+        $response->assertOk();
+        $response->assertSee('class="footer-admin-link"', false);
+        $response->assertSee('class="footer-privacy-link"', false);
+    }
+
+    public function test_mobile_menu_toggle_has_accessible_attributes(): void
+    {
+        $response = $this->get(route('pages.home', ['locale' => 'nl']));
+
+        $response->assertOk();
+        $response->assertSee('class="mobile-menu-toggle"', false);
+        $response->assertSee('aria-haspopup="true"', false);
+        $response->assertSee('aria-expanded="false"', false);
+        $response->assertSee('aria-controls="siteHeaderMenu"', false);
+        $response->assertSee('id="siteHeaderMenu"', false);
+    }
+
     public function test_homepage_includes_structured_data(): void
     {
         $this->get(route('pages.home', ['locale' => 'nl']))

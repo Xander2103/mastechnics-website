@@ -4,11 +4,42 @@ import './request-form';
 function initMobileMenu() {
     const header = document.querySelector('.site-header');
     const toggle = document.querySelector('.mobile-menu-toggle');
+    const menu = document.querySelector('.header-menu');
 
-    if (!header || !toggle) return;
+    if (!header || !toggle || !menu) return;
+
+    function openMenu() {
+        header.classList.add('is-open');
+        toggle.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeMenu({ focusToggle = false } = {}) {
+        header.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+
+        if (focusToggle) {
+            toggle.focus();
+        }
+    }
 
     toggle.addEventListener('click', () => {
-        header.classList.toggle('is-open');
+        if (header.classList.contains('is-open')) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    });
+
+    menu.addEventListener('click', (event) => {
+        if (event.target.closest('a')) {
+            closeMenu();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && header.classList.contains('is-open')) {
+            closeMenu({ focusToggle: true });
+        }
     });
 }
 
@@ -18,7 +49,7 @@ function initServicesDropdown() {
 
     if (!dropdown || !dropdownToggle) return;
 
-    const isMobile = () => window.innerWidth <= 680;
+    const isMobile = () => window.innerWidth <= 1023;
     const CLOSE_DELAY = 250;
     let closeTimer = null;
 
@@ -386,38 +417,15 @@ function initContactForm() {
 
     if (!form || !button) return;
 
-    button.addEventListener('click', () => {
+    form.addEventListener('submit', (event) => {
         if (!form.checkValidity()) {
+            event.preventDefault();
             form.reportValidity();
             return;
         }
 
-        const email = form.dataset.mailto;
-        if (!email) return;
-
-        const name = form.querySelector('#contactName').value.trim();
-        const senderEmail = form.querySelector('#contactEmail').value.trim();
-        const phone = form.querySelector('#contactPhone').value.trim();
-        const subject = form.querySelector('#contactSubject').value.trim() || form.dataset.defaultSubject;
-        const message = form.querySelector('#contactMessage').value.trim();
-
-        const bodyLines = [
-            `${form.dataset.labelName}: ${name}`,
-            `${form.dataset.labelEmail}: ${senderEmail}`,
-        ];
-
-        if (phone) {
-            bodyLines.push(`${form.dataset.labelPhone}: ${phone}`);
-        }
-
-        bodyLines.push('', message);
-
-        const mailtoUrl =
-            `mailto:${email}` +
-            `?subject=${encodeURIComponent(subject)}` +
-            `&body=${encodeURIComponent(bodyLines.join('\n'))}`;
-
-        window.location.href = mailtoUrl;
+        button.disabled = true;
+        button.textContent = button.dataset.labelSending || button.textContent;
     });
 }
 

@@ -71,7 +71,7 @@
     color: var(--color-primary-dark);
 }
 
-@media (min-width: 681px) {
+@media (min-width: 1024px) {
     .site-nav a:not(.button):not(.button-primary) {
         position: relative;
     }
@@ -155,7 +155,7 @@
     color: var(--color-primary-dark);
 }
 
-@media (min-width: 681px) {
+@media (min-width: 1024px) {
     .services-dropdown-link {
         position: relative;
     }
@@ -289,7 +289,7 @@
    Mobile header
 ================================ */
 
-@media (max-width: 680px) {
+@media (max-width: 1023px) {
     .site-header {
         position: sticky;
         top: 0;
@@ -490,5 +490,53 @@
 
     .services-dropdown-menu a {
         text-align: center;
+    }
+}
+
+/* ================================
+   Compact desktop nav (1024–1279px)
+   The nav content is tight against the 1024px breakpoint, so this tier
+   tightens spacing/type-size instead of letting links wrap or the CTA
+   button get squeezed.
+================================ */
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+    .header-container {
+        gap: 20px;
+    }
+
+    .header-menu {
+        gap: 14px;
+    }
+
+    .site-nav,
+    .nav-links {
+        gap: 14px;
+    }
+
+    .site-nav a,
+    .nav-links a {
+        font-size: 0.88rem;
+    }
+
+    .services-dropdown-link {
+        font-size: 0.88rem;
+    }
+
+    .site-nav a.button,
+    .site-nav a.button-primary,
+    .nav-links a.nav-cta {
+        min-height: 42px;
+        padding: 0 16px;
+    }
+
+    .language-switcher {
+        gap: 6px;
+        padding-left: 10px;
+    }
+
+    .language-switcher a {
+        width: 32px;
+        height: 32px;
     }
 }

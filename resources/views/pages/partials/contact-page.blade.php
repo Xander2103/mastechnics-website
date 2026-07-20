@@ -25,6 +25,11 @@
             'error_contact' => 'Vul een e-mailadres of telefoonnummer in.',
             'error_email_format' => 'Vul een geldig e-mailadres in.',
             'default_subject' => 'Bericht via website',
+            'button' => 'Bericht versturen',
+            'button_sending' => 'Bezig met versturen...',
+            'success_title' => 'Uw bericht werd succesvol verzonden.',
+            'success_text' => 'U ontvangt ook een bevestiging per e-mail.',
+            'privacy_notice' => 'Uw gegevens worden enkel gebruikt om uw aanvraag te beantwoorden.',
             'request_cta_title' => 'Gaat het over een technische aanvraag?',
             'request_cta_text' =>
                 'Gebruik dan de slimme aanvraagflow zodat meteen de juiste technische informatie verzameld wordt.',
@@ -51,6 +56,11 @@
             'error_contact' => 'Indiquez une adresse e-mail ou un numéro de téléphone.',
             'error_email_format' => 'Indiquez une adresse e-mail valide.',
             'default_subject' => 'Message via le site web',
+            'button' => 'Envoyer le message',
+            'button_sending' => 'Envoi en cours...',
+            'success_title' => 'Votre message a été envoyé avec succès.',
+            'success_text' => 'Vous recevrez également une confirmation par e-mail.',
+            'privacy_notice' => 'Vos données sont uniquement utilisées pour répondre à votre demande.',
             'request_cta_title' => 'Votre demande est technique ?',
             'request_cta_text' =>
                 'Utilisez alors le flux de demande intelligente afin de transmettre directement les bonnes informations techniques.',
@@ -77,6 +87,11 @@
             'error_contact' => 'Please provide an email address or phone number.',
             'error_email_format' => 'Please enter a valid email address.',
             'default_subject' => 'Message via website',
+            'button' => 'Send message',
+            'button_sending' => 'Sending...',
+            'success_title' => 'Your message was sent successfully.',
+            'success_text' => 'You will also receive a confirmation by email.',
+            'privacy_notice' => 'Your details are only used to answer your request.',
             'request_cta_title' => 'Is it a technical request?',
             'request_cta_text' =>
                 'Use the smart request flow so the right technical information is collected immediately.',
@@ -87,6 +102,8 @@
     $text = $labels[$locale] ?? $labels['nl'];
 
     $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
+    $privacySlug = $locale === 'fr' ? 'politique-confidentialite' : ($locale === 'en' ? 'privacy-policy' : 'privacybeleid');
+    $privacyLinkLabel = $locale === 'fr' ? 'politique de confidentialité' : ($locale === 'en' ? 'privacy policy' : 'privacybeleid');
 @endphp
 
 <section class="section section-white">
@@ -143,40 +160,82 @@
                 <p>{{ $text['form_intro'] }}</p>
 
                 <form id="contactForm" data-mailto="{{ $siteContact['email'] }}">
+                @if (session('success') === 'contact_message_sent')
+                    <div class="form-success">
+                        {{ $text['success_title'] }}
+                        <p>{{ $text['success_text'] }}</p>
+                    </div>
+                @endif
+
+                @error('rate_limit')
+                    <div class="form-error-list">
+                        <strong>{{ $message }}</strong>
+                    </div>
+                @enderror
+
+                <form id="contactForm" method="POST" action="{{ route('contact.store', ['locale' => $locale]) }}">
+                    @csrf
+
                     <div class="contact-field-grid">
-                        <label>
+                        <label class="{{ $errors->has('name') ? 'field-has-error' : '' }}">
                             <span>{{ $text['name'] }}</span>
                             <input type="text" name="name" required>
+                            <input type="text" name="name" id="contactName" value="{{ old('name') }}" maxlength="255" required>
+                            @error('name')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                         </label>
 
-                        <label>
+                        <label class="{{ $errors->has('email') ? 'field-has-error' : '' }}">
                             <span>{{ $text['email_field'] }}</span>
                             <input type="email" name="email">
+                            <input type="email" name="email" id="contactEmail" value="{{ old('email') }}" maxlength="255" required>
+                            @error('email')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                         </label>
                     </div>
 
                     <div class="contact-field-grid">
-                        <label>
+                        <label class="{{ $errors->has('phone') ? 'field-has-error' : '' }}">
                             <span>{{ $text['phone_field'] }}</span>
                             <input type="tel" name="phone">
+                            <input type="tel" name="phone" id="contactPhone" value="{{ old('phone') }}" maxlength="50">
+                            @error('phone')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                         </label>
 
-                        <label>
+                        <label class="{{ $errors->has('subject') ? 'field-has-error' : '' }}">
                             <span>{{ $text['subject'] }}</span>
                             <input type="text" name="subject">
+                            <input type="text" name="subject" id="contactSubject" value="{{ old('subject') }}" maxlength="255">
+                            @error('subject')
+                                <span class="field-error-text">{{ $message }}</span>
+                            @enderror
                         </label>
                     </div>
 
-                    <label>
+                    <label class="{{ $errors->has('message') ? 'field-has-error' : '' }}">
                         <span>{{ $text['message'] }}</span>
                         <textarea rows="6" name="message" required></textarea>
+                        <textarea rows="6" name="message" id="contactMessage" maxlength="5000" required>{{ old('message') }}</textarea>
+                        @error('message')
+                            <span class="field-error-text">{{ $message }}</span>
+                        @enderror
                     </label>
 
                     <div class="button-row">
                         <button class="button button-primary button-large" type="button" id="contactPrepareBtn">
+                        <button class="button button-primary button-large" type="submit" id="contactSubmitBtn" data-label-default="{{ $text['button'] }}" data-label-sending="{{ $text['button_sending'] }}">
                             {{ $text['button'] }}
                         </button>
                     </div>
+
+                    <p class="form-privacy-notice">
+                        {{ $text['privacy_notice'] }}
+                        <a href="{{ route('pages.show', ['locale' => $locale, 'slug' => $privacySlug]) }}">{{ $privacyLinkLabel }}</a>
+                    </p>
                 </form>
             </div>
         </div>

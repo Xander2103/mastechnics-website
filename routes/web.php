@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\QuoteController as AdminQuoteController;
 use App\Http\Controllers\Admin\RequestController as AdminRequestController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CustomerRequestController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
@@ -75,6 +76,10 @@ Route::middleware('admin')
 Route::post('/{locale}/requests', [CustomerRequestController::class, 'store'])
     ->whereIn('locale', ['nl', 'fr', 'en'])
     ->name('customer-requests.store');
+
+Route::post('/{locale}/contact', [ContactController::class, 'store'])
+    ->whereIn('locale', ['nl', 'fr', 'en'])
+    ->name('contact.store');
 
 Route::get('/{locale}', [PageController::class, 'home'])
     ->whereIn('locale', ['nl', 'fr', 'en'])

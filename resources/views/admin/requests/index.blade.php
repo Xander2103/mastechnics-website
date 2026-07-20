@@ -106,6 +106,36 @@
         margin-top: 0.2rem;
     }
 
+    /* Collapsible panel toggle (Recent activity, Statistics) */
+    .admin-panel-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+        color: inherit;
+    }
+    .admin-panel-toggle h2 {
+        margin: 0;
+    }
+    .admin-panel-chevron {
+        flex-shrink: 0;
+        margin-left: 12px;
+        color: #6b7280;
+        transition: transform 0.2s ease;
+    }
+    .admin-panel-toggle[aria-expanded="true"] .admin-panel-chevron {
+        transform: rotate(180deg);
+    }
+    .admin-panel-collapsible .admin-panel-body {
+        margin-top: 1rem;
+    }
+
     /* Recent activity */
     .admin-activity-list {
         display: grid;
@@ -220,26 +250,7 @@
 
     <section class="section section-white">
         <div class="container">
-            <div class="admin-stats-row">
-                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'new']) }}">
-                    <span class="admin-stat-number">{{ $stats['new'] }}</span>
-                    <span class="admin-stat-label">Nieuwe aanvragen</span>
-                </a>
-                <div class="admin-stat-card admin-stat-card-urgent">
-                    <span class="admin-stat-number">{{ $stats['urgent'] }}</span>
-                    <span class="admin-stat-label">Dringend</span>
-                </div>
-                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'contacted']) }}">
-                    <span class="admin-stat-number">{{ $stats['contacted'] }}</span>
-                    <span class="admin-stat-label">Gecontacteerd</span>
-                </a>
-                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'quote_sent']) }}">
-                    <span class="admin-stat-number">{{ $stats['quote_sent'] }}</span>
-                    <span class="admin-stat-label">Offerte verstuurd</span>
-                </a>
-            </div>
-
-            {{-- Notification center --}}
+            {{-- Notification center — rendered first, above stats/widgets/activity/statistics --}}
             @php
                 $notifications = collect([
                     $stats['new'] > 0 ? "{$stats['new']} nieuwe aanvraag/aanvragen" : null,
@@ -284,6 +295,25 @@
                 </script>
             @endif
 
+            <div class="admin-stats-row">
+                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'new']) }}">
+                    <span class="admin-stat-number">{{ $stats['new'] }}</span>
+                    <span class="admin-stat-label">Nieuwe aanvragen</span>
+                </a>
+                <div class="admin-stat-card admin-stat-card-urgent">
+                    <span class="admin-stat-number">{{ $stats['urgent'] }}</span>
+                    <span class="admin-stat-label">Dringend</span>
+                </div>
+                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'contacted']) }}">
+                    <span class="admin-stat-number">{{ $stats['contacted'] }}</span>
+                    <span class="admin-stat-label">Gecontacteerd</span>
+                </a>
+                <a class="admin-stat-card" href="{{ route('admin.requests.index', ['status' => 'quote_sent']) }}">
+                    <span class="admin-stat-number">{{ $stats['quote_sent'] }}</span>
+                    <span class="admin-stat-label">Offerte verstuurd</span>
+                </a>
+            </div>
+
             {{-- Dashboard widgets --}}
             <div class="admin-dashboard-grid">
                 <a class="admin-dashboard-card" href="{{ route('admin.requests.index') }}">
@@ -308,70 +338,99 @@
                 </a>
             </div>
 
-            {{-- Recent activity --}}
+            {{-- Recent activity — collapsed by default --}}
             @if (!empty($recentActivity))
-                <div class="admin-panel">
-                    <div class="admin-panel-header">
-                        <div><h2>Recente activiteit</h2></div>
+                <div class="admin-panel admin-panel-collapsible">
+                    <button type="button" class="admin-panel-toggle" id="recentActivityToggle"
+                        aria-expanded="false" aria-controls="recentActivityBody">
+                        <h2>Recente activiteit</h2>
+                        <svg class="admin-panel-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+                            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <div class="admin-panel-body" id="recentActivityBody" hidden>
+                        <ul class="admin-activity-list">
+                            @foreach ($recentActivity as $item)
+                                <li>
+                                    <span class="admin-activity-date">{{ $item['date']->format('d/m/Y H:i') }}</span>
+                                    <span class="admin-activity-action">
+                                        <a href="{{ route('admin.requests.show', $item['request']) }}">{{ $item['action'] }}</a>
+                                    </span>
+                                    @if ($item['note'])
+                                        <span class="admin-activity-note">{{ \Illuminate\Support\Str::limit($item['note'], 120) }}</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
                     </div>
-                    <ul class="admin-activity-list">
-                        @foreach ($recentActivity as $item)
-                            <li>
-                                <span class="admin-activity-date">{{ $item['date']->format('d/m/Y H:i') }}</span>
-                                <span class="admin-activity-action">
-                                    <a href="{{ route('admin.requests.show', $item['request']) }}">{{ $item['action'] }}</a>
-                                </span>
-                                @if ($item['note'])
-                                    <span class="admin-activity-note">{{ \Illuminate\Support\Str::limit($item['note'], 120) }}</span>
-                                @endif
-                            </li>
-                        @endforeach
-                    </ul>
                 </div>
             @endif
 
-            {{-- Statistics --}}
-            <div class="admin-panel">
-                <div class="admin-panel-header">
-                    <div><h2>Statistieken</h2></div>
-                </div>
+            {{-- Statistics — collapsed by default --}}
+            <div class="admin-panel admin-panel-collapsible">
+                <button type="button" class="admin-panel-toggle" id="statisticsToggle"
+                    aria-expanded="false" aria-controls="statisticsBody">
+                    <h2>Statistieken</h2>
+                    <svg class="admin-panel-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false">
+                        <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
 
-                <div class="admin-stats-summary-grid">
-                    <div><strong>{{ $statistics['conversionRate'] !== null ? $statistics['conversionRate'] . '%' : '—' }}</strong><span>Conversie (gewonnen/verloren)</span></div>
-                    <div><strong>{{ $statistics['wonTotal'] }}</strong><span>Totaal gewonnen</span></div>
-                    <div><strong>{{ $statistics['lostTotal'] }}</strong><span>Totaal verloren</span></div>
-                    <div><strong>{{ $statistics['avgResponseHours'] !== null ? $statistics['avgResponseHours'] . ' u' : '—' }}</strong><span>Gem. reactietijd</span></div>
-                    <div><strong>{{ $statistics['quotesCreated'] }}</strong><span>Offertes aangemaakt</span></div>
-                </div>
+                <div class="admin-panel-body" id="statisticsBody" hidden>
+                    <div class="admin-stats-summary-grid">
+                        <div><strong>{{ $statistics['conversionRate'] !== null ? $statistics['conversionRate'] . '%' : '—' }}</strong><span>Conversie (gewonnen/verloren)</span></div>
+                        <div><strong>{{ $statistics['wonTotal'] }}</strong><span>Totaal gewonnen</span></div>
+                        <div><strong>{{ $statistics['lostTotal'] }}</strong><span>Totaal verloren</span></div>
+                        <div><strong>{{ $statistics['avgResponseHours'] !== null ? $statistics['avgResponseHours'] . ' u' : '—' }}</strong><span>Gem. reactietijd</span></div>
+                        <div><strong>{{ $statistics['quotesCreated'] }}</strong><span>Offertes aangemaakt</span></div>
+                    </div>
 
-                @php $maxMonth = max(array_merge($statistics['requestsPerMonth'], [1])); @endphp
-                <h3 class="admin-chart-heading">Aanvragen per maand</h3>
-                <div class="admin-bar-chart">
-                    @foreach ($statistics['requestsPerMonth'] as $month => $count)
-                        <div class="admin-bar-chart-col">
-                            <div class="admin-bar-chart-bar" style="height: {{ $maxMonth > 0 ? max(4, ($count / $maxMonth) * 100) : 4 }}px;" title="{{ $count }}"></div>
-                            <span class="admin-bar-chart-label">{{ $month }}</span>
-                            <span class="admin-bar-chart-value">{{ $count }}</span>
-                        </div>
-                    @endforeach
-                </div>
-
-                @if ($statistics['requestsByService']->isNotEmpty())
-                    @php $maxService = $statistics['requestsByService']->max(); @endphp
-                    <h3 class="admin-chart-heading">Aanvragen per dienst</h3>
-                    <div class="admin-hbar-chart">
-                        @foreach ($statistics['requestsByService'] as $label => $count)
-                            <div class="admin-hbar-row">
-                                <span class="admin-hbar-label">{{ $label }}</span>
-                                <div class="admin-hbar-track">
-                                    <div class="admin-hbar-fill" style="width: {{ $maxService > 0 ? ($count / $maxService) * 100 : 0 }}%;"></div>
-                                </div>
-                                <span class="admin-hbar-value">{{ $count }}</span>
+                    @php $maxMonth = max(array_merge($statistics['requestsPerMonth'], [1])); @endphp
+                    <h3 class="admin-chart-heading">Aanvragen per maand</h3>
+                    <div class="admin-bar-chart">
+                        @foreach ($statistics['requestsPerMonth'] as $month => $count)
+                            <div class="admin-bar-chart-col">
+                                <div class="admin-bar-chart-bar" style="height: {{ $maxMonth > 0 ? max(4, ($count / $maxMonth) * 100) : 4 }}px;" title="{{ $count }}"></div>
+                                <span class="admin-bar-chart-label">{{ $month }}</span>
+                                <span class="admin-bar-chart-value">{{ $count }}</span>
                             </div>
                         @endforeach
                     </div>
-                @endif
+
+                    @if ($statistics['requestsByService']->isNotEmpty())
+                        @php $maxService = $statistics['requestsByService']->max(); @endphp
+                        <h3 class="admin-chart-heading">Aanvragen per dienst</h3>
+                        <div class="admin-hbar-chart">
+                            @foreach ($statistics['requestsByService'] as $label => $count)
+                                <div class="admin-hbar-row">
+                                    <span class="admin-hbar-label">{{ $label }}</span>
+                                    <div class="admin-hbar-track">
+                                        <div class="admin-hbar-fill" style="width: {{ $maxService > 0 ? ($count / $maxService) * 100 : 0 }}%;"></div>
+                                    </div>
+                                    <span class="admin-hbar-value">{{ $count }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
+
+            <script>
+            (function () {
+                'use strict';
+                document.querySelectorAll('.admin-panel-toggle').forEach(function (toggle) {
+                    var body = document.getElementById(toggle.getAttribute('aria-controls'));
+                    if (!body) return;
+
+                    toggle.addEventListener('click', function () {
+                        var isOpen = toggle.getAttribute('aria-expanded') === 'true';
+                        toggle.setAttribute('aria-expanded', String(!isOpen));
+                        body.hidden = isOpen;
+                    });
+                });
+            })();
+            </script>
 
             <div class="admin-panel">
                 <div class="admin-panel-header">

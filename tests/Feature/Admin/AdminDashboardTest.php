@@ -87,4 +87,54 @@ class AdminDashboardTest extends TestCase
         $this->get(route('admin.requests.index'))
             ->assertRedirect(route('admin.login'));
     }
+
+    public function test_notifications_render_before_stats_and_widgets(): void
+    {
+        $this->makeRequest();
+
+        $html = $this->withSession($this->adminSession())
+            ->get(route('admin.requests.index'))
+            ->assertOk()
+            ->getContent();
+
+        $notificationPos = strpos($html, 'id="adminNotificationCenter"');
+        $statsRowPos      = strpos($html, 'admin-stats-row');
+        $activityPos      = strpos($html, 'id="recentActivityToggle"');
+        $statisticsPos    = strpos($html, 'id="statisticsToggle"');
+
+        $this->assertNotFalse($notificationPos, 'Notification center should be present when there are new requests.');
+        $this->assertLessThan($statsRowPos, $notificationPos);
+        $this->assertLessThan($activityPos, $notificationPos);
+        $this->assertLessThan($statisticsPos, $notificationPos);
+    }
+
+    public function test_recent_activity_and_statistics_are_collapsed_by_default(): void
+    {
+        $req = $this->makeRequest();
+        $req->notes()->create(['author_email' => 'admin@test.com', 'body' => 'Notitie voor tijdlijn.']);
+
+        $html = $this->withSession($this->adminSession())
+            ->get(route('admin.requests.index'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertMatchesRegularExpression(
+            '/id="recentActivityToggle"[^>]*aria-expanded="false"/',
+            $html
+        );
+        $this->assertMatchesRegularExpression(
+            '/id="statisticsToggle"[^>]*aria-expanded="false"/',
+            $html
+        );
+        $this->assertMatchesRegularExpression(
+            '/id="recentActivityBody"[^>]*hidden/',
+            $html
+        );
+        $this->assertMatchesRegularExpression(
+            '/id="statisticsBody"[^>]*hidden/',
+            $html
+        );
+        $this->assertStringContainsString('aria-controls="recentActivityBody"', $html);
+        $this->assertStringContainsString('aria-controls="statisticsBody"', $html);
+    }
 }

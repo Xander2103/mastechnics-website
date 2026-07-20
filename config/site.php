@@ -27,4 +27,19 @@ return [
     ],
 
     'default_locale' => 'nl',
+
+    // Which service_category / urgency_level values count as "urgent" —
+    // single source of truth, reused by both stat queries and the
+    // reminder/badge service so the definition never drifts out of sync.
+    'urgent_categories' => ['dringend_lek'],
+    'urgent_levels' => ['water_leaking', 'small_leak', 'no_heating', 'no_hot_water', 'urgent'],
+
+    // Follow-up reminder thresholds (admin dashboard only — no automatic
+    // customer emails are sent based on these yet).
+    'reminders' => [
+        'new_not_viewed_hours'        => (int) env('REMINDER_NEW_NOT_VIEWED_HOURS', 24),
+        'contact_not_contacted_hours' => (int) env('REMINDER_CONTACT_NOT_CONTACTED_HOURS', 48),
+        'quote_awaiting_reply_days'   => (int) env('REMINDER_QUOTE_AWAITING_REPLY_DAYS', 7),
+        'lost_inactive_days'          => (int) env('REMINDER_LOST_INACTIVE_DAYS', 30),
+    ],
 ];

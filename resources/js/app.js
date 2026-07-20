@@ -225,7 +225,85 @@ function initReviewsCarousel() {
         });
     }
 
+    // Pause while the reviews platform modal is open (dispatched by initReviewsModal)
+    document.addEventListener('reviews:modal-open', stop);
+    document.addEventListener('reviews:modal-close', start);
+
     start();
+}
+
+function initReviewsModal() {
+    var trigger = document.getElementById('reviewsModalTrigger');
+    var modal = document.getElementById('reviewsModal');
+    var backdrop = document.getElementById('reviewsModalBackdrop');
+    var closeBtn = document.getElementById('reviewsModalClose');
+
+    if (!trigger || !modal || !backdrop || !closeBtn) return;
+
+    var lastFocused = null;
+
+    function getFocusableElements() {
+        return Array.from(
+            modal.querySelectorAll('a[href], button:not([disabled])')
+        );
+    }
+
+    function trapFocus(e) {
+        if (e.key !== 'Tab') return;
+
+        var focusable = getFocusableElements();
+        if (!focusable.length) return;
+
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+        }
+    }
+
+    function onKeydown(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        } else {
+            trapFocus(e);
+        }
+    }
+
+    function openModal() {
+        lastFocused = document.activeElement;
+
+        modal.hidden = false;
+        backdrop.hidden = false;
+        document.body.classList.add('reviews-modal-open');
+
+        document.addEventListener('keydown', onKeydown);
+        closeBtn.focus();
+
+        document.dispatchEvent(new CustomEvent('reviews:modal-open'));
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        backdrop.hidden = true;
+        document.body.classList.remove('reviews-modal-open');
+
+        document.removeEventListener('keydown', onKeydown);
+
+        if (lastFocused && typeof lastFocused.focus === 'function') {
+            lastFocused.focus();
+        }
+
+        document.dispatchEvent(new CustomEvent('reviews:modal-close'));
+    }
+
+    trigger.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
 }
 
 function initCustomCursor() {
@@ -302,11 +380,54 @@ function initCustomCursor() {
     });
 }
 
+function initContactForm() {
+    const form = document.getElementById('contactForm');
+    const button = document.getElementById('contactSubmitBtn');
+
+    if (!form || !button) return;
+
+    button.addEventListener('click', () => {
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const email = form.dataset.mailto;
+        if (!email) return;
+
+        const name = form.querySelector('#contactName').value.trim();
+        const senderEmail = form.querySelector('#contactEmail').value.trim();
+        const phone = form.querySelector('#contactPhone').value.trim();
+        const subject = form.querySelector('#contactSubject').value.trim() || form.dataset.defaultSubject;
+        const message = form.querySelector('#contactMessage').value.trim();
+
+        const bodyLines = [
+            `${form.dataset.labelName}: ${name}`,
+            `${form.dataset.labelEmail}: ${senderEmail}`,
+        ];
+
+        if (phone) {
+            bodyLines.push(`${form.dataset.labelPhone}: ${phone}`);
+        }
+
+        bodyLines.push('', message);
+
+        const mailtoUrl =
+            `mailto:${email}` +
+            `?subject=${encodeURIComponent(subject)}` +
+            `&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+
+        window.location.href = mailtoUrl;
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initServicesDropdown();
     initPipeFlowAnimation();
     initScrollReveal();
     initReviewsCarousel();
+    initReviewsModal();
     initCustomCursor();
+    initContactForm();
 });

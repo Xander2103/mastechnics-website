@@ -39,6 +39,7 @@ class RequestFollowupTest extends TestCase
             ->assertRedirect();
 
         $this->assertSame('viewed', $req->fresh()->status);
+        $this->assertNotNull($req->fresh()->viewed_at);
     }
 
     public function test_mark_viewed_does_not_downgrade_from_contacted(): void

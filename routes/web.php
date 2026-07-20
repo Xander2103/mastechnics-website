@@ -41,6 +41,15 @@ Route::middleware('admin')
         Route::post('/requests/{customerRequest}/notes', [AdminRequestController::class, 'storeNote'])
             ->name('requests.notes.store');
 
+        Route::patch('/requests/{customerRequest}/notes/{note}', [AdminRequestController::class, 'updateNote'])
+            ->name('requests.notes.update');
+
+        Route::delete('/requests/{customerRequest}/notes/{note}', [AdminRequestController::class, 'destroyNote'])
+            ->name('requests.notes.destroy');
+
+        Route::post('/requests/{customerRequest}/appointments', [AdminRequestController::class, 'storeAppointment'])
+            ->name('requests.appointments.store');
+
         Route::post('/requests/{customerRequest}/action', [AdminRequestController::class, 'performAction'])
             ->name('requests.action');
 
@@ -58,6 +67,9 @@ Route::middleware('admin')
 
         Route::get('/requests/{customerRequest}/quote/pdf', [AdminQuoteController::class, 'pdf'])
             ->name('requests.quote.pdf');
+
+        Route::post('/requests/{customerRequest}/quote/send-email', [AdminQuoteController::class, 'sendEmail'])
+            ->name('requests.quote.send-email');
     });
 
 Route::post('/{locale}/requests', [CustomerRequestController::class, 'store'])

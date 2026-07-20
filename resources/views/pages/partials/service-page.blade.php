@@ -43,6 +43,7 @@
             'cta_title'  => 'Klaar om een aanvraag in te dienen?',
             'cta_text'   => 'Beschrijf uw probleem of project via de slimme aanvraagflow en wij nemen zo snel mogelijk contact op.',
             'cta_button' => 'Start aanvraag',
+            'related_heading' => 'Onze andere diensten',
         ],
         'fr' => [
             'type'       => 'Service',
@@ -54,6 +55,7 @@
             'cta_title'  => 'Prêt à soumettre une demande ?',
             'cta_text'   => 'Décrivez votre problème ou projet via le flux de demande intelligent et nous vous contacterons dès que possible.',
             'cta_button' => 'Démarrer ma demande',
+            'related_heading' => 'Nos autres services',
         ],
         'en' => [
             'type'       => 'Service',
@@ -65,6 +67,7 @@
             'cta_title'  => 'Ready to submit a request?',
             'cta_text'   => 'Describe your issue or project via the smart request flow and we will get back to you as soon as possible.',
             'cta_button' => 'Start request',
+            'related_heading' => 'Our other services',
         ],
     ];
 
@@ -346,6 +349,15 @@
 
     $currentContent = $serviceContent[$currentServiceKey][$locale]
         ?? ($currentServiceKey ? ($serviceContent[$currentServiceKey]['nl'] ?? null) : null);
+
+    // ── Related services (internal links) ──────────────────────────────────────
+    $otherServices = collect(config('services', []))
+        ->filter(fn($service, $key) => ($service['is_active'] ?? false) && $key !== $currentServiceKey)
+        ->map(function ($service) use ($locale) {
+            $trans = $service['translations'][$locale] ?? $service['translations']['nl'];
+            return ['title' => $trans['title'], 'slug' => $trans['slug']];
+        })
+        ->values();
 @endphp
 
 <div class="service-page service-page--{{ $currentServiceKey ?? '' }}">
@@ -445,6 +457,25 @@
                         <h3>{{ $item['title'] }}</h3>
                         <p>{{ $item['description'] }}</p>
                     </article>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
+{{-- ═══════════════════════════════════════════════════════════
+     Related services (internal links)
+═══════════════════════════════════════════════════════════ --}}
+@if ($otherServices->isNotEmpty())
+    <section class="service-related-section">
+        <div class="container">
+            <h2 class="service-related-heading">{{ $text['related_heading'] }}</h2>
+            <div class="service-related-links">
+                @foreach ($otherServices as $related)
+                    <a class="service-related-link"
+                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $related['slug']]) }}">
+                        {{ $related['title'] }}
+                    </a>
                 @endforeach
             </div>
         </div>

@@ -369,6 +369,15 @@
     gap: 24px;
 }
 
+@media (min-width: 921px) {
+    .admin-detail-sidebar {
+        position: sticky;
+        top: 96px;
+        max-height: calc(100vh - 116px);
+        overflow-y: auto;
+    }
+}
+
 .admin-detail-card {
     padding: 28px;
 }
@@ -631,6 +640,182 @@
 .admin-notes-list {
     display: grid;
     gap: 14px;
+}
+
+/* ── Send-quote modal form (reuses .reviews-modal shell from home.css) ── */
+.admin-quote-send-form {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.admin-quote-send-form label {
+    display: grid;
+    gap: 8px;
+    color: var(--color-primary-dark);
+    font-weight: 900;
+}
+
+.admin-quote-send-form input,
+.admin-quote-send-form textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    background: #f8fbff;
+    color: var(--color-text);
+    font: inherit;
+}
+
+.admin-quote-send-form textarea {
+    min-height: 160px;
+    resize: vertical;
+}
+
+.admin-quote-send-form input:focus,
+.admin-quote-send-form textarea:focus {
+    outline: none;
+    border-color: rgba(15, 102, 194, 0.55);
+    box-shadow: 0 0 0 4px rgba(15, 102, 194, 0.1);
+}
+
+.admin-quote-send-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ── Note edit/delete controls ── */
+.admin-note-edit-toggle,
+.admin-note-delete-btn {
+    margin-left: auto;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    padding: 0;
+}
+
+.admin-note-delete-btn {
+    color: #b91c1c;
+    margin-left: 12px;
+}
+
+.admin-note-delete-form {
+    display: inline;
+}
+
+.admin-note-edit-form {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.admin-note-edit-form textarea {
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font: inherit;
+    resize: vertical;
+}
+
+.admin-note-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* ── Timeline ── */
+.admin-timeline-list {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-timeline-list li {
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.88rem;
+}
+
+.admin-timeline-date {
+    color: var(--color-muted);
+    font-size: 0.78rem;
+    margin-right: 8px;
+}
+
+.admin-timeline-action {
+    font-weight: 800;
+    color: var(--color-primary-dark);
+}
+
+.admin-timeline-user {
+    color: var(--color-muted);
+    font-size: 0.8rem;
+}
+
+.admin-timeline-note {
+    margin: 6px 0 0;
+    color: var(--color-muted);
+    font-size: 0.85rem;
+}
+
+/* ── Appointments (future-ready) ── */
+.admin-appointments-list {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-appointments-list li {
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: #f8fbff;
+    font-size: 0.88rem;
+}
+
+.admin-appointment-location {
+    color: var(--color-muted);
+}
+
+.admin-appointment-notes {
+    margin: 6px 0 0;
+    color: var(--color-muted);
+    font-size: 0.85rem;
+}
+
+.admin-appointment-form-toggle summary {
+    cursor: pointer;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.admin-appointment-form {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.admin-appointment-form label {
+    display: grid;
+    gap: 6px;
+    font-weight: 800;
+    color: var(--color-primary-dark);
+    font-size: 0.88rem;
+}
+
+.admin-appointment-form input,
+.admin-appointment-form textarea {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font: inherit;
 }
 
 .admin-note-item {

@@ -365,6 +365,48 @@
 }
 
 /* ================================
+   Related services (internal links)
+================================ */
+
+.service-related-section {
+    padding: 8px 0 40px;
+    background: var(--color-white);
+}
+
+.service-related-heading {
+    margin-bottom: 14px;
+    color: var(--color-primary-dark);
+    font-size: 1.05rem;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.service-related-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.service-related-link {
+    display: inline-flex;
+    padding: 9px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #f8fbff;
+    color: var(--color-primary-dark);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.service-related-link:hover {
+    border-color: rgba(15, 102, 194, 0.4);
+    background: #eef6ff;
+    transform: translateY(-1px);
+}
+
+/* ================================
    Service CTA section
 ================================ */
 

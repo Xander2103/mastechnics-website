@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Mail\QuoteSentMail;
 use App\Models\CustomerRequest;
 use App\Models\Quote;
 use App\Models\QuoteItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class QuoteTest extends TestCase
@@ -411,6 +413,84 @@ class QuoteTest extends TestCase
 
         $response->assertOk();
         $this->assertStringContainsString('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public function test_pdf_view_includes_company_logo(): void
+    {
+        $req   = $this->makeRequest();
+        $quote = $this->makeQuote($req, ['quote_number' => 'OFF-2026-0099']);
+
+        $html = view('admin.quotes.pdf', [
+            'quote'           => $quote,
+            'customerRequest' => $req,
+        ])->render();
+
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+        $this->assertStringContainsString('header-logo-img', $html);
+    }
+
+    public function test_send_quote_email_attaches_pdf_and_updates_status_server_side(): void
+    {
+        Mail::fake();
+
+        $req   = $this->makeRequest(['customer_email' => 'klant@example.com']);
+        $quote = $this->makeQuote($req, ['quote_number' => 'OFF-2026-0100']);
+        QuoteItem::create([
+            'quote_id'            => $quote->id,
+            'position'            => 1,
+            'description'         => 'Test post',
+            'quantity'            => 1.00,
+            'unit_price_excl_vat' => 500.00,
+            'vat_rate'            => 21.00,
+            'line_total_excl_vat' => 500.00,
+            'line_vat_amount'     => 105.00,
+            'line_total_incl_vat' => 605.00,
+        ]);
+
+        $response = $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.send-email', $req), [
+                // Client tries to smuggle a status field — it must be ignored;
+                // status changes are always server-computed.
+                'status'  => 'accepted',
+                'to'      => 'klant@example.com',
+                'subject' => 'Uw offerte',
+                'body'    => 'Hierbij de offerte.',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'quote_email_sent');
+
+        Mail::assertSent(QuoteSentMail::class, function (QuoteSentMail $mail) {
+            return $mail->hasTo('klant@example.com')
+                && count($mail->attachments()) === 1;
+        });
+
+        $quote->refresh();
+        $req->refresh();
+
+        $this->assertSame('sent', $quote->quote_status);
+        $this->assertNotNull($quote->sent_at);
+        $this->assertSame('quote_sent', $req->status);
+        $this->assertNotNull($req->quote_sent_at);
+
+        $this->assertDatabaseHas('mail_logs', [
+            'customer_request_id' => $req->id,
+            'recipient'           => 'klant@example.com',
+            'mailable'            => 'QuoteSentMail',
+            'status'              => 'sent',
+        ]);
+    }
+
+    public function test_send_quote_email_requires_admin_auth(): void
+    {
+        $req = $this->makeRequest();
+        $this->makeQuote($req);
+
+        $this->post(route('admin.requests.quote.send-email', $req), [
+            'to'      => 'klant@example.com',
+            'subject' => 'Uw offerte',
+            'body'    => 'Hierbij de offerte.',
+        ])->assertRedirect(route('admin.login'));
     }
 
     public function test_unauthenticated_pdf_redirects_to_login(): void

@@ -19,6 +19,7 @@
             'subject' => 'Onderwerp',
             'message' => 'Bericht',
             'button' => 'Bericht voorbereiden',
+            'default_subject' => 'Contactaanvraag via website',
             'error_name' => 'Vul je naam in.',
             'error_message' => 'Vul een bericht in.',
             'error_contact' => 'Vul een e-mailadres of telefoonnummer in.',

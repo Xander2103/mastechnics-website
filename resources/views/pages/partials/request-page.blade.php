@@ -346,6 +346,18 @@
                             </div>
                         </div>
 
+                        <div class="wizard-nav-bar wizard-nav-bar--top" id="wizardNavBarTop">
+                            <button type="button" id="wizardTerugTop" class="button button-ghost wizard-nav-back is-wizard-hidden">
+                                &larr; {{ $text['terug'] }}
+                            </button>
+
+                            <div class="wizard-nav-forward">
+                                <button type="button" id="wizardVerderTop" class="button button-primary">
+                                    {{ $text['verder'] }} &rarr;
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="request-form-card" id="requestFormCard">
                             @foreach ($steps as $stepIndex => $step)
                                 @php
@@ -802,10 +814,13 @@
     var formCard        = document.getElementById('requestFormCard');
     var wizardTerug     = document.getElementById('wizardTerug');
     var wizardVerder    = document.getElementById('wizardVerder');
+    var wizardTerugTop  = document.getElementById('wizardTerugTop');
+    var wizardVerderTop = document.getElementById('wizardVerderTop');
     var wizardSubmit    = document.getElementById('wizardSubmit');
     var wizardSubmitTop = document.getElementById('wizardSubmitTop');
     var wizardCount     = document.getElementById('wizardStepCount');
     var progressFill    = document.getElementById('wizardProgressFill');
+    var progressArea    = document.getElementById('wizardProgressArea');
     var allSections     = Array.from(document.querySelectorAll('.form-section[data-step]'));
     var categoryInputs  = document.querySelectorAll('input[name="service_category"]');
     var attachInput     = document.getElementById('attachmentsInput');
@@ -868,7 +883,7 @@
             progressFill.style.width = (total > 1 ? (index / (total - 1)) * 100 : 100) + '%';
         }
 
-        // Navigation buttons
+        // Navigation buttons (top and bottom behave identically)
         var isFirst = index === 0;
         var isLast  = index === sections.length - 1;
 
@@ -876,14 +891,25 @@
         wizardVerder.classList.toggle('is-wizard-hidden', isLast);
         wizardSubmit.classList.toggle('is-wizard-hidden', !isLast);
 
+        if (wizardTerugTop) wizardTerugTop.classList.toggle('is-wizard-hidden', isFirst);
+        if (wizardVerderTop) wizardVerderTop.classList.toggle('is-wizard-hidden', isLast);
+
         // Disable/enable Verder (only locked on step 0 until category chosen)
         if (isFirst) {
             var hasCat = !!getSelectedCategory();
             wizardVerder.disabled = !hasCat;
             wizardVerder.setAttribute('aria-disabled', String(!hasCat));
+            if (wizardVerderTop) {
+                wizardVerderTop.disabled = !hasCat;
+                wizardVerderTop.setAttribute('aria-disabled', String(!hasCat));
+            }
         } else {
             wizardVerder.disabled = false;
             wizardVerder.removeAttribute('aria-disabled');
+            if (wizardVerderTop) {
+                wizardVerderTop.disabled = false;
+                wizardVerderTop.removeAttribute('aria-disabled');
+            }
         }
 
         // Submit label (airco offerte → different CTA)
@@ -900,8 +926,11 @@
         if (isLast) { updateSummary(); }
 
         // Scroll form into view when advancing (not on init)
-        if (index > 0 && formCard) {
-            formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (index > 0) {
+            var scrollTarget = progressArea || formCard;
+            if (scrollTarget) {
+                scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
     }
 
@@ -935,11 +964,22 @@
             var inp = card.querySelector('input[type="radio"]');
             if (inp) { inp.checked = true; }
             onCategoryChange();
+
+            // Auto-advance from service selection once a category is chosen.
+            // Fires on click/tap/Space activation only (not on arrow-key
+            // radio-group navigation), so keyboard users can still explore
+            // all options before committing. Verder remains as a manual
+            // fallback for anyone who needs it.
+            if (currentIndex === 0 && visibleSections.length > 1) {
+                showStep(visibleSections, 1);
+            }
         });
     });
 
-    // ── Nav buttons ───────────────────────────────────────────────────────────
-    wizardVerder.addEventListener('click', function () {
+    // ── Nav buttons ─────────────────────────────────────────────────────────
+    // Top and bottom buttons share the same handlers so they always behave
+    // identically.
+    function goToNextStep() {
         if (currentIndex === 0) {
             if (currentIndex < visibleSections.length - 1) {
                 showStep(visibleSections, currentIndex + 1);
@@ -950,13 +990,19 @@
         if (currentIndex < visibleSections.length - 1) {
             showStep(visibleSections, currentIndex + 1);
         }
-    });
+    }
 
-    wizardTerug.addEventListener('click', function () {
+    function goToPreviousStep() {
         if (currentIndex > 0) {
             showStep(visibleSections, currentIndex - 1);
         }
-    });
+    }
+
+    wizardVerder.addEventListener('click', goToNextStep);
+    wizardTerug.addEventListener('click', goToPreviousStep);
+
+    if (wizardVerderTop) wizardVerderTop.addEventListener('click', goToNextStep);
+    if (wizardTerugTop) wizardTerugTop.addEventListener('click', goToPreviousStep);
 
     // Auto-clear JS field error when user corrects the field
     if (formCard) {

@@ -14,6 +14,7 @@
             'title' => 'We hebben je aanvraag goed ontvangen',
             'hello' => 'Beste',
             'intro' => 'Bedankt voor je aanvraag. We hebben je gegevens goed ontvangen en bekijken je aanvraag zo snel mogelijk.',
+            'reference' => 'Referentie',
             'summary' => 'Samenvatting van je aanvraag',
             'service' => 'Dienst',
             'request_type' => 'Type aanvraag',
@@ -48,6 +49,7 @@
             'title' => 'Nous avons bien reçu votre demande',
             'hello' => 'Bonjour',
             'intro' => 'Merci pour votre demande. Nous avons bien reçu vos informations et nous examinerons votre demande dès que possible.',
+            'reference' => 'Référence',
             'summary' => 'Résumé de votre demande',
             'service' => 'Service',
             'request_type' => 'Type de demande',
@@ -82,6 +84,7 @@
             'title' => 'We have received your request',
             'hello' => 'Hello',
             'intro' => 'Thank you for your request. We have received your information and will review your request as soon as possible.',
+            'reference' => 'Reference',
             'summary' => 'Summary of your request',
             'service' => 'Service',
             'request_type' => 'Request type',
@@ -130,6 +133,7 @@
     $address = trim($addressParts->implode(', '));
 
     $rows = [
+        $text['reference'] => $customerRequest->reference,
         $text['service'] => $serviceTitle,
         $text['request_type'] => $requestTypeLabel,
         $text['customer_type'] => $text['customer_types'][$customerType] ?? $text['empty'],
@@ -144,86 +148,37 @@
     ];
 @endphp
 
-<!DOCTYPE html>
-<html lang="{{ $locale }}">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ $text['title'] }}</title>
-</head>
+@extends('emails.layout', ['emailLocale' => $locale])
 
-<body style="margin: 0; padding: 0; background: #f3f7fb; font-family: Arial, sans-serif; color: #102033;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background: #f3f7fb; padding: 28px 12px;">
-        <tr>
-            <td align="center">
-                <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 680px; background: #ffffff; border-radius: 18px; overflow: hidden; border: 1px solid #d9e4ef;">
-                    <tr>
-                        <td style="padding: 28px 32px; background: #0f3557; color: #ffffff;">
-                            <p style="margin: 0 0 8px; font-size: 13px; font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase;">
-                                {{ $siteName }}
-                            </p>
+@section('subject', $text['title'])
+@section('heading', $text['title'])
 
-                            <h1 style="margin: 0; font-size: 26px; line-height: 1.25;">
-                                {{ $text['title'] }}
-                            </h1>
-                        </td>
-                    </tr>
+@section('content')
+    <p style="margin: 0 0 22px; font-size: 16px; line-height: 1.6; color: #405163;">
+        {{ $text['hello'] }} {{ $customerRequest->customer_name }},
+    </p>
 
-                    <tr>
-                        <td style="padding: 30px 32px;">
-                            <p style="margin: 0 0 22px; font-size: 16px; line-height: 1.6; color: #405163;">
-                                {{ $text['hello'] }} {{ $customerRequest->customer_name }},
-                            </p>
+    <p style="margin: 0 0 22px; font-size: 16px; line-height: 1.6; color: #405163;">
+        {{ $text['intro'] }}
+    </p>
 
-                            <p style="margin: 0 0 22px; font-size: 16px; line-height: 1.6; color: #405163;">
-                                {{ $text['intro'] }}
-                            </p>
+    @include('emails.partials.info-table', ['title' => $text['summary'], 'rows' => $rows])
 
-                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px; border: 1px solid #d9e4ef; border-radius: 14px; overflow: hidden;">
-                                <tr>
-                                    <td colspan="2" style="padding: 14px 18px; background: #edf5ff; color: #0f3557; font-weight: bold;">
-                                        {{ $text['summary'] }}
-                                    </td>
-                                </tr>
+    <div style="margin-bottom: 24px;">
+        <h2 style="margin: 0 0 10px; font-size: 18px; color: #0f3557;">
+            {{ $text['description'] }}
+        </h2>
 
-                                @foreach ($rows as $label => $value)
-                                    <tr>
-                                        <td style="width: 38%; padding: 12px 18px; border-top: 1px solid #d9e4ef; color: #6b7c8f; font-weight: bold; vertical-align: top;">
-                                            {{ $label }}
-                                        </td>
+        <div style="padding: 16px 18px; border-radius: 14px; background: #f8fbff; border: 1px solid #d9e4ef; color: #405163; line-height: 1.6;">
+            {{ $customerRequest->description }}
+        </div>
+    </div>
 
-                                        <td style="padding: 12px 18px; border-top: 1px solid #d9e4ef; vertical-align: top; color: #102033;">
-                                            {{ $value }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </table>
+    <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #405163;">
+        {{ $text['next'] }}
+    </p>
 
-                            <div style="margin-bottom: 24px;">
-                                <h2 style="margin: 0 0 10px; font-size: 18px; color: #0f3557;">
-                                    {{ $text['description'] }}
-                                </h2>
-
-                                <div style="padding: 16px 18px; border-radius: 14px; background: #f8fbff; border: 1px solid #d9e4ef; color: #405163; line-height: 1.6;">
-                                    {{ $customerRequest->description }}
-                                </div>
-                            </div>
-
-                            <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.6; color: #405163;">
-                                {{ $text['next'] }}
-                            </p>
-
-                            <p style="margin: 0; color: #6b7c8f; font-size: 14px; line-height: 1.6;">
-                                {{ $text['automatic'] }} {{ $siteName }}.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-
-                <p style="margin: 18px 0 0; color: #8aa0b5; font-size: 12px;">
-                    &copy; {{ date('Y') }} {{ $siteName }}
-                </p>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>
+    <p style="margin: 0; color: #6b7c8f; font-size: 14px; line-height: 1.6;">
+        {{ $text['automatic'] }} {{ $siteName }}.
+    </p>
+@endsection

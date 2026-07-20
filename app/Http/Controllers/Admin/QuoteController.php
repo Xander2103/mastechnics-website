@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\QuoteSentMail;
 use App\Models\CustomerRequest;
 use App\Models\Quote;
 use App\Models\QuoteItem;
+use App\Services\MailDispatcher;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -110,6 +112,49 @@ class QuoteController extends Controller
 
         $quote->load('items');
 
+        $pdf = $this->renderQuotePdf($quote, $customerRequest);
+
+        $filename = strtolower($quote->quote_number ?? 'offerte') . '-mastechnics-offerte.pdf';
+
+        return $pdf->stream($filename);
+    }
+
+    public function sendEmail(Request $request, CustomerRequest $customerRequest): RedirectResponse
+    {
+        $quote = $customerRequest->quote;
+
+        abort_if(! $quote, 404, 'Geen offerte gevonden.');
+
+        $validated = $request->validate([
+            'to'      => ['required', 'email', 'max:255'],
+            'subject' => ['required', 'string', 'max:200'],
+            'body'    => ['required', 'string', 'max:5000'],
+        ]);
+
+        $quote->load('items');
+
+        $pdfBinary = $this->renderQuotePdf($quote, $customerRequest)->output();
+
+        $sent = MailDispatcher::send(
+            $validated['to'],
+            new QuoteSentMail($customerRequest, $quote, $validated['subject'], $validated['body'], $pdfBinary),
+            $customerRequest
+        );
+
+        // The admin explicitly performed the "send" action, so the quote/request
+        // status always moves forward — mail delivery failures are surfaced
+        // separately (mail_logs + flash message) rather than silently blocking
+        // the workflow, consistent with the public request-flow pattern.
+        $this->applyMarkSent($quote, $customerRequest);
+
+        return back()->with(
+            'success',
+            $sent ? 'quote_email_sent' : 'quote_email_failed'
+        );
+    }
+
+    private function renderQuotePdf(Quote $quote, CustomerRequest $customerRequest)
+    {
         $pdf = Pdf::loadView('admin.quotes.pdf', [
             'quote'           => $quote,
             'customerRequest' => $customerRequest,
@@ -117,9 +162,7 @@ class QuoteController extends Controller
 
         $pdf->setPaper('A4', 'portrait');
 
-        $filename = strtolower($quote->quote_number ?? 'offerte') . '-mastechnics-offerte.pdf';
-
-        return $pdf->stream($filename);
+        return $pdf;
     }
 
     private function applyMarkSent(Quote $quote, CustomerRequest $customerRequest): void

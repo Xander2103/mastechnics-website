@@ -10,6 +10,7 @@
             'email' => 'E-mail',
             'whatsapp' => 'WhatsApp',
             'messenger' => 'Messenger',
+            'vat' => 'BTW-nummer',
             'form_title' => 'Stuur een bericht',
             'form_intro' =>
                 'Voor algemene vragen kan je dit formulier gebruiken. Voor technische aanvragen of richtprijzen gebruik je best de slimme aanvraagflow.',
@@ -35,6 +36,7 @@
             'email' => 'E-mail',
             'whatsapp' => 'WhatsApp',
             'messenger' => 'Messenger',
+            'vat' => 'Numéro de TVA',
             'form_title' => 'Envoyer un message',
             'form_intro' =>
                 'Pour les questions générales, vous pouvez utiliser ce formulaire. Pour les demandes techniques ou estimations, utilisez plutôt le flux de demande intelligente.',
@@ -60,6 +62,7 @@
             'email' => 'Email',
             'whatsapp' => 'WhatsApp',
             'messenger' => 'Messenger',
+            'vat' => 'VAT number',
             'form_title' => 'Send a message',
             'form_intro' =>
                 'For general questions, you can use this form. For technical requests or estimates, it is better to use the smart request flow.',
@@ -119,6 +122,11 @@
                         <a href="https://m.me/mastechnics" target="_blank" rel="noopener noreferrer">
                             Messenger
                         </a>
+                    </div>
+
+                    <div class="contact-item">
+                        <span>{{ $text['vat'] }}</span>
+                        <span>{{ config('site.vat_number') }}</span>
                     </div>
                 </div>
 

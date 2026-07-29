@@ -2,6 +2,7 @@
 
 return [
     'name' => 'Mastechnics',
+    'vat_number' => 'BE 0760.768.228',
 
     'contact' => [
         'phone_display' => '+32 495 12 11 78',

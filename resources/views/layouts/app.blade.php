@@ -15,6 +15,7 @@
             'footer_request_title' => 'Aanvraag',
             'footer_request_text' => 'Start een slimme aanvraag en vul meteen de juiste technische informatie in.',
             'designed_by' => 'Designed by VanMalderStudio',
+            'vat_label' => 'BTW',
         ],
         'fr' => [
             'services' => 'Services',
@@ -27,6 +28,7 @@
             'footer_request_text' =>
                 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
             'designed_by' => 'Designed by VanMalderStudio',
+            'vat_label' => 'TVA',
         ],
         'en' => [
             'services' => 'Services',
@@ -38,6 +40,7 @@
             'footer_request_title' => 'Request',
             'footer_request_text' => 'Start a smart request and add the right technical information immediately.',
             'designed_by' => 'Designed by VanMalderStudio',
+            'vat_label' => 'VAT',
         ],
     ];
 
@@ -370,6 +373,10 @@
 
                     @if (!empty($siteContact['company_number']))
                     <li>{{ $siteContact['company_number'] }}</li>
+                    @endif
+
+                    @if (!empty(config('site.vat_number')))
+                    <li>{{ $nav['vat_label'] }} {{ config('site.vat_number') }}</li>
                     @endif
                 </ul>
             </div>

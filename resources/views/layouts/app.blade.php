@@ -420,6 +420,10 @@
                             Admin panel
                         </a>
 
+                        <a class="footer-admin-link" href="{{ route('admin.account.edit') }}">
+                            Account
+                        </a>
+
                         <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
                             @csrf
 

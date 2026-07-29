@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\QuoteController as AdminQuoteController;
 use App\Http\Controllers\Admin\RequestController as AdminRequestController;
@@ -80,6 +81,15 @@ Route::middleware('admin')
 
         Route::post('/requests/{customerRequest}/quote/send-email', [AdminQuoteController::class, 'sendEmail'])
             ->name('requests.quote.send-email');
+
+        Route::get('/account', [AdminAccountController::class, 'edit'])
+            ->name('account.edit');
+
+        Route::patch('/account/email', [AdminAccountController::class, 'updateEmail'])
+            ->name('account.email.update');
+
+        Route::patch('/account/password', [AdminAccountController::class, 'updatePassword'])
+            ->name('account.password.update');
     });
 
 Route::post('/{locale}/requests', [CustomerRequestController::class, 'store'])

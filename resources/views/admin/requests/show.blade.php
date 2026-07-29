@@ -113,25 +113,9 @@
         $urgencyLevel = $customerRequest->urgency_level ?? ($answers['urgency'] ?? null);
         $urgencyLabel = $urgencyLevelLabels[$urgencyLevel] ?? null;
 
-        // WhatsApp URL
-        $waUrl = null;
-        $waNormalized = '';
-        if ($customerRequest->customer_phone) {
-            $waNormalized = trim($customerRequest->customer_phone);
-            $waNormalized = preg_replace('/[\s\.\-\/\(\)]/', '', $waNormalized);
-            if (str_starts_with($waNormalized, '+')) {
-                $waNormalized = substr($waNormalized, 1);
-            } elseif (str_starts_with($waNormalized, '00')) {
-                $waNormalized = substr($waNormalized, 2);
-            } elseif (str_starts_with($waNormalized, '0')) {
-                $waNormalized = '32' . substr($waNormalized, 1);
-            }
-            $waNormalized = preg_replace('/\D/', '', $waNormalized);
-            if (strlen($waNormalized) > 5) {
-                $waMessage = rawurlencode('Dag ' . $customerRequest->customer_name . ', bedankt voor uw aanvraag via Mastechnics. Ik contacteer u even over uw aanvraag.');
-                $waUrl = 'https://wa.me/' . $waNormalized . '?text=' . $waMessage;
-            }
-        }
+        // Standard reply: one generated text shared by email, preview and WhatsApp.
+        $standardReplyMessage = \App\Services\StandardReplyService::message($customerRequest);
+        $waUrl = \App\Services\StandardReplyService::whatsappUrl($customerRequest);
     @endphp
 
     <section class="admin-hero">
@@ -205,6 +189,30 @@
                 <div class="form-success">Afspraak werd toegevoegd.</div>
             @endif
 
+            @if (session('success') === 'standard_reply_sent')
+                <div class="form-success">Standaardantwoord werd verstuurd naar de klant. De status staat nu op "Gecontacteerd".</div>
+            @endif
+
+            @if (session('success') === 'standard_reply_resent')
+                <div class="form-success">Standaardantwoord werd opnieuw verstuurd naar de klant.</div>
+            @endif
+
+            @if (session('success') === 'standard_reply_already_sent')
+                <div class="form-error-list">Het standaardantwoord werd eerder al verstuurd. Gebruik "Opnieuw versturen" om het nogmaals te versturen.</div>
+            @endif
+
+            @if (session('success') === 'standard_reply_not_sent_yet')
+                <div class="form-error-list">Het standaardantwoord werd nog niet verstuurd. Gebruik de knop "Verstuur per e-mail".</div>
+            @endif
+
+            @if (session('success') === 'standard_reply_in_progress')
+                <div class="form-error-list">Er is al een verzending bezig. Probeer zo dadelijk opnieuw.</div>
+            @endif
+
+            @if (session('success') === 'standard_reply_failed')
+                <div class="form-error-list">Het standaardantwoord kon niet verstuurd worden. Controleer het e-mailadres of probeer later opnieuw.</div>
+            @endif
+
             <div class="admin-detail-layout">
 
                 {{-- ===================== LEFT SIDEBAR ===================== --}}
@@ -271,15 +279,9 @@
                             </form>
                         </div>
 
-                        @php
-                            $snelBerichtCat = $serviceCategoryLabels[$customerRequest->service_category] ?? null;
-                            $snelBericht = 'Dag ' . $customerRequest->customer_name . ', bedankt voor uw aanvraag via Mastechnics. Ik contacteer u even over uw aanvraag'
-                                . ($snelBerichtCat ? ' voor ' . $snelBerichtCat . '.' : '.');
-                        @endphp
-
                         <div class="admin-snel-bericht">
-                            <h3>Snel bericht</h3>
-                            <p id="admin-snel-bericht-text" class="admin-snel-bericht-content">{{ $snelBericht }}</p>
+                            <h3>Standaardantwoord</h3>
+                            <p id="admin-snel-bericht-text" class="admin-snel-bericht-content" style="white-space: pre-line;">{{ $standardReplyMessage }}</p>
                             <button
                                 type="button"
                                 class="button button-secondary admin-copy-btn"
@@ -289,6 +291,27 @@
                                 Kopiëren
                             </button>
                             <span class="admin-copy-feedback" aria-live="polite"></span>
+
+                            @if ($customerRequest->standard_reply_sent_at === null)
+                                <form method="POST" action="{{ route('admin.requests.standard-reply.send', $customerRequest) }}"
+                                    style="margin-top: 12px;"
+                                    onsubmit="this.querySelector('button[type=submit]').disabled = true; return true;">
+                                    @csrf
+                                    <button type="submit" class="button button-primary">Verstuur per e-mail</button>
+                                </form>
+                            @else
+                                <p style="margin-top: 12px; font-size: 13px; color: #6b7c8f;">
+                                    Verstuurd op {{ $customerRequest->standard_reply_sent_at->format('d/m/Y H:i') }}
+                                    @if ($customerRequest->standard_reply_sent_by)
+                                        door {{ $customerRequest->standard_reply_sent_by }}
+                                    @endif
+                                </p>
+                                <form method="POST" action="{{ route('admin.requests.standard-reply.resend', $customerRequest) }}"
+                                    onsubmit="if (!confirm('Dit standaardantwoord werd al verstuurd. Opnieuw versturen?')) { return false; } this.querySelector('button[type=submit]').disabled = true; return true;">
+                                    @csrf
+                                    <button type="submit" class="button button-secondary">Opnieuw versturen</button>
+                                </form>
+                            @endif
                         </div>
                     </div>
 

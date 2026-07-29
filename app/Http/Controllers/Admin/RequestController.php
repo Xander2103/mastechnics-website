@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\StandardReplyMail;
 use App\Models\CustomerRequest;
 use App\Models\CustomerRequestNote;
 use App\Models\Quote;
 use App\Services\ActivityService;
+use App\Services\MailDispatcher;
 use App\Services\ReminderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -351,6 +354,86 @@ class RequestController extends Controller
         };
 
         return back()->with('success', 'action_applied');
+    }
+
+    public function sendStandardReply(CustomerRequest $customerRequest): RedirectResponse
+    {
+        if (! $customerRequest->customer_email) {
+            return back()->with('success', 'standard_reply_failed');
+        }
+
+        // Atomic claim: only one request may pass while the column is NULL,
+        // so rapid duplicate POSTs can never trigger a second send.
+        $claimed = CustomerRequest::whereKey($customerRequest->id)
+            ->whereNull('standard_reply_sent_at')
+            ->update([
+                'standard_reply_sent_at' => now(),
+                'standard_reply_sent_by' => session('admin_user_email'),
+            ]);
+
+        if ($claimed === 0) {
+            return back()->with('success', 'standard_reply_already_sent');
+        }
+
+        $customerRequest->refresh();
+
+        $sent = MailDispatcher::send(
+            $customerRequest->customer_email,
+            new StandardReplyMail($customerRequest),
+            $customerRequest
+        );
+
+        if (! $sent) {
+            // Release the claim so the reply is not marked sent and can be retried.
+            $customerRequest->update([
+                'standard_reply_sent_at' => null,
+                'standard_reply_sent_by' => null,
+            ]);
+
+            return back()->with('success', 'standard_reply_failed');
+        }
+
+        if (in_array($customerRequest->status, ['new', 'viewed'], true)) {
+            $this->applyMarkContacted($customerRequest);
+        } elseif ($customerRequest->contacted_at === null) {
+            $customerRequest->update(['contacted_at' => now()]);
+        }
+
+        return back()->with('success', 'standard_reply_sent');
+    }
+
+    public function resendStandardReply(CustomerRequest $customerRequest): RedirectResponse
+    {
+        if ($customerRequest->standard_reply_sent_at === null) {
+            return back()->with('success', 'standard_reply_not_sent_yet');
+        }
+
+        $lock = Cache::lock('standard-reply-resend-' . $customerRequest->id, 15);
+
+        if (! $lock->get()) {
+            return back()->with('success', 'standard_reply_in_progress');
+        }
+
+        try {
+            $sent = MailDispatcher::send(
+                $customerRequest->customer_email,
+                new StandardReplyMail($customerRequest),
+                $customerRequest
+            );
+
+            if (! $sent) {
+                return back()->with('success', 'standard_reply_failed');
+            }
+
+            $customerRequest->update([
+                'standard_reply_sent_at' => now(),
+                'standard_reply_sent_by' => session('admin_user_email'),
+            ]);
+
+            return back()->with('success', 'standard_reply_resent');
+        } finally {
+            $lock->release();
+        }
     }
 
     public function updateInternalNotes(Request $request, CustomerRequest $customerRequest): RedirectResponse

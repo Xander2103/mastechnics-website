@@ -54,6 +54,12 @@ Route::middleware('admin')
         Route::post('/requests/{customerRequest}/action', [AdminRequestController::class, 'performAction'])
             ->name('requests.action');
 
+        Route::post('/requests/{customerRequest}/standard-reply', [AdminRequestController::class, 'sendStandardReply'])
+            ->name('requests.standard-reply.send');
+
+        Route::post('/requests/{customerRequest}/standard-reply/resend', [AdminRequestController::class, 'resendStandardReply'])
+            ->name('requests.standard-reply.resend');
+
         Route::patch('/requests/{customerRequest}/internal-notes', [AdminRequestController::class, 'updateInternalNotes'])
             ->name('requests.internal-notes.update');
 

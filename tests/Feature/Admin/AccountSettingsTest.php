@@ -154,6 +154,29 @@ class AccountSettingsTest extends TestCase
             ->assertSessionHasErrors('password');
     }
 
+    public function test_password_update_route_is_rate_limited(): void
+    {
+        $this->makeAdmin();
+
+        for ($i = 0; $i < 10; $i++) {
+            $this->withSession($this->adminSession())
+                ->patch(route('admin.account.password.update'), [
+                    'current_password' => 'wrong-password',
+                    'password' => 'NewSecurePass456!',
+                    'password_confirmation' => 'NewSecurePass456!',
+                ])
+                ->assertStatus(302);
+        }
+
+        $this->withSession($this->adminSession())
+            ->patch(route('admin.account.password.update'), [
+                'current_password' => 'wrong-password',
+                'password' => 'NewSecurePass456!',
+                'password_confirmation' => 'NewSecurePass456!',
+            ])
+            ->assertStatus(429);
+    }
+
     public function test_unauthenticated_cannot_access_account_routes(): void
     {
         $this->makeAdmin();

@@ -367,10 +367,12 @@ class RequestController extends Controller
 
         // Atomic claim: only one request may pass while the column is NULL,
         // so rapid duplicate POSTs can never trigger a second send.
+        $claimedAt = now();
+
         $claimed = CustomerRequest::whereKey($customerRequest->id)
             ->whereNull('standard_reply_sent_at')
             ->update([
-                'standard_reply_sent_at' => now(),
+                'standard_reply_sent_at' => $claimedAt,
                 'standard_reply_sent_by' => session('admin_user_email'),
             ]);
 
@@ -388,10 +390,14 @@ class RequestController extends Controller
 
         if (! $sent) {
             // Release the claim so the reply is not marked sent and can be retried.
-            $customerRequest->update([
-                'standard_reply_sent_at' => null,
-                'standard_reply_sent_by' => null,
-            ]);
+            // Scoped to the claim timestamp so a concurrent successful resend's
+            // stamp is never wiped by this failing send.
+            CustomerRequest::whereKey($customerRequest->id)
+                ->where('standard_reply_sent_at', $claimedAt)
+                ->update([
+                    'standard_reply_sent_at' => null,
+                    'standard_reply_sent_by' => null,
+                ]);
 
             return back()->with('success', 'standard_reply_failed');
         }

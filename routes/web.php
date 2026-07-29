@@ -86,9 +86,11 @@ Route::middleware('admin')
             ->name('account.edit');
 
         Route::patch('/account/email', [AdminAccountController::class, 'updateEmail'])
+            ->middleware('throttle:10,1')
             ->name('account.email.update');
 
         Route::patch('/account/password', [AdminAccountController::class, 'updatePassword'])
+            ->middleware('throttle:10,1')
             ->name('account.password.update');
     });
 

@@ -124,10 +124,12 @@
                         </a>
                     </div>
 
-                    <div class="contact-item">
-                        <span>{{ $text['vat'] }}</span>
-                        <span>{{ config('site.vat_number') }}</span>
-                    </div>
+                    @if (!empty(config('site.vat_number')))
+                        <div class="contact-item">
+                            <span>{{ $text['vat'] }}</span>
+                            <span>{{ config('site.vat_number') }}</span>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="contact-request-box">

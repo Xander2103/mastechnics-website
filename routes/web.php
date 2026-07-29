@@ -60,6 +60,9 @@ Route::middleware('admin')
         Route::post('/requests/{customerRequest}/standard-reply/resend', [AdminRequestController::class, 'resendStandardReply'])
             ->name('requests.standard-reply.resend');
 
+        Route::delete('/requests/{customerRequest}', [AdminRequestController::class, 'destroy'])
+            ->name('requests.destroy');
+
         Route::patch('/requests/{customerRequest}/internal-notes', [AdminRequestController::class, 'updateInternalNotes'])
             ->name('requests.internal-notes.update');
 

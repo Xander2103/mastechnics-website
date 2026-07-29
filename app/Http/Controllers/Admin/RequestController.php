@@ -13,6 +13,9 @@ use App\Services\ReminderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -434,6 +437,56 @@ class RequestController extends Controller
         } finally {
             $lock->release();
         }
+    }
+
+    public function destroy(CustomerRequest $customerRequest): RedirectResponse
+    {
+        // Collect file paths before any DB row is removed.
+        $attachmentPaths = $customerRequest->attachments()->pluck('path')->all();
+
+        $deleted = DB::transaction(function () use ($customerRequest): bool {
+            // Guard inside the transaction: the quotes FK cascades on delete,
+            // so a quote created after page load must still block deletion.
+            if ($customerRequest->quote()->exists()) {
+                return false;
+            }
+
+            $customerRequest->delete();
+
+            return true;
+        });
+
+        if (! $deleted) {
+            return back()->with('success', 'delete_blocked_quote');
+        }
+
+        // Files are removed only after the DB commit; failures leave orphan
+        // files (logged) but never a half-deleted request.
+        foreach ($attachmentPaths as $path) {
+            if (! is_string($path)
+                || $path === ''
+                || str_contains($path, '..')
+                || ! str_starts_with($path, 'customer-requests/')) {
+                Log::warning('Attachment path outside expected directory skipped during delete', [
+                    'path' => $path,
+                ]);
+
+                continue;
+            }
+
+            try {
+                Storage::disk('public')->delete($path);
+            } catch (\Throwable $e) {
+                Log::error('Attachment file delete failed', [
+                    'path' => $path,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('admin.requests.index')
+            ->with('success', 'request_deleted');
     }
 
     public function updateInternalNotes(Request $request, CustomerRequest $customerRequest): RedirectResponse

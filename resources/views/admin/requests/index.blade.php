@@ -250,6 +250,10 @@
 
     <section class="section section-white">
         <div class="container">
+            @if (session('success') === 'request_deleted')
+                <div class="form-success">Aanvraag werd definitief verwijderd.</div>
+            @endif
+
             {{-- Notification center — rendered first, above stats/widgets/activity/statistics --}}
             @php
                 $notifications = collect([

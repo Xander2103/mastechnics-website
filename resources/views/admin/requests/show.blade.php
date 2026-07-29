@@ -213,6 +213,10 @@
                 <div class="form-error-list">Het standaardantwoord kon niet verstuurd worden. Controleer het e-mailadres of probeer later opnieuw.</div>
             @endif
 
+            @if (session('success') === 'delete_blocked_quote')
+                <div class="form-error-list">Deze aanvraag kan niet verwijderd worden zolang er een offerte aan gekoppeld is. Verwijder eerst de offerte.</div>
+            @endif
+
             <div class="admin-detail-layout">
 
                 {{-- ===================== LEFT SIDEBAR ===================== --}}
@@ -313,6 +317,20 @@
                                 </form>
                             @endif
                         </div>
+
+                        @if ($customerRequest->quote === null)
+                            <form method="POST" action="{{ route('admin.requests.destroy', $customerRequest) }}"
+                                style="margin-top: 16px;"
+                                onsubmit="if (!confirm('Deze aanvraag definitief verwijderen? Bijlagen worden mee verwijderd. Dit kan niet ongedaan gemaakt worden.')) { return false; } this.querySelector('button[type=submit]').disabled = true; return true;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="admin-quick-action-btn admin-quick-action-lost">Aanvraag verwijderen</button>
+                            </form>
+                        @else
+                            <p style="margin-top: 16px; font-size: 13px; color: #6b7c8f;">
+                                Verwijderen is niet mogelijk zolang er een offerte aan deze aanvraag gekoppeld is.
+                            </p>
+                        @endif
                     </div>
 
                     {{-- Group 2: Klantgegevens --}}

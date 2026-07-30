@@ -98,8 +98,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="{{ request()->routeIs('admin.*') ? 'noindex, nofollow' : 'index, follow' }}">
     <meta name="description" content="@yield('meta_description', '')">
+    <meta name="theme-color" content="#ffffff">
 
     <title>@yield('title', $siteName)</title>
 
@@ -119,19 +120,21 @@
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
-    {{-- Favicon / app icons --}}
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-
-    {{-- Open Graph --}}
+    {{-- Open Graph / Twitter --}}
+    @php $socialImage = asset('assets/images/hero.png'); @endphp
+    <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:title" content="@yield('title', $siteName)">
     <meta property="og:description" content="@yield('meta_description', '')">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ $socialImage }}">
+    <meta property="og:image:width" content="1672">
+    <meta property="og:image:height" content="941">
     <meta property="og:locale" content="{{ $currentLocale === 'fr' ? 'fr_BE' : ($currentLocale === 'en' ? 'en_GB' : 'nl_BE') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title', $siteName)">
+    <meta name="twitter:description" content="@yield('meta_description', '')">
+    <meta name="twitter:image" content="{{ $socialImage }}">
 
     {{-- Hreflang alternates (only on public page views) --}}
     @if (isset($page))
@@ -143,7 +146,17 @@
             @endphp
             <link rel="alternate" hreflang="{{ $alt->locale }}" href="{{ $altUrl }}">
         @endforeach
-        <link rel="alternate" hreflang="x-default" href="{{ route('pages.home', ['locale' => 'nl']) }}">
+        @php
+            // x-default points to the NL version of THIS page (nl is the site
+            // default), so every hreflang cluster stays self-contained.
+            $xDefault = $page->translations->firstWhere('locale', 'nl');
+            $xDefaultUrl = $xDefault
+                ? ($page->type === 'home'
+                    ? route('pages.home', ['locale' => 'nl'])
+                    : route('pages.show', ['locale' => 'nl', 'slug' => $xDefault->slug]))
+                : route('pages.home', ['locale' => 'nl']);
+        @endphp
+        <link rel="alternate" hreflang="x-default" href="{{ $xDefaultUrl }}">
     @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])

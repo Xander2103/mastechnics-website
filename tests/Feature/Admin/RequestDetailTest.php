@@ -60,7 +60,8 @@ class RequestDetailTest extends TestCase
         $this->withSession($this->adminSession())
             ->get(route('admin.requests.show', $request))
             ->assertOk()
-            ->assertSee('Offerte aanmaken')
+            ->assertSee('✏ Bewerken')
+            ->assertDontSee('Offerte aanmaken')
             ->assertDontSee('Nog geen offerte aangemaakt voor deze aanvraag.');
     }
 

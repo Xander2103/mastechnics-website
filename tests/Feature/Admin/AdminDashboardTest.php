@@ -90,7 +90,9 @@ class AdminDashboardTest extends TestCase
 
     public function test_notifications_render_before_stats_and_widgets(): void
     {
-        $this->makeRequest();
+        $request = $this->makeRequest();
+        // A note makes the "Recente activiteit" panel render so its position can be compared.
+        $request->notes()->create(['author_email' => 'admin@test.com', 'body' => 'Testnotitie']);
 
         $html = $this->withSession($this->adminSession())
             ->get(route('admin.requests.index'))
@@ -98,7 +100,8 @@ class AdminDashboardTest extends TestCase
             ->getContent();
 
         $notificationPos = strpos($html, 'id="adminNotificationCenter"');
-        $statsRowPos      = strpos($html, 'admin-stats-row');
+        // Match the markup, not the ".admin-stats-row" selector in the inline <style> block.
+        $statsRowPos      = strpos($html, 'class="admin-stats-row"');
         $activityPos      = strpos($html, 'id="recentActivityToggle"');
         $statisticsPos    = strpos($html, 'id="statisticsToggle"');
 

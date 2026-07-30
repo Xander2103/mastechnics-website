@@ -158,7 +158,7 @@ class HomepageTest extends TestCase
 
             // Only one footer-credit link should render, not two.
             $html = $response->getContent();
-            $this->assertSame(1, substr_count($html, 'class="footer-credit"'));
+            $this->assertSame(1, substr_count($html, 'class="footer-credit-link"'));
         }
     }
 

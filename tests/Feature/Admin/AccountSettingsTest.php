@@ -37,6 +37,93 @@ class AccountSettingsTest extends TestCase
             ->assertSee('Wachtwoord wijzigen');
     }
 
+    public function test_account_page_lists_all_admins_without_password_data(): void
+    {
+        $this->makeAdmin();
+        AdminUser::create([
+            'name' => 'Xander',
+            'email' => 'xander@test.com',
+            'password' => Hash::make('AnderWachtwoord123'),
+        ]);
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.account.edit'))
+            ->assertOk()
+            ->assertSee('Beheerders')
+            ->assertSee('admin@test.com')
+            ->assertSee('xander@test.com')
+            ->assertDontSee('AnderWachtwoord123');
+    }
+
+    public function test_two_admin_accounts_can_coexist_and_change_independently(): void
+    {
+        $martin = $this->makeAdmin();
+        $xander = AdminUser::create([
+            'name' => 'Xander',
+            'email' => 'xander@test.com',
+            'password' => Hash::make('XanderWachtwoord1'),
+        ]);
+
+        // Martin changes his own email + password; only his row changes.
+        $this->withSession($this->adminSession())
+            ->patch(route('admin.account.email.update'), [
+                'email' => 'martin-nieuw@test.com',
+                'current_password' => 'CorrectHorse123!',
+            ])
+            ->assertSessionHas('success', 'account_email_updated');
+
+        $this->withSession(['admin_user_email' => 'martin-nieuw@test.com'])
+            ->patch(route('admin.account.password.update'), [
+                'current_password' => 'CorrectHorse123!',
+                'password' => 'NieuwWachtwoord42abc',
+                'password_confirmation' => 'NieuwWachtwoord42abc',
+            ])
+            ->assertSessionHas('success', 'account_password_updated');
+
+        $xander->refresh();
+        $this->assertSame('xander@test.com', $xander->email);
+        $this->assertTrue(Hash::check('XanderWachtwoord1', $xander->password));
+
+        // Xander changes his password; Martin's row stays untouched.
+        $this->withSession(['admin_user_email' => 'xander@test.com'])
+            ->patch(route('admin.account.password.update'), [
+                'current_password' => 'XanderWachtwoord1',
+                'password' => 'XanderNieuw42abcdef',
+                'password_confirmation' => 'XanderNieuw42abcdef',
+            ])
+            ->assertSessionHas('success', 'account_password_updated');
+
+        $martin->refresh();
+        $this->assertSame('martin-nieuw@test.com', $martin->email);
+        $this->assertTrue(Hash::check('NieuwWachtwoord42abc', $martin->password));
+    }
+
+    public function test_password_without_numbers_is_rejected(): void
+    {
+        $this->makeAdmin();
+
+        $this->withSession($this->adminSession())
+            ->patch(route('admin.account.password.update'), [
+                'current_password' => 'CorrectHorse123!',
+                'password' => 'alleenmaarletters',
+                'password_confirmation' => 'alleenmaarletters',
+            ])
+            ->assertSessionHasErrors('password');
+    }
+
+    public function test_password_without_letters_is_rejected(): void
+    {
+        $this->makeAdmin();
+
+        $this->withSession($this->adminSession())
+            ->patch(route('admin.account.password.update'), [
+                'current_password' => 'CorrectHorse123!',
+                'password' => '123456789012345',
+                'password_confirmation' => '123456789012345',
+            ])
+            ->assertSessionHasErrors('password');
+    }
+
     public function test_email_change_updates_database_and_session(): void
     {
         $admin = $this->makeAdmin();

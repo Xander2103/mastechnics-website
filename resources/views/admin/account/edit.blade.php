@@ -73,7 +73,7 @@
                         </label>
 
                         <label>
-                            <span>Nieuw wachtwoord (minstens 12 tekens)</span>
+                            <span>Nieuw wachtwoord (minstens 12 tekens, met letters en cijfers)</span>
                             <input type="password" name="password" required minlength="12" autocomplete="new-password">
                         </label>
 
@@ -84,6 +84,41 @@
 
                         <button type="submit" class="button button-primary">Opslaan</button>
                     </form>
+                </div>
+
+                <div class="admin-detail-card">
+                    <h2>Beheerders</h2>
+
+                    <p style="font-size: 14px; color: #6b7c8f;">
+                        Elke beheerder heeft een eigen account en wijzigt hier enkel de eigen gegevens.
+                        Nieuwe accounts worden veilig aangemaakt via <code>php artisan admin:create</code>.
+                    </p>
+
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Naam</th>
+                                    <th>E-mailadres</th>
+                                    <th>Aangemaakt op</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($admins as $admin)
+                                    <tr>
+                                        <td data-label="Naam">{{ $admin->name }}</td>
+                                        <td data-label="E-mailadres">
+                                            {{ $admin->email }}
+                                            @if ($admin->email === session('admin_user_email'))
+                                                <span class="admin-status admin-status-new">Ingelogd</span>
+                                            @endif
+                                        </td>
+                                        <td data-label="Aangemaakt op">{{ $admin->created_at?->format('d/m/Y') ?? '-' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

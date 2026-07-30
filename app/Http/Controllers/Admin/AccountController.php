@@ -8,13 +8,16 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class AccountController extends Controller
 {
     public function edit(): View
     {
-        return view('admin.account.edit');
+        return view('admin.account.edit', [
+            'admins' => AdminUser::orderBy('created_at')->get(['id', 'name', 'email', 'created_at']),
+        ]);
     }
 
     public function updateEmail(Request $request): RedirectResponse
@@ -52,7 +55,7 @@ class AccountController extends Controller
 
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:12', 'confirmed'],
+            'password' => ['required', 'string', 'confirmed', Password::min(12)->letters()->numbers()],
         ]);
 
         if (! Hash::check($validated['current_password'], $adminUser->password)) {

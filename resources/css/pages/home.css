@@ -5,22 +5,19 @@
 .home-hero {
     position: relative;
     overflow: hidden;
-    padding: 80px 0 88px;
+    padding: 96px 0;
     background: var(--color-background);
 }
 
 /* Fill the first viewport cleanly on desktop so the services section
    never starts partway up the fold. Left untouched on tablet/mobile so the
-   hero doesn't become unusably tall on short viewports. */
+   hero doesn't become unusably tall on short viewports. The inner .container
+   keeps the site-wide width so the text column lines up with other sections. */
 @media (min-width: 1024px) {
     .home-hero {
         display: flex;
         align-items: center;
         min-height: calc(100vh - var(--header-height));
-    }
-
-    .home-hero > .container {
-        width: 100%;
     }
 }
 
@@ -60,7 +57,7 @@
 
 .home-hero-layout {
     display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
+    grid-template-columns: 1.15fr 0.85fr;
     gap: 48px;
     align-items: center;
 }

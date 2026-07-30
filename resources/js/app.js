@@ -429,6 +429,102 @@ function initContactForm() {
     });
 }
 
+function initAdminConfirmModal() {
+    const modal = document.getElementById('admin-confirm-modal');
+    const backdrop = document.getElementById('admin-confirm-backdrop');
+
+    if (!modal || !backdrop) return;
+
+    const titleEl = document.getElementById('admin-confirm-title');
+    const bodyEl = document.getElementById('admin-confirm-body');
+    const acceptBtn = modal.querySelector('[data-confirm-accept]');
+    const cancelBtn = modal.querySelector('[data-confirm-cancel]');
+
+    let lastFocused = null;
+    let targetForm = null;
+
+    const getFocusableElements = () =>
+        Array.from(modal.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
+
+    const trapFocus = (event) => {
+        if (event.key !== 'Tab') return;
+
+        const focusable = getFocusableElements();
+        if (!focusable.length) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    };
+
+    const onKeydown = (event) => {
+        if (event.key === 'Escape') {
+            closeModal();
+            return;
+        }
+        trapFocus(event);
+    };
+
+    const openModal = (trigger) => {
+        const formSelector = trigger.getAttribute('data-confirm-form');
+        targetForm = formSelector ? document.querySelector(formSelector) : null;
+        if (!targetForm) return;
+
+        titleEl.textContent = trigger.getAttribute('data-confirm-title') || 'Bevestigen?';
+        bodyEl.textContent = trigger.getAttribute('data-confirm-body') || '';
+        acceptBtn.textContent = trigger.getAttribute('data-confirm-label') || 'Bevestigen';
+        acceptBtn.disabled = false;
+
+        lastFocused = trigger;
+        modal.hidden = false;
+        backdrop.hidden = false;
+        document.body.classList.add('admin-modal-open');
+        document.addEventListener('keydown', onKeydown);
+        acceptBtn.focus();
+    };
+
+    const closeModal = () => {
+        modal.hidden = true;
+        backdrop.hidden = true;
+        document.body.classList.remove('admin-modal-open');
+        document.removeEventListener('keydown', onKeydown);
+        targetForm = null;
+
+        if (lastFocused) {
+            lastFocused.focus();
+            lastFocused = null;
+        }
+    };
+
+    document.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element)) return;
+
+        const trigger = event.target.closest('[data-confirm-modal]');
+        if (trigger) {
+            event.preventDefault();
+            openModal(trigger);
+        }
+    });
+
+    acceptBtn.addEventListener('click', () => {
+        if (!targetForm) return;
+
+        // Prevent double submits from double-clicks, then submit the form.
+        acceptBtn.disabled = true;
+        targetForm.submit();
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initServicesDropdown();
@@ -438,4 +534,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initReviewsModal();
     initCustomCursor();
     initContactForm();
+    initAdminConfirmModal();
 });

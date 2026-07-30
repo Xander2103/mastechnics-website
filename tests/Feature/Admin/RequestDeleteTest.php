@@ -112,6 +112,64 @@ class RequestDeleteTest extends TestCase
         $this->assertDatabaseHas('customer_requests', ['id' => $request->id]);
     }
 
+    public function test_overview_renders_delete_button_and_confirm_modal(): void
+    {
+        $request = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.index'))
+            ->assertOk()
+            ->assertSee('aria-label="Aanvraag verwijderen"', false)
+            ->assertSee('data-confirm-form="#delete-request-' . $request->id . '"', false)
+            ->assertSee('data-confirm-title="Aanvraag verwijderen?"', false)
+            ->assertSee('Definitief verwijderen')
+            ->assertSee('id="admin-confirm-modal"', false)
+            ->assertSee('role="dialog"', false)
+            ->assertSee('aria-modal="true"', false)
+            ->assertSee('aria-labelledby="admin-confirm-title"', false)
+            ->assertSee('aria-describedby="admin-confirm-body"', false)
+            ->assertSee('Annuleren');
+    }
+
+    public function test_delete_from_overview_preserves_filters_in_redirect(): void
+    {
+        $request = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->delete(route('admin.requests.destroy', $request), [
+                'search' => 'Test',
+                'status' => 'new',
+            ])
+            ->assertRedirect(route('admin.requests.index', ['search' => 'Test', 'status' => 'new']))
+            ->assertSessionHas('success', 'request_deleted');
+
+        $this->assertDatabaseMissing('customer_requests', ['id' => $request->id]);
+    }
+
+    public function test_unknown_keys_are_not_reflected_in_delete_redirect(): void
+    {
+        $request = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->delete(route('admin.requests.destroy', $request), [
+                'status' => 'new',
+                'evil' => 'https://example.com/phish',
+            ])
+            ->assertRedirect(route('admin.requests.index', ['status' => 'new']));
+    }
+
+    public function test_detail_page_delete_uses_modal_instead_of_native_confirm(): void
+    {
+        $request = $this->makeRequest();
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.show', $request))
+            ->assertOk()
+            ->assertSee('data-confirm-form="#delete-request-form"', false)
+            ->assertSee('id="admin-confirm-modal"', false)
+            ->assertDontSee('onsubmit="if (!confirm(', false);
+    }
+
     public function test_delete_button_hidden_when_quote_exists(): void
     {
         $request = $this->makeRequest();

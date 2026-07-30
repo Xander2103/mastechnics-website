@@ -320,11 +320,19 @@
 
                         @if ($customerRequest->quote === null)
                             <form method="POST" action="{{ route('admin.requests.destroy', $customerRequest) }}"
-                                style="margin-top: 16px;"
-                                onsubmit="if (!confirm('Deze aanvraag definitief verwijderen? Bijlagen worden mee verwijderd. Dit kan niet ongedaan gemaakt worden.')) { return false; } this.querySelector('button[type=submit]').disabled = true; return true;">
+                                id="delete-request-form"
+                                style="margin-top: 16px;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="admin-quick-action-btn admin-quick-action-lost">Aanvraag verwijderen</button>
+                                <button
+                                    type="button"
+                                    class="admin-quick-action-btn admin-quick-action-lost"
+                                    data-confirm-modal
+                                    data-confirm-title="Aanvraag verwijderen?"
+                                    data-confirm-body="Weet u zeker dat u de aanvraag van {{ $customerRequest->customer_name }} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+                                    data-confirm-label="Definitief verwijderen"
+                                    data-confirm-form="#delete-request-form"
+                                >Aanvraag verwijderen</button>
                             </form>
                         @else
                             <p style="margin-top: 16px; font-size: 13px; color: #6b7c8f;">
@@ -1124,4 +1132,6 @@
         }
     }());
     </script>
+
+    @include('partials.admin-confirm-modal')
 @endsection

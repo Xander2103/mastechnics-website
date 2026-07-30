@@ -445,7 +445,7 @@ class RequestController extends Controller
         }
     }
 
-    public function destroy(CustomerRequest $customerRequest): RedirectResponse
+    public function destroy(Request $request, CustomerRequest $customerRequest): RedirectResponse
     {
         // Collect file paths before any DB row is removed.
         $attachmentPaths = $customerRequest->attachments()->pluck('path')->all();
@@ -490,8 +490,15 @@ class RequestController extends Controller
             }
         }
 
+        // The overview's delete form re-submits the active filters so the admin
+        // lands back on the same filtered view. Only known filter keys pass through.
+        $filters = collect($request->only([
+            'search', 'status', 'service_slug', 'service_category', 'request_type',
+            'urgency', 'customer_type', 'has_quote', 'date_from', 'date_to',
+        ]))->filter(fn ($value) => is_string($value) && $value !== '')->all();
+
         return redirect()
-            ->route('admin.requests.index')
+            ->route('admin.requests.index', $filters)
             ->with('success', 'request_deleted');
     }
 

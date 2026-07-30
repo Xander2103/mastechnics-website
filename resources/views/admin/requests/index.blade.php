@@ -250,8 +250,18 @@
 
     <section class="section section-white">
         <div class="container">
+            @php
+                // Non-empty filters, re-submitted with each row's delete form so the
+                // redirect after deletion lands back on the same filtered view.
+                $activeFilters = collect($filters)->filter(fn ($value) => $value !== '')->all();
+            @endphp
+
             @if (session('success') === 'request_deleted')
                 <div class="form-success">Aanvraag werd definitief verwijderd.</div>
+            @endif
+
+            @if (session('success') === 'delete_blocked_quote')
+                <div class="form-error-list">Deze aanvraag heeft een offerte en kan niet verwijderd worden. Verwijder eerst de offerte.</div>
             @endif
 
             {{-- Notification center — rendered first, above stats/widgets/activity/statistics --}}
@@ -653,9 +663,37 @@
                                             </span>
                                         </td>
                                         <td data-label="">
-                                            <a class="admin-link" href="{{ route('admin.requests.show', $request) }}">
-                                                Bekijken
-                                            </a>
+                                            <div class="admin-row-actions">
+                                                <a class="admin-link" href="{{ route('admin.requests.show', $request) }}">
+                                                    Bekijken
+                                                </a>
+
+                                                <form
+                                                    method="POST"
+                                                    action="{{ route('admin.requests.destroy', $request) }}"
+                                                    id="delete-request-{{ $request->id }}"
+                                                    class="admin-delete-form"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    @foreach ($activeFilters as $filterKey => $filterValue)
+                                                        <input type="hidden" name="{{ $filterKey }}" value="{{ $filterValue }}">
+                                                    @endforeach
+                                                </form>
+
+                                                <button
+                                                    type="button"
+                                                    class="admin-delete-btn"
+                                                    aria-label="Aanvraag verwijderen"
+                                                    data-confirm-modal
+                                                    data-confirm-title="Aanvraag verwijderen?"
+                                                    data-confirm-body="Weet u zeker dat u de aanvraag van {{ $request->customer_name }} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+                                                    data-confirm-label="Definitief verwijderen"
+                                                    data-confirm-form="#delete-request-{{ $request->id }}"
+                                                >
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -666,4 +704,6 @@
             </div>
         </div>
     </section>
+
+    @include('partials.admin-confirm-modal')
 @endsection

@@ -1366,3 +1366,124 @@
         flex-direction: column;
     }
 }
+
+/* ================================
+   Shared admin confirmation modal
+================================ */
+
+body.admin-modal-open {
+    overflow: hidden;
+}
+
+.admin-confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(9, 36, 63, 0.55);
+}
+
+.admin-confirm-backdrop[hidden],
+.admin-confirm-modal[hidden] {
+    display: none;
+}
+
+.admin-confirm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1201;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.admin-confirm-inner {
+    width: 100%;
+    max-width: 440px;
+    padding: 28px;
+    background: var(--color-white);
+    border-radius: 18px;
+    box-shadow: var(--shadow-strong);
+}
+
+.admin-confirm-inner h2 {
+    margin-bottom: 10px;
+    font-size: 1.15rem;
+    color: var(--color-primary-dark);
+}
+
+.admin-confirm-inner p {
+    margin-bottom: 22px;
+    color: var(--color-muted);
+    line-height: 1.55;
+}
+
+.admin-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-button-danger {
+    background: #c0392b;
+    color: #ffffff;
+    border: 1px solid #a93226;
+}
+
+.admin-button-danger:hover {
+    background: #a93226;
+    color: #ffffff;
+}
+
+.admin-button-danger:focus-visible {
+    outline: 3px solid rgba(192, 57, 43, 0.4);
+    outline-offset: 2px;
+}
+
+/* ================================
+   Row delete button (requests overview)
+================================ */
+
+.admin-row-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.admin-delete-form {
+    display: none;
+}
+
+.admin-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: 1px solid rgba(192, 57, 43, 0.35);
+    border-radius: 10px;
+    background: #fdf2f1;
+    color: #c0392b;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-delete-btn:hover {
+    background: #f9dedb;
+    border-color: #c0392b;
+}
+
+.admin-delete-btn:focus-visible {
+    outline: 3px solid rgba(192, 57, 43, 0.4);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-delete-btn,
+    .admin-button-danger {
+        transition: none;
+    }
+}

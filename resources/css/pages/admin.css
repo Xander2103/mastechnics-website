@@ -1368,6 +1368,149 @@
 }
 
 /* ================================
+   Admin top navigation
+================================ */
+
+.admin-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.admin-header-container {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: var(--header-height);
+}
+
+.admin-header-logo {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.admin-header-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #0f3557;
+    color: var(--color-white);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.admin-nav a,
+.admin-nav-logout button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--color-primary-dark);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.admin-nav a:hover,
+.admin-nav-logout button:hover {
+    background: #eaf2fb;
+}
+
+.admin-nav a.is-active {
+    background: #dbeafe;
+}
+
+.admin-nav a:focus-visible,
+.admin-nav-logout button:focus-visible,
+.admin-nav-toggle:focus-visible {
+    outline: 3px solid rgba(15, 102, 194, 0.4);
+    outline-offset: 2px;
+}
+
+.admin-nav-logout {
+    display: inline-flex;
+    margin: 0;
+}
+
+.admin-nav-toggle {
+    display: none;
+    margin-left: auto;
+    width: 44px;
+    height: 44px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-white);
+    cursor: pointer;
+}
+
+.admin-nav-toggle span {
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-primary-dark);
+}
+
+@media (max-width: 1023px) {
+    .admin-header-container {
+        flex-wrap: wrap;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .admin-nav-toggle {
+        display: inline-flex;
+    }
+
+    .admin-nav {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        margin-left: 0;
+        padding: 6px 0 12px;
+    }
+
+    .admin-header.is-open .admin-nav {
+        display: flex;
+    }
+
+    .admin-nav-logout,
+    .admin-nav-logout button {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-nav a,
+    .admin-nav-logout button {
+        transition: none;
+    }
+}
+
+/* ================================
    Shared admin confirmation modal
 ================================ */
 

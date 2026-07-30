@@ -221,6 +221,16 @@
 </head>
 
 <body>
+@php
+    // Admin pages get a dedicated header; the public marketing nav (with its
+    // CTA and language switcher) is only for visitors. The session check keeps
+    // admin links away from logged-out visitors on /admin/login.
+    $isAdminContext = request()->routeIs('admin.*') && session()->has('admin_user_email');
+@endphp
+
+@if ($isAdminContext)
+    @include('partials.admin-header')
+@else
   <header class="site-header">
     <div class="container header-container">
         <a class="site-logo" href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}">
@@ -322,6 +332,7 @@
         </div>
     </div>
 </header>
+@endif
 
     <main>
         @yield('content')
@@ -381,21 +392,23 @@
                 </ul>
             </div>
 
-            <div>
-                <h3>{{ $nav['footer_request_title'] }}</h3>
+            @unless ($isAdminContext)
+                <div>
+                    <h3>{{ $nav['footer_request_title'] }}</h3>
 
-                <p>
-                    {{ $nav['footer_request_text'] }}
-                </p>
+                    <p>
+                        {{ $nav['footer_request_text'] }}
+                    </p>
 
-                <a class="footer-link"
-                    href="{{ route('pages.show', [
-                        'locale' => $currentLocale,
-                        'slug' => $requestSlug,
-                    ]) }}">
-                    {{ $nav['request'] }}
-                </a>
-            </div>
+                    <a class="footer-link"
+                        href="{{ route('pages.show', [
+                            'locale' => $currentLocale,
+                            'slug' => $requestSlug,
+                        ]) }}">
+                        {{ $nav['request'] }}
+                    </a>
+                </div>
+            @endunless
         </div>
 
         <div class="container footer-bottom">
@@ -414,24 +427,13 @@
             <div class="footer-bottom-right">
 
 
-                @if (session()->has('admin_user_email'))
-                    <div class="footer-admin-actions">
-                        <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
-                            Admin panel
-                        </a>
-
-                        <a class="footer-admin-link" href="{{ route('admin.account.edit') }}">
-                            Account
-                        </a>
-
-                        <form method="POST" action="{{ route('admin.logout') }}" class="footer-admin-form">
-                            @csrf
-
-                            <button type="submit" class="footer-admin-link">
-                                Uitloggen
-                            </button>
-                        </form>
-                    </div>
+                @if ($isAdminContext)
+                    {{-- Admin pages: Account and Uitloggen live in the admin
+                         top navigation; the footer does not duplicate them. --}}
+                @elseif (session()->has('admin_user_email'))
+                    <a class="footer-admin-link" href="{{ route('admin.requests.index') }}">
+                        Admin panel
+                    </a>
                 @else
                     <a class="footer-admin-link" href="{{ route('admin.login') }}">
                         Admin

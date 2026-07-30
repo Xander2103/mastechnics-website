@@ -429,6 +429,37 @@ function initContactForm() {
     });
 }
 
+function initAdminNav() {
+    const header = document.querySelector('.admin-header');
+    if (!header) return;
+
+    const toggle = header.querySelector('.admin-nav-toggle');
+    const menu = header.querySelector('#adminHeaderMenu');
+    if (!toggle || !menu) return;
+
+    const closeMenu = () => {
+        header.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+    };
+
+    toggle.addEventListener('click', () => {
+        const isOpen = header.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    // Navigating (or logging out) closes the compact menu.
+    menu.querySelectorAll('a, button').forEach((item) => {
+        item.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && header.classList.contains('is-open')) {
+            closeMenu();
+            toggle.focus();
+        }
+    });
+}
+
 function initAdminConfirmModal() {
     const modal = document.getElementById('admin-confirm-modal');
     const backdrop = document.getElementById('admin-confirm-backdrop');
@@ -542,5 +573,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initReviewsModal();
     initCustomCursor();
     initContactForm();
+    initAdminNav();
     initAdminConfirmModal();
 });

@@ -2,10 +2,23 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\PageSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ReviewsTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The homepage-rendering tests below need the pages tables and the
+        // seeded home page; without them every GET /{locale} request 500s.
+        $this->seed(PageSeeder::class);
+    }
+
     public function test_exactly_eleven_reviews_are_configured(): void
     {
         $this->assertCount(11, config('reviews.reviews'));

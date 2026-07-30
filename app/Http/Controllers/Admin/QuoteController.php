@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class QuoteController extends Controller
@@ -131,26 +132,47 @@ class QuoteController extends Controller
             'body'    => ['required', 'string', 'max:5000'],
         ]);
 
-        $quote->load('items');
+        // Double-click / concurrent-request guard: only one send per quote
+        // may run at a time. The UI also disables the submit button, but the
+        // lock closes the server-side race.
+        $lock = Cache::lock('quote-email-send-' . $customerRequest->id, 15);
 
-        $pdfBinary = $this->renderQuotePdf($quote, $customerRequest)->output();
+        if (! $lock->get()) {
+            return back()->with('success', 'quote_email_in_progress');
+        }
 
-        $sent = MailDispatcher::send(
-            $validated['to'],
-            new QuoteSentMail($customerRequest, $quote, $validated['subject'], $validated['body'], $pdfBinary),
-            $customerRequest
-        );
+        try {
+            // The send form only renders for draft quotes; a replayed POST
+            // against an already-sent quote must not email the customer again.
+            if ($quote->quote_status !== 'draft') {
+                return back()->with('success', 'quote_email_already_sent');
+            }
 
-        // The admin explicitly performed the "send" action, so the quote/request
-        // status always moves forward — mail delivery failures are surfaced
-        // separately (mail_logs + flash message) rather than silently blocking
-        // the workflow, consistent with the public request-flow pattern.
-        $this->applyMarkSent($quote, $customerRequest);
+            $quote->load('items');
 
-        return back()->with(
-            'success',
-            $sent ? 'quote_email_sent' : 'quote_email_failed'
-        );
+            $pdfBinary = $this->renderQuotePdf($quote, $customerRequest)->output();
+
+            $sent = MailDispatcher::send(
+                $validated['to'],
+                new QuoteSentMail($customerRequest, $quote, $validated['subject'], $validated['body'], $pdfBinary),
+                $customerRequest
+            );
+
+            // Status and quote_sent_at only advance when the mail actually
+            // went out; a failed send leaves the quote in draft so the admin
+            // can retry. (MailDispatcher already isolates mail-log failures
+            // from the send outcome, so a log hiccup never causes a resend.)
+            if ($sent) {
+                $this->applyMarkSent($quote, $customerRequest);
+            }
+
+            return back()->with(
+                'success',
+                $sent ? 'quote_email_sent' : 'quote_email_failed'
+            );
+        } finally {
+            $lock->release();
+        }
     }
 
     private function renderQuotePdf(Quote $quote, CustomerRequest $customerRequest)

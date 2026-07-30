@@ -481,6 +481,130 @@ class QuoteTest extends TestCase
         ]);
     }
 
+    public function test_send_form_prefills_texts_in_customer_request_locale(): void
+    {
+        $req = $this->makeRequest(['locale' => 'fr']);
+        $this->makeQuote($req);
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.show', $req))
+            ->assertOk()
+            ->assertSee('Votre devis de Mastechnics')
+            ->assertSee('Comme convenu, vous trouverez notre devis en pièce jointe.');
+    }
+
+    public function test_send_form_prefill_falls_back_to_dutch_for_unknown_locale(): void
+    {
+        $req = $this->makeRequest(['locale' => 'de']);
+        $this->makeQuote($req);
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.show', $req))
+            ->assertOk()
+            ->assertSee('Uw offerte van Mastechnics')
+            ->assertSee('Zoals besproken vindt u in bijlage onze offerte.');
+    }
+
+    public function test_admin_app_locale_does_not_change_prefill_language(): void
+    {
+        $req = $this->makeRequest(['locale' => 'nl']);
+        $this->makeQuote($req);
+
+        app()->setLocale('en');
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.show', $req))
+            ->assertOk()
+            ->assertSee('Uw offerte van Mastechnics')
+            ->assertDontSee('Your quotation from Mastechnics');
+    }
+
+    public function test_quote_email_subject_and_template_follow_request_locale(): void
+    {
+        Mail::fake();
+
+        foreach (['nl' => 'Uw offerte van Mastechnics', 'fr' => 'Votre devis de Mastechnics', 'en' => 'Your quotation from Mastechnics'] as $locale => $subject) {
+            $req = $this->makeRequest([
+                'locale' => $locale,
+                'customer_email' => "klant-{$locale}@example.com",
+            ]);
+            $this->makeQuote($req);
+
+            $this->withSession($this->adminSession())
+                ->post(route('admin.requests.quote.send-email', $req), [
+                    'to'      => "klant-{$locale}@example.com",
+                    'subject' => \App\Services\QuoteEmailTextService::subject($req),
+                    'body'    => \App\Services\QuoteEmailTextService::body($req),
+                ])
+                ->assertSessionHas('success', 'quote_email_sent');
+
+            Mail::assertSent(QuoteSentMail::class, function (QuoteSentMail $mail) use ($locale, $subject) {
+                if (! $mail->hasTo("klant-{$locale}@example.com")) {
+                    return false;
+                }
+
+                $rendered = $mail->render();
+
+                return $mail->envelope()->subject === $subject
+                    && str_contains($rendered, 'lang="' . $locale . '"')
+                    && count($mail->attachments()) === 1;
+            });
+        }
+    }
+
+    public function test_replayed_send_post_does_not_email_twice(): void
+    {
+        Mail::fake();
+
+        $req = $this->makeRequest(['customer_email' => 'klant@example.com']);
+        $this->makeQuote($req);
+
+        $payload = [
+            'to'      => 'klant@example.com',
+            'subject' => 'Uw offerte van Mastechnics',
+            'body'    => 'Hierbij de offerte.',
+        ];
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.send-email', $req), $payload)
+            ->assertSessionHas('success', 'quote_email_sent');
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.send-email', $req), $payload)
+            ->assertSessionHas('success', 'quote_email_already_sent');
+
+        Mail::assertSentTimes(QuoteSentMail::class, 1);
+    }
+
+    public function test_failed_mail_does_not_mark_quote_sent(): void
+    {
+        Mail::shouldReceive('to->send')->andThrow(new \RuntimeException('SMTP down'));
+
+        $req = $this->makeRequest(['customer_email' => 'klant@example.com']);
+        $quote = $this->makeQuote($req);
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.quote.send-email', $req), [
+                'to'      => 'klant@example.com',
+                'subject' => 'Uw offerte van Mastechnics',
+                'body'    => 'Hierbij de offerte.',
+            ])
+            ->assertSessionHas('success', 'quote_email_failed');
+
+        $quote->refresh();
+        $req->refresh();
+
+        $this->assertSame('draft', $quote->quote_status);
+        $this->assertNull($quote->sent_at);
+        $this->assertSame('new', $req->status);
+        $this->assertNull($req->quote_sent_at);
+
+        $this->assertDatabaseHas('mail_logs', [
+            'customer_request_id' => $req->id,
+            'status' => 'failed',
+        ]);
+    }
+
     public function test_send_quote_email_requires_admin_auth(): void
     {
         $req = $this->makeRequest();

@@ -173,7 +173,19 @@
 
             @if (session('success') === 'quote_email_failed')
                 <div class="form-error-list">
-                    De offerte-status werd bijgewerkt, maar de e-mail kon niet verstuurd worden. Controleer het e-mailadres of probeer later opnieuw.
+                    De e-mail kon niet verstuurd worden. De offerte blijft in concept; controleer het e-mailadres of probeer later opnieuw.
+                </div>
+            @endif
+
+            @if (session('success') === 'quote_email_already_sent')
+                <div class="form-error-list">
+                    De offerte werd eerder al verstuurd. Er werd geen nieuwe e-mail verzonden.
+                </div>
+            @endif
+
+            @if (session('success') === 'quote_email_in_progress')
+                <div class="form-error-list">
+                    Er is al een verzending bezig. Probeer zo dadelijk opnieuw.
                 </div>
             @endif
 
@@ -554,21 +566,12 @@
 
                     @if ($quote && $quote->quote_status === 'draft')
                         @php
-                            $quoteEmailDefaults = [
-                                'nl' => [
-                                    'subject' => 'Uw offerte ' . ($quote->quote_number ?: '') . ' — ' . config('site.name'),
-                                    'body' => "Beste {$customerRequest->customer_name},\n\nHierbij bezorgen we u de offerte voor uw aanvraag. U vindt alle details in de bijgevoegde PDF.\n\nHeeft u nog vragen? Neem gerust contact met ons op.\n\nMet vriendelijke groeten,\n" . config('site.name'),
-                                ],
-                                'fr' => [
-                                    'subject' => 'Votre devis ' . ($quote->quote_number ?: '') . ' — ' . config('site.name'),
-                                    'body' => "Bonjour {$customerRequest->customer_name},\n\nVeuillez trouver ci-joint le devis pour votre demande. Tous les détails figurent dans le PDF joint.\n\nN'hésitez pas à nous contacter pour toute question.\n\nCordialement,\n" . config('site.name'),
-                                ],
-                                'en' => [
-                                    'subject' => 'Your quote ' . ($quote->quote_number ?: '') . ' — ' . config('site.name'),
-                                    'body' => "Hello {$customerRequest->customer_name},\n\nPlease find attached the quote for your request. All details are in the attached PDF.\n\nFeel free to contact us with any questions.\n\nKind regards,\n" . config('site.name'),
-                                ],
+                            // Single source of truth for quote email texts,
+                            // resolved from the customer's request locale.
+                            $quoteEmailDefault = [
+                                'subject' => \App\Services\QuoteEmailTextService::subject($customerRequest),
+                                'body' => \App\Services\QuoteEmailTextService::body($customerRequest),
                             ];
-                            $quoteEmailDefault = $quoteEmailDefaults[$customerRequest->locale] ?? $quoteEmailDefaults['nl'];
                         @endphp
 
                         <div class="reviews-modal-backdrop" id="sendQuoteBackdrop" hidden></div>
@@ -581,7 +584,8 @@
                                 <h2 id="sendQuoteModalTitle">Offerte versturen</h2>
                                 <p class="admin-muted-text">De PDF wordt automatisch als bijlage toegevoegd.</p>
 
-                                <form method="POST" action="{{ route('admin.requests.quote.send-email', $customerRequest) }}" class="admin-quote-send-form">
+                                <form method="POST" action="{{ route('admin.requests.quote.send-email', $customerRequest) }}" class="admin-quote-send-form"
+                                    onsubmit="this.querySelector('button[type=submit]').disabled = true; return true;">
                                     @csrf
 
                                     <label>

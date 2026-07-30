@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\StandardReplyMail;
 use App\Models\CustomerRequest;
+use App\Models\CustomerRequestAttachment;
 use App\Models\CustomerRequestNote;
 use App\Models\Quote;
 use App\Services\ActivityService;
@@ -500,6 +501,39 @@ class RequestController extends Controller
         return redirect()
             ->route('admin.requests.index', $filters)
             ->with('success', 'request_deleted');
+    }
+
+    /**
+     * Streams an attachment from storage through an admin-only route so the
+     * detail page never exposes filesystem paths. Images render inline (for
+     * thumbnails and quick viewing), everything else downloads.
+     */
+    public function downloadAttachment(CustomerRequest $customerRequest, CustomerRequestAttachment $attachment): StreamedResponse
+    {
+        // Ownership check: a 404 (not 403) so attachment IDs cannot be
+        // enumerated across other customers' requests.
+        abort_if($attachment->customer_request_id !== $customerRequest->id, 404);
+
+        $disk = Storage::disk('public');
+
+        abort_unless(is_string($attachment->path)
+            && $attachment->path !== ''
+            && ! str_contains($attachment->path, '..')
+            && str_starts_with($attachment->path, 'customer-requests/')
+            && $disk->exists($attachment->path), 404);
+
+        $isImage = str_starts_with((string) $attachment->mime_type, 'image/');
+
+        // Content-Disposition filenames cannot contain path separators or
+        // control characters; the original client-supplied name is sanitized.
+        $safeName = trim(str_replace(['/', '\\', '"', '%', "\r", "\n"], '_', $attachment->original_name));
+
+        return $disk->response(
+            $attachment->path,
+            $safeName !== '' ? $safeName : 'bijlage',
+            ['X-Content-Type-Options' => 'nosniff'],
+            $isImage ? 'inline' : 'attachment'
+        );
     }
 
     public function updateInternalNotes(Request $request, CustomerRequest $customerRequest): RedirectResponse

@@ -37,6 +37,35 @@ class AccountSettingsTest extends TestCase
             ->assertSee('Wachtwoord wijzigen');
     }
 
+    public function test_account_page_shows_spam_section_with_active_block_count(): void
+    {
+        $this->makeAdmin();
+        \App\Models\BlockedEmail::create([
+            'email' => 'spam@example.com',
+            'blocked_by' => 'admin@test.com',
+            'is_active' => true,
+        ]);
+        \App\Models\BlockedEmail::create([
+            'email' => 'oud@example.com',
+            'blocked_by' => 'admin@test.com',
+            'is_active' => false,
+        ]);
+        \App\Models\BlockedEmail::create([
+            'email' => 'verlopen@example.com',
+            'blocked_by' => 'admin@test.com',
+            'is_active' => true,
+            'expires_at' => now()->subDay(),
+        ]);
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.account.edit'))
+            ->assertOk()
+            ->assertSee('Spam en blokkeringen')
+            ->assertSee('Beheer e-mailadressen die het contactformulier niet meer mogen gebruiken.')
+            ->assertSee('Actieve blokkeringen: <strong>1</strong>', false)
+            ->assertSee(route('admin.blocked-emails.index'));
+    }
+
     public function test_account_page_lists_all_admins_without_password_data(): void
     {
         $this->makeAdmin();

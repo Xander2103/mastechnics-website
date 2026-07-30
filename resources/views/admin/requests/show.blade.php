@@ -876,19 +876,44 @@
                         @else
                             <div class="admin-attachments-grid">
                                 @foreach ($customerRequest->attachments as $attachment)
-                                    <a class="admin-attachment-card" href="{{ asset('storage/' . $attachment->path) }}"
-                                        target="_blank" rel="noopener">
-                                        @if (str_starts_with($attachment->mime_type ?? '', 'image/'))
-                                            <img src="{{ asset('storage/' . $attachment->path) }}"
-                                                alt="{{ $attachment->original_name }}">
+                                    @php
+                                        $attachmentUrl = route('admin.requests.attachments.download', [$customerRequest, $attachment]);
+                                        $attachmentIsImage = str_starts_with($attachment->mime_type ?? '', 'image/');
+                                        $attachmentExists = \Illuminate\Support\Facades\Storage::disk('public')->exists($attachment->path ?? '');
+                                        $attachmentType = $attachmentIsImage
+                                            ? 'Afbeelding'
+                                            : ($attachment->mime_type === 'application/pdf' ? 'PDF' : 'Bestand');
+                                        $attachmentSize = $attachment->size > 0
+                                            ? ($attachment->size >= 1048576
+                                                ? number_format($attachment->size / 1048576, 1, ',', '.') . ' MB'
+                                                : max(1, (int) round($attachment->size / 1024)) . ' kB')
+                                            : null;
+                                    @endphp
+
+                                    <div class="admin-attachment-card">
+                                        @if ($attachmentExists && $attachmentIsImage)
+                                            <a href="{{ $attachmentUrl }}" target="_blank" rel="noopener"
+                                                aria-label="Bijlage {{ $attachment->original_name }} openen">
+                                                <img src="{{ $attachmentUrl }}" alt="{{ $attachment->original_name }}" loading="lazy">
+                                            </a>
                                         @else
-                                            <div class="admin-attachment-file">
-                                                Bestand
-                                            </div>
+                                            <div class="admin-attachment-file">{{ $attachmentType }}</div>
                                         @endif
 
-                                        <span>{{ $attachment->original_name }}</span>
-                                    </a>
+                                        <span class="admin-attachment-name">{{ $attachment->original_name }}</span>
+
+                                        <span class="admin-attachment-details">
+                                            {{ $attachmentType }}{{ $attachmentSize ? ' · ' . $attachmentSize : '' }} · {{ $attachment->created_at?->format('d/m/Y H:i') ?? '-' }}
+                                        </span>
+
+                                        @if ($attachmentExists)
+                                            <a class="admin-link admin-attachment-action" href="{{ $attachmentUrl }}" target="_blank" rel="noopener">
+                                                {{ $attachmentIsImage ? 'Openen' : 'Downloaden' }}
+                                            </a>
+                                        @else
+                                            <span class="admin-attachment-missing">Bestand niet meer beschikbaar.</span>
+                                        @endif
+                                    </div>
                                 @endforeach
                             </div>
                         @endif

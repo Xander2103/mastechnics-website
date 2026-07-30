@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminUser;
+use App\Models\BlockedEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +18,11 @@ class AccountController extends Controller
     {
         return view('admin.account.edit', [
             'admins' => AdminUser::orderBy('created_at')->get(['id', 'name', 'email', 'created_at']),
+            'activeBlockCount' => BlockedEmail::where('is_active', true)
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })
+                ->count(),
         ]);
     }
 

@@ -557,6 +557,26 @@
     font-weight: 900;
 }
 
+.admin-attachment-name {
+    word-break: break-word;
+}
+
+.admin-attachment-details {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.admin-attachment-action {
+    justify-self: start;
+}
+
+.admin-attachment-missing {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #a93226;
+}
+
 /* ================================
    Admin login
 ================================ */

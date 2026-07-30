@@ -68,6 +68,9 @@ Route::middleware('admin')
         Route::patch('/requests/{customerRequest}/internal-notes', [AdminRequestController::class, 'updateInternalNotes'])
             ->name('requests.internal-notes.update');
 
+        Route::get('/requests/{customerRequest}/attachments/{attachment}', [AdminRequestController::class, 'downloadAttachment'])
+            ->name('requests.attachments.download');
+
         Route::get('/requests/{customerRequest}/quote/edit', [AdminQuoteController::class, 'edit'])
             ->name('requests.quote.edit');
 

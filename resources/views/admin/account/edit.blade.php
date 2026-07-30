@@ -87,6 +87,22 @@
                 </div>
 
                 <div class="admin-detail-card">
+                    <h2>Spam en blokkeringen</h2>
+
+                    <p style="font-size: 14px; color: #6b7c8f;">
+                        Beheer e-mailadressen die het contactformulier niet meer mogen gebruiken.
+                    </p>
+
+                    <p>
+                        Actieve blokkeringen: <strong>{{ $activeBlockCount }}</strong>
+                    </p>
+
+                    <a class="button button-secondary" href="{{ route('admin.blocked-emails.index') }}">
+                        Geblokkeerde e-mails beheren
+                    </a>
+                </div>
+
+                <div class="admin-detail-card">
                     <h2>Beheerders</h2>
 
                     <p style="font-size: 14px; color: #6b7c8f;">

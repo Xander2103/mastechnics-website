@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\ContactMessageConfirmationMail;
 use App\Mail\ContactMessageMail;
+use App\Models\BlockedEmail;
 use App\Models\ContactSubmission;
 use App\Services\MailDispatcher;
 use Illuminate\Database\QueryException;
@@ -55,6 +56,17 @@ class ContactController extends Controller
             'subject' => ['nullable', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:5000'],
         ], [], $this->validationAttributes($locale));
+
+        // Blocklist check happens after validation but before the submission
+        // is claimed or the rate limiter is hit: a blocked sender consumes no
+        // quota, stores nothing and triggers no mail (admin nor confirmation).
+        // The message is deliberately neutral so the block itself is not
+        // revealed. Applies only to this contact form, not the request wizard.
+        if (BlockedEmail::isBlocked($validated['email'])) {
+            return back()
+                ->withErrors(['blocked' => $this->blockedMessage($locale)])
+                ->withInput();
+        }
 
         $subject = trim($validated['subject'] ?? '') !== ''
             ? $validated['subject']
@@ -145,7 +157,13 @@ class ContactController extends Controller
 
             return [$submission, true];
         } catch (QueryException $e) {
-            $existing = ContactSubmission::where('token', $token)->first();
+            try {
+                $existing = ContactSubmission::where('token', $token)->first();
+            } catch (QueryException) {
+                // The table is unavailable altogether — the duplicate lookup
+                // can't work either, so fall through to the always-new path.
+                $existing = null;
+            }
 
             if ($existing) {
                 // Genuine duplicate: another request already claimed this
@@ -181,6 +199,17 @@ class ContactController extends Controller
         ];
 
         return $subjects[$locale] ?? $subjects['nl'];
+    }
+
+    private function blockedMessage(string $locale): string
+    {
+        $messages = [
+            'nl' => 'Uw bericht kon niet worden verwerkt. Neem bij een dringende vraag telefonisch contact met ons op.',
+            'fr' => "Votre message n'a pas pu être traité. Pour une demande urgente, contactez-nous par téléphone.",
+            'en' => 'Your message could not be processed. For urgent enquiries, please contact us by phone.',
+        ];
+
+        return $messages[$locale] ?? $messages['nl'];
     }
 
     private function rateLimitMessage(string $locale): string

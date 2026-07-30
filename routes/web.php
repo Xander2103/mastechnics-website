@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\BlockedEmailController as AdminBlockedEmailController;
 use App\Http\Controllers\Admin\QuoteController as AdminQuoteController;
 use App\Http\Controllers\Admin\RequestController as AdminRequestController;
 use App\Http\Controllers\ContactController;
@@ -81,6 +82,16 @@ Route::middleware('admin')
 
         Route::post('/requests/{customerRequest}/quote/send-email', [AdminQuoteController::class, 'sendEmail'])
             ->name('requests.quote.send-email');
+
+        Route::get('/blocked-emails', [AdminBlockedEmailController::class, 'index'])
+            ->name('blocked-emails.index');
+
+        Route::post('/blocked-emails', [AdminBlockedEmailController::class, 'store'])
+            ->middleware('throttle:10,1')
+            ->name('blocked-emails.store');
+
+        Route::patch('/blocked-emails/{blockedEmail}/unblock', [AdminBlockedEmailController::class, 'unblock'])
+            ->name('blocked-emails.unblock');
 
         Route::get('/account', [AdminAccountController::class, 'edit'])
             ->name('account.edit');

@@ -477,6 +477,14 @@ function initAdminConfirmModal() {
         targetForm = formSelector ? document.querySelector(formSelector) : null;
         if (!targetForm) return;
 
+        // Surface native field validation before asking for confirmation —
+        // form.submit() on confirm bypasses constraint validation.
+        if (!targetForm.checkValidity()) {
+            targetForm.reportValidity();
+            targetForm = null;
+            return;
+        }
+
         titleEl.textContent = trigger.getAttribute('data-confirm-title') || 'Bevestigen?';
         bodyEl.textContent = trigger.getAttribute('data-confirm-body') || '';
         acceptBtn.textContent = trigger.getAttribute('data-confirm-label') || 'Bevestigen';

@@ -163,6 +163,12 @@
                     </div>
                 @enderror
 
+                @error('blocked')
+                    <div class="form-error-list">
+                        <strong>{{ $message }}</strong>
+                    </div>
+                @enderror
+
                 <form id="contactForm" method="POST" action="{{ route('contact.store', ['locale' => $locale]) }}">
                     @csrf
                     {{-- Fresh per page-load; lets the server detect and ignore an

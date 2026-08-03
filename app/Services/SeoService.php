@@ -278,7 +278,9 @@ class SeoService
             'image' => asset('assets/images/hero.png'),
             'priceRange' => '€€',
             'currenciesAccepted' => 'EUR',
-            'vatID' => str_replace(' ', '', (string) config('site.vat_number')),
+            // Machine-readable form: "BE 0760.768.228" -> "BE0760768228".
+            // The formatted version stays in the footer for humans.
+            'vatID' => str_replace([' ', '.'], '', (string) config('site.vat_number')),
             'knowsLanguage' => ['nl', 'fr', 'en'],
         ];
 

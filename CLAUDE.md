@@ -80,6 +80,27 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
 - Use `superpowers:writing-plans` before multi-step implementation. Use `superpowers:subagent-driven-development` to execute plans task-by-task with review gates.
 - Mark tasks complete in `TodoWrite` immediately after finishing — do not batch completions.
 
+## SEO Architecture
+
+- All SEO output goes through `App\Services\SeoService` (canonical, hreflang,
+  meta fallbacks, schema.org `@graph`). Do not hand-write `<link rel="canonical">`,
+  hreflang or JSON-LD in a Blade template.
+- The service is a **request-scoped singleton**. Page templates contribute extra
+  schema nodes with `addNode()`; `PageController` calls `resetNodes()` before each
+  render. Never resolve it with `new SeoService()`.
+- Slugs and labels of fixed pages live in `config/site.php` (`page_slugs`,
+  `page_labels`). Never re-inline a locale => slug map in a template.
+- Structured data must stay **one** `<script type="application/ld+json">` per
+  page. `SeoStructureTest` fails the build if a second one appears.
+- Never add `aggregateRating` or `review` to the LocalBusiness node — Google
+  disallows self-serving review markup and it risks a manual action.
+- Page types dispatch in `resources/views/pages/show.blade.php`: `home`,
+  `service`, `services`, `location`, `service_area`, `request`, `contact`,
+  `privacy`.
+- Local content lives in `config/service-areas.php` (per municipality) and
+  `config/service-faqs.php` (per service). Any new municipality page must say
+  something genuinely specific about that place, otherwise it is a doorway page.
+
 ## Sprint History
 
 - **Sprint 1** ✅ — Admin auth migrated to `AdminUser` DB model with `Hash::check()` and `Hash::make()`.
@@ -87,3 +108,7 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   - Task 1 ✅ Migration fixed
   - Task 2 ✅ Model fixed
   - Tasks 3–8 pending
+- **Sprint 11 (SEO)** ✅ — Full technical + local SEO rebuild. `SeoService`,
+  single `@graph`, services hub, service-area hub, six municipality landing
+  pages, FAQ content + FAQPage, visible breadcrumbs, meta rewrite, image/CWV
+  work, custom 404, crawl controls. Committed locally, **not pushed**.

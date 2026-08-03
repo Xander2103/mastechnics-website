@@ -258,7 +258,6 @@ class SeoService
     public function organizationNode(string $locale): array
     {
         $contact = config('site.contact');
-        $address = config('site.address');
         $center = config('site.service_area_center');
 
         $node = [

@@ -57,44 +57,18 @@
         ->values()
         ->toArray();
 
-    $serviceSlugs = [
-        'nl' => 'verwarming',
-        'fr' => 'chauffage',
-        'en' => 'heating',
-    ];
-
-    $requestSlugs = [
-        'nl' => 'aanvraag',
-        'fr' => 'demande',
-        'en' => 'request',
-    ];
-
-    $contactSlugs = [
-        'nl' => 'contact',
-        'fr' => 'contact',
-        'en' => 'contact',
-    ];
-
-    $privacySlugs = [
-        'nl' => 'privacybeleid',
-        'fr' => 'politique-confidentialite',
-        'en' => 'privacy-policy',
-    ];
-
-    $privacyLabels = [
-        'nl' => 'Privacybeleid',
-        'fr' => 'Politique de confidentialite',
-        'en' => 'Privacy Policy',
-    ];
-
     $nav = $navLabels[$currentLocale] ?? $navLabels['nl'];
-    $serviceSlug  = $serviceSlugs[$currentLocale]  ?? $serviceSlugs['nl'];
-    $requestSlug  = $requestSlugs[$currentLocale]  ?? $requestSlugs['nl'];
-    $contactSlug  = $contactSlugs[$currentLocale]  ?? $contactSlugs['nl'];
-    $privacySlug  = $privacySlugs[$currentLocale]  ?? $privacySlugs['nl'];
-    $privacyLabel = $privacyLabels[$currentLocale] ?? $privacyLabels['nl'];
 
     $seoService = app(\App\Services\SeoService::class);
+
+    // Slugs and labels of the fixed pages come from config('site.page_slugs')
+    // and config('site.page_labels'). They used to be duplicated inline here
+    // and in four other templates, which is how the French privacy label ended
+    // up without its accent.
+    $requestSlug  = $seoService->pageSlug('request', $currentLocale);
+    $contactSlug  = $seoService->pageSlug('contact', $currentLocale);
+    $privacySlug  = $seoService->pageSlug('privacy', $currentLocale);
+    $privacyLabel = $seoService->pageLabel('privacy', $currentLocale);
 
     $footerAreas = collect(config('site.service_areas', []))
         ->filter(fn ($area) => $area['page'] ?? false)
@@ -326,15 +300,12 @@
                     {{ $nav['reviews'] }}
                 </a>
 
-                <a href="{{ route('pages.show', ['locale' => $locale ?? 'nl', 'slug' => ($locale ?? 'nl') === 'fr' ? 'contact' : 'contact']) }}">
-                    Contact
+                <a href="{{ $seoService->pageUrl('contact', $currentLocale) }}">
+                    {{ $nav['contact'] }}
                 </a>
 
-                <a class="button button-primary" href="{{ route('pages.show', [
-                    'locale' => $locale ?? 'nl',
-                    'slug' => ($locale ?? 'nl') === 'fr' ? 'demande' : (($locale ?? 'nl') === 'en' ? 'request' : 'aanvraag'),
-                ]) }}">
-                    {{ ($locale ?? 'nl') === 'fr' ? 'Démarrer' : (($locale ?? 'nl') === 'en' ? 'Start request' : 'Start aanvraag') }}
+                <a class="button button-primary" href="{{ $seoService->pageUrl('request', $currentLocale) }}">
+                    {{ $currentLocale === 'fr' ? 'Démarrer' : ($currentLocale === 'en' ? 'Start request' : 'Start aanvraag') }}
                 </a>
             </nav>
 

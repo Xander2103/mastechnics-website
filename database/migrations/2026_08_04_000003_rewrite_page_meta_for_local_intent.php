@@ -25,7 +25,7 @@ return new class extends Migration
     public function up(): void
     {
         $this->apply($this->newMeta());
-        $this->fixBrandCasingInBodyCopy();
+        $this->fixTextIssuesInBodyCopy();
     }
 
     public function down(): void
@@ -51,10 +51,20 @@ return new class extends Migration
     }
 
     /**
-     * The seeded intros still referred to the company in lower case mid
-     * sentence. Visible copy, so worth correcting alongside the meta.
+     * Visible copy fixes that belong with the meta rewrite:
+     *  - the seeded intros referred to the company in lower case mid sentence;
+     *  - the French privacy page was seeded without its accent, so its H1 read
+     *    "Politique de confidentialite".
+     *
+     * @var array<string, string>
      */
-    private function fixBrandCasingInBodyCopy(): void
+    private const TEXT_FIXES = [
+        'mastechnics' => 'Mastechnics',
+        'Politique de confidentialite' => 'Politique de confidentialité',
+        'donnees personnelles' => 'données personnelles',
+    ];
+
+    private function fixTextIssuesInBodyCopy(): void
     {
         $columns = ['title', 'intro', 'content'];
 
@@ -64,11 +74,17 @@ return new class extends Migration
             foreach ($columns as $column) {
                 $value = $translation->{$column};
 
-                if (!is_string($value) || !str_contains($value, 'mastechnics')) {
+                if (!is_string($value)) {
                     continue;
                 }
 
-                $updates[$column] = str_replace('mastechnics', 'Mastechnics', $value);
+                $fixed = strtr($value, self::TEXT_FIXES);
+
+                if ($fixed === $value) {
+                    continue;
+                }
+
+                $updates[$column] = $fixed;
             }
 
             if ($updates !== []) {

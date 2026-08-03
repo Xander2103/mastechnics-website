@@ -1,16 +1,23 @@
 {
-  "name": "MAS Technics",
-  "short_name": "MAS Technics",
+  "id": "/",
+  "name": "Mastechnics",
+  "short_name": "Mastechnics",
+  "description": "Technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koeling in de Druivenstreek.",
+  "lang": "nl-BE",
+  "start_url": "/nl",
+  "scope": "/",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "theme_color": "#ffffff",

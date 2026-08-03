@@ -185,10 +185,53 @@ class HomepageTest extends TestCase
 
     public function test_homepage_includes_structured_data(): void
     {
-        $this->get(route('pages.home', ['locale' => 'nl']))
-            ->assertOk()
-            ->assertSee('"@type": ["LocalBusiness", "HVACBusiness"]', false)
-            ->assertSee('"@type": "WebSite"', false)
-            ->assertDontSee('"@type": "BreadcrumbList"', false);
+        $response = $this->get(route('pages.home', ['locale' => 'nl']))->assertOk();
+
+        $nodes = $this->schemaNodes($response);
+
+        $this->assertNotNull($this->schemaNode($nodes, 'LocalBusiness'));
+        $this->assertNotNull($this->schemaNode($nodes, 'HVACBusiness'));
+        $this->assertNotNull($this->schemaNode($nodes, 'WebSite'));
+        $this->assertNotNull($this->schemaNode($nodes, 'WebPage'));
+
+        // The homepage is the root of the trail; a breadcrumb there would be a
+        // self-reference.
+        $this->assertNull($this->schemaNode($nodes, 'BreadcrumbList'));
+    }
+
+    public function test_homepage_structured_data_is_one_connected_graph(): void
+    {
+        $response = $this->get(route('pages.home', ['locale' => 'nl']))->assertOk();
+
+        // A single <script> — duplicated Organization blocks across several
+        // scripts are the classic way to end up with two competing entities.
+        $this->assertSame(
+            1,
+            substr_count($response->getContent(), 'application/ld+json'),
+            'Structured data must be emitted as a single @graph document.'
+        );
+
+        $nodes = $this->schemaNodes($response);
+        $organization = $this->schemaNode($nodes, 'LocalBusiness');
+        $website = $this->schemaNode($nodes, 'WebSite');
+        $webPage = $this->schemaNode($nodes, 'WebPage');
+
+        $this->assertSame($organization['@id'], $website['publisher']['@id']);
+        $this->assertSame($website['@id'], $webPage['isPartOf']['@id']);
+        $this->assertSame($organization['@id'], $webPage['about']['@id']);
+    }
+
+    public function test_organization_node_carries_local_signals(): void
+    {
+        $response = $this->get(route('pages.home', ['locale' => 'nl']))->assertOk();
+
+        $organization = $this->schemaNode($this->schemaNodes($response), 'LocalBusiness');
+
+        $areaNames = collect($organization['areaServed'])->pluck('name')->filter()->all();
+
+        $this->assertContains('Tervuren', $areaNames);
+        $this->assertContains('Overijse', $areaNames);
+        $this->assertNotEmpty($organization['geo']);
+        $this->assertNotEmpty($organization['hasOfferCatalog']['itemListElement']);
     }
 }

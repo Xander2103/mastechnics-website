@@ -16,6 +16,7 @@
             'footer_request_text' => 'Start een slimme aanvraag en vul meteen de juiste technische informatie in.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'BTW',
+            'all_areas' => 'Volledig werkgebied',
         ],
         'fr' => [
             'services' => 'Services',
@@ -29,6 +30,7 @@
                 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'TVA',
+            'all_areas' => 'Toute la zone d\'intervention',
         ],
         'en' => [
             'services' => 'Services',
@@ -41,6 +43,7 @@
             'footer_request_text' => 'Start a smart request and add the right technical information immediately.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'VAT',
+            'all_areas' => 'Full service area',
         ],
     ];
 
@@ -90,27 +93,57 @@
     $contactSlug  = $contactSlugs[$currentLocale]  ?? $contactSlugs['nl'];
     $privacySlug  = $privacySlugs[$currentLocale]  ?? $privacySlugs['nl'];
     $privacyLabel = $privacyLabels[$currentLocale] ?? $privacyLabels['nl'];
+
+    $seoService = app(\App\Services\SeoService::class);
+
+    $footerAreas = collect(config('site.service_areas', []))
+        ->filter(fn ($area) => $area['page'] ?? false)
+        ->take(4)
+        ->values();
+
+    // Public page views pass $seo from PageController; admin views do not.
+    $isPublicPage = isset($page, $seo);
+
+    $canonical = $isPublicPage ? $seo['canonical'] : url()->current();
+
+    // Hero image doubles as the LCP candidate and the social preview image.
+    $heroPreloadImage = match (true) {
+        !$isPublicPage => null,
+        $page->type === 'home' => asset('assets/images/hero.webp'),
+        default => null,
+    };
 @endphp
 
 <!DOCTYPE html>
-<html lang="{{ $currentLocale }}">
+<html lang="{{ $seoService->htmlLang($currentLocale) }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="{{ request()->routeIs('admin.*') ? 'noindex, nofollow' : 'index, follow' }}">
+    {{-- max-image-preview:large opts every public page into large image
+         thumbnails in Google Discover and image-rich SERP layouts. --}}
+    <meta name="robots" content="{{ request()->routeIs('admin.*')
+        ? 'noindex, nofollow, noarchive'
+        : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' }}">
     <meta name="description" content="@yield('meta_description', '')">
     <meta name="theme-color" content="#ffffff">
 
     <title>@yield('title', $siteName)</title>
 
     {{-- Canonical URL --}}
-    <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="canonical" href="{{ $canonical }}">
 
     {{-- Preload hero image (homepage only, it's the LCP element) --}}
-    @if (isset($page) && $page->type === 'home')
-        <link rel="preload" as="image" href="{{ asset('assets/images/hero.webp') }}" fetchpriority="high">
+    @if ($heroPreloadImage)
+        <link rel="preload" as="image" href="{{ $heroPreloadImage }}" fetchpriority="high">
     @endif
+
+    {{-- Scroll-reveal animations start at opacity:0 and are switched on by JS.
+         Without this fallback a visitor (or a renderer) without JavaScript
+         would see empty sections. --}}
+    <noscript>
+        <style>.reveal{opacity:1 !important;transform:none !important;}</style>
+    </noscript>
 
     {{-- Favicons / app icons --}}
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
@@ -126,110 +159,69 @@
     <meta property="og:title" content="@yield('title', $siteName)">
     <meta property="og:description" content="@yield('meta_description', '')">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:url" content="{{ $canonical }}">
     <meta property="og:image" content="{{ $socialImage }}">
+    <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1672">
     <meta property="og:image:height" content="941">
-    <meta property="og:locale" content="{{ $currentLocale === 'fr' ? 'fr_BE' : ($currentLocale === 'en' ? 'en_GB' : 'nl_BE') }}">
+    <meta property="og:image:alt" content="{{ $siteName }}">
+    <meta property="og:locale" content="{{ $seoService->ogLocale($currentLocale) }}">
+    @if ($isPublicPage)
+        @foreach ($seo['alternates'] as $altLocale => $altUrl)
+            @if ($altLocale !== 'x-default' && $altLocale !== $currentLocale)
+                <meta property="og:locale:alternate" content="{{ $seoService->ogLocale($altLocale) }}">
+            @endif
+        @endforeach
+    @endif
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('title', $siteName)">
     <meta name="twitter:description" content="@yield('meta_description', '')">
     <meta name="twitter:image" content="{{ $socialImage }}">
+    <meta name="twitter:image:alt" content="{{ $siteName }}">
 
-    {{-- Hreflang alternates (only on public page views) --}}
-    @if (isset($page))
-        @foreach ($page->translations as $alt)
-            @php
-                $altUrl = $page->type === 'home'
-                    ? route('pages.home', ['locale' => $alt->locale])
-                    : route('pages.show', ['locale' => $alt->locale, 'slug' => $alt->slug]);
-            @endphp
-            <link rel="alternate" hreflang="{{ $alt->locale }}" href="{{ $altUrl }}">
+    {{-- Hreflang alternates (only on public page views). Built from the same
+         SeoService method the XML sitemap uses, so the two annotations can
+         never contradict each other — conflicting pairs get dropped by Google.
+         Each cluster includes a self-referencing entry and is reciprocal. --}}
+    @if ($isPublicPage)
+        @foreach ($seo['alternates'] as $hreflang => $altUrl)
+            <link rel="alternate" hreflang="{{ $hreflang }}" href="{{ $altUrl }}">
         @endforeach
-        @php
-            // x-default points to the NL version of THIS page (nl is the site
-            // default), so every hreflang cluster stays self-contained.
-            $xDefault = $page->translations->firstWhere('locale', 'nl');
-            $xDefaultUrl = $xDefault
-                ? ($page->type === 'home'
-                    ? route('pages.home', ['locale' => 'nl'])
-                    : route('pages.show', ['locale' => 'nl', 'slug' => $xDefault->slug]))
-                : route('pages.home', ['locale' => 'nl']);
-        @endphp
-        <link rel="alternate" hreflang="x-default" href="{{ $xDefaultUrl }}">
     @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- Structured data (public pages only) --}}
-    @if (isset($page))
+    {{-- Structured data (public pages only).
+         One connected @graph with stable @id values instead of several
+         stand-alone blocks: Organization, WebSite, WebPage and BreadcrumbList
+         reference each other, and page templates contribute Service / FAQPage
+         nodes through SeoService::addNode(). --}}
+    @if ($isPublicPage)
         @php
-            $schemaLogoUrl = asset('assets/images/Logo.webp');
-            $schemaSameAs = array_values(array_filter([
-                config('reviews.platforms.facebook.url'),
-                config('reviews.platforms.trustpilot.url'),
-            ]));
+            $schemaNodes = [
+                $seoService->organizationNode($currentLocale),
+                $seoService->websiteNode($currentLocale),
+                $seoService->webPageNode(
+                    $canonical,
+                    $seo['title'],
+                    $seo['description'],
+                    $currentLocale,
+                    !empty($seo['breadcrumbs']),
+                    $socialImage,
+                ),
+            ];
+
+            if (!empty($seo['breadcrumbs'])) {
+                $schemaNodes[] = $seoService->breadcrumbNode($canonical, $seo['breadcrumbs']);
+            }
+
+            $schemaNodes = array_merge($schemaNodes, $seoService->extraNodes());
         @endphp
 
-        {{-- LocalBusiness + HVACBusiness (this also covers Organization: LocalBusiness extends it) --}}
-        <script type="application/ld+json">
-        {
-            "@@context": "https://schema.org",
-            "@type": ["LocalBusiness", "HVACBusiness"],
-            "name": "{{ config('site.name') }}",
-            "telephone": "{{ config('site.contact.phone_display') }}",
-            "email": "{{ config('site.contact.email') }}",
-            "url": "{{ url('/nl') }}",
-            "logo": "{{ $schemaLogoUrl }}",
-            "image": "{{ $schemaLogoUrl }}",
-            "priceRange": "€€",
-            "areaServed": "Belgium"
-            @if (!empty($siteContact['address']))
-            ,"address": {
-                "@type": "PostalAddress",
-                "streetAddress": "{{ $siteContact['address'] }}",
-                "addressCountry": "BE"
-            }
-            @endif
-            @if (!empty($schemaSameAs))
-            ,"sameAs": @json($schemaSameAs)
-            @endif
-        }
-        </script>
-
-        @if ($page->type === 'home')
-            {{-- WebSite (homepage only) --}}
-            <script type="application/ld+json">
-            {
-                "@@context": "https://schema.org",
-                "@type": "WebSite",
-                "name": "{{ config('site.name') }}",
-                "url": "{{ url('/' . $currentLocale) }}"
-            }
-            </script>
-        @else
-            {{-- Breadcrumbs (all non-home pages) --}}
-            <script type="application/ld+json">
-            {
-                "@@context": "https://schema.org",
-                "@type": "BreadcrumbList",
-                "itemListElement": [
-                    {
-                        "@type": "ListItem",
-                        "position": 1,
-                        "name": "{{ config('site.name') }}",
-                        "item": "{{ route('pages.home', ['locale' => $currentLocale]) }}"
-                    },
-                    {
-                        "@type": "ListItem",
-                        "position": 2,
-                        "name": "{{ $translation->title }}",
-                        "item": "{{ url()->current() }}"
-                    }
-                ]
-            }
-            </script>
-        @endif
+        <script type="application/ld+json">{!! json_encode(
+            $seoService->graph($schemaNodes),
+            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        ) !!}</script>
     @endif
 </head>
 
@@ -285,9 +277,12 @@
             <nav class="site-nav">
                 <div class="services-dropdown">
                     <div class="services-dropdown-trigger">
+                        {{-- Points at the services hub page rather than the
+                             homepage anchor: a category page can rank and can
+                             act as the breadcrumb parent, an anchor cannot. --}}
                         <a
                             class="services-dropdown-link"
-                            href="{{ route('pages.home', ['locale' => $currentLocale]) }}#diensten"
+                            href="{{ $seoService->pageUrl('services', $currentLocale) }}"
                         >
                             {{ $nav['services'] }}
                         </a>
@@ -337,10 +332,23 @@
                 </a>
             </nav>
 
+            {{-- Switching language keeps the visitor on the same page instead
+                 of dumping them on the homepage. That preserves intent, and it
+                 gives crawlers a real link between the hreflang alternates. --}}
             <div class="language-switcher">
-                <a href="{{ route('pages.home', ['locale' => 'en']) }}">EN</a>
-                <a href="{{ route('pages.home', ['locale' => 'fr']) }}">FR</a>
-                <a href="{{ route('pages.home', ['locale' => 'nl']) }}">NL</a>
+                @foreach (['en', 'fr', 'nl'] as $switchLocale)
+                    @php
+                        $switchUrl = $isPublicPage
+                            ? ($seo['alternates'][$switchLocale] ?? route('pages.home', ['locale' => $switchLocale]))
+                            : route('pages.home', ['locale' => $switchLocale]);
+                    @endphp
+                    <a
+                        href="{{ $switchUrl }}"
+                        hreflang="{{ $switchLocale }}"
+                        lang="{{ $switchLocale }}"
+                        @if ($switchLocale === $currentLocale) aria-current="true" @endif
+                    >{{ strtoupper($switchLocale) }}</a>
+                @endforeach
             </div>
         </div>
     </div>
@@ -420,6 +428,36 @@
                         ]) }}">
                         {{ $nav['request'] }}
                     </a>
+                </div>
+
+                {{-- Site-wide links into the two hub pages and the busiest
+                     municipalities. Keeps every location page within two
+                     clicks of any page on the site. --}}
+                <div>
+                    <h3>{{ $seoService->pageLabel('service_area', $currentLocale) }}</h3>
+
+                    <ul class="footer-list">
+                        @foreach ($footerAreas as $footerArea)
+                            <li>
+                                <a href="{{ route('pages.show', [
+                                    'locale' => $currentLocale,
+                                    'slug' => \Illuminate\Support\Str::slug($footerArea['name']),
+                                ]) }}">{{ $footerArea['name'] }}</a>
+                            </li>
+                        @endforeach
+
+                        <li>
+                            <a href="{{ $seoService->pageUrl('service_area', $currentLocale) }}">
+                                {{ $nav['all_areas'] }}
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ $seoService->pageUrl('services', $currentLocale) }}">
+                                {{ $seoService->pageLabel('services', $currentLocale) }}
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             @endunless
         </div>

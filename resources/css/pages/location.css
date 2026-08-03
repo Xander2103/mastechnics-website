@@ -1,0 +1,221 @@
+/* ================================
+   Services hub, service-area hub and municipality landing pages.
+   Reuses the existing section / card / grid vocabulary; only the pieces that
+   did not exist yet are defined here.
+================================ */
+
+.services-hub-body,
+.services-hub-intro .section-header p {
+    max-width: 68ch;
+    color: var(--color-muted);
+}
+
+.services-hub-body {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.services-hub-heading {
+    margin: 0 0 28px;
+    text-align: center;
+}
+
+.services-hub-areas-link {
+    margin-top: 22px;
+    text-align: center;
+}
+
+.services-hub-areas-link a {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* ── Municipality hero ───────────────────────────────────────────────── */
+
+.location-hero .button-row {
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.location-neighbourhoods {
+    margin-top: 44px;
+    text-align: center;
+}
+
+.location-neighbourhoods h2 {
+    font-size: 1.05rem;
+    margin: 0 0 14px;
+    color: var(--color-muted);
+    font-weight: 600;
+}
+
+.location-neighbourhood-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.location-neighbourhood-list li {
+    padding: 7px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-white);
+    font-size: 0.88rem;
+    color: var(--color-text);
+}
+
+/* ── Service-area hub cards ──────────────────────────────────────────── */
+
+.area-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.area-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 26px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    box-shadow: var(--shadow-soft);
+}
+
+.area-card h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.area-card h3 a {
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.area-card h3 a:hover,
+.area-card h3 a:focus-visible {
+    color: var(--color-primary);
+}
+
+.area-postal {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-muted);
+}
+
+.area-card p {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.94rem;
+    line-height: 1.6;
+}
+
+.area-neighbourhoods {
+    font-size: 0.84rem !important;
+    color: var(--color-muted);
+}
+
+.area-card-link {
+    margin-top: auto;
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 0.92rem;
+    text-decoration: none;
+}
+
+.area-card-link:hover,
+.area-card-link:focus-visible {
+    text-decoration: underline;
+}
+
+/* ── FAQ ─────────────────────────────────────────────────────────────── */
+
+.faq-list {
+    max-width: 820px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.faq-item {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    overflow: hidden;
+}
+
+.faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.faq-question::-webkit-details-marker {
+    display: none;
+}
+
+.faq-question h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.faq-marker {
+    position: relative;
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+}
+
+.faq-marker::before,
+.faq-marker::after {
+    content: "";
+    position: absolute;
+    background: var(--color-primary);
+    border-radius: 2px;
+}
+
+.faq-marker::before {
+    inset: 6px 0 6px 0;
+    height: 2px;
+}
+
+.faq-marker::after {
+    inset: 0 6px 0 6px;
+    width: 2px;
+    transition: opacity 0.2s ease;
+}
+
+.faq-item[open] .faq-marker::after {
+    opacity: 0;
+}
+
+.faq-answer {
+    padding: 0 22px 20px;
+}
+
+.faq-answer p {
+    margin: 0;
+    color: var(--color-muted);
+    line-height: 1.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .faq-marker::after {
+        transition: none;
+    }
+}

@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])
     ->name('sitemap');
 
-Route::redirect('/', '/nl');
+// Permanent (301), not the framework default 302: the root has permanently
+// moved to the default locale, and only a 301 consolidates link equity onto
+// /nl instead of leaving both URLs alive in Google's index.
+Route::permanentRedirect('/', '/nl');
 
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])
     ->name('admin.login');

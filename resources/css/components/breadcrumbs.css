@@ -1,0 +1,58 @@
+/* ================================
+   Breadcrumbs
+   Sits between the fixed header and the page hero. Deliberately low-contrast
+   and compact so it orients without competing with the H1.
+================================ */
+
+.breadcrumbs {
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.82rem;
+}
+
+.breadcrumbs-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 10px 0;
+    list-style: none;
+}
+
+.breadcrumbs-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-muted);
+}
+
+.breadcrumbs-item a {
+    color: var(--color-muted);
+    text-decoration: none;
+}
+
+.breadcrumbs-item a:hover,
+.breadcrumbs-item a:focus-visible {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.breadcrumbs-item [aria-current="page"] {
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.breadcrumbs-separator {
+    color: var(--color-border);
+}
+
+@media (max-width: 640px) {
+    .breadcrumbs {
+        font-size: 0.76rem;
+    }
+
+    .breadcrumbs-list {
+        padding: 8px 0;
+    }
+}

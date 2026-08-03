@@ -306,3 +306,21 @@
         width: 100%;
     }
 }
+/* ================================
+   Contact page header
+   The page previously opened straight into the two-column layout with no H1;
+   this block supplies the heading and the local service-area line.
+================================ */
+
+.contact-page-header {
+    padding-bottom: 0;
+}
+
+.contact-area-line {
+    color: var(--color-muted);
+    font-size: 0.92rem;
+}
+
+.section-contact-body {
+    padding-top: 24px;
+}

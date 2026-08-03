@@ -53,15 +53,17 @@ class SitemapTest extends TestCase
         $response
             ->assertSee('name="theme-color"', false)
             ->assertSee('property="og:image"', false)
+            ->assertSee('property="og:image:alt"', false)
             ->assertSee('name="twitter:card" content="summary_large_image"', false)
             ->assertSee('hreflang="x-default"', false)
-            ->assertSee('content="index, follow"', false);
+            ->assertSee('index, follow', false)
+            ->assertSee('max-image-preview:large', false);
     }
 
     public function test_admin_login_page_is_noindexed(): void
     {
         $this->get(route('admin.login'))
             ->assertOk()
-            ->assertSee('content="noindex, nofollow"', false);
+            ->assertSee('content="noindex, nofollow, noarchive"', false);
     }
 }

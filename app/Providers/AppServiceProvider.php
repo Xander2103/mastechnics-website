@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\SeoService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -15,7 +16,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Request-scoped: page templates add schema.org nodes to the same
+        // instance the layout later renders into a single JSON-LD graph.
+        $this->app->scoped(SeoService::class);
     }
 
     /**

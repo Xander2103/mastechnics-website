@@ -37,10 +37,31 @@ class ServicePageTest extends TestCase
 
     public function test_service_page_includes_breadcrumb_structured_data(): void
     {
+        $response = $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'verwarming']))
+            ->assertOk();
+
+        $nodes = $this->schemaNodes($response);
+        $breadcrumb = $this->schemaNode($nodes, 'BreadcrumbList');
+
+        $this->assertNotNull($breadcrumb);
+        $this->assertNotNull($this->schemaNode($nodes, 'LocalBusiness'));
+
+        // Home > Diensten > Verwarming: a service page hangs off the services
+        // hub, not straight off the homepage.
+        $this->assertCount(3, $breadcrumb['itemListElement']);
+        $this->assertSame('Diensten', $breadcrumb['itemListElement'][1]['name']);
+        $this->assertSame('Verwarming', $breadcrumb['itemListElement'][2]['name']);
+
+        // The current page carries no `item` — it should not link to itself.
+        $this->assertArrayNotHasKey('item', $breadcrumb['itemListElement'][2]);
+    }
+
+    public function test_breadcrumb_trail_is_also_visible_to_visitors(): void
+    {
         $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'verwarming']))
             ->assertOk()
-            ->assertSee('"@type": "BreadcrumbList"', false)
-            ->assertSee('"@type": ["LocalBusiness", "HVACBusiness"]', false);
+            ->assertSee('class="breadcrumbs"', false)
+            ->assertSee('aria-current="page"', false);
     }
 
     public function test_all_six_core_service_pages_render_nl(): void

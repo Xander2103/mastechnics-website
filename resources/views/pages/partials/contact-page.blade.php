@@ -88,9 +88,44 @@
     $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
     $privacySlug = $locale === 'fr' ? 'politique-confidentialite' : ($locale === 'en' ? 'privacy-policy' : 'privacybeleid');
     $privacyLinkLabel = $locale === 'fr' ? 'politique de confidentialité' : ($locale === 'en' ? 'privacy policy' : 'privacybeleid');
+
+    $areaSummary = collect(config('site.service_areas', []))
+        ->take(6)
+        ->pluck('name')
+        ->implode(', ');
+
+    $areaLine = [
+        'nl' => 'Werkgebied: ' . $areaSummary . ' en omgeving.',
+        'fr' => 'Zone d\'intervention : ' . $areaSummary . ' et environs.',
+        'en' => 'Service area: ' . $areaSummary . ' and surroundings.',
+    ][$locale] ?? '';
+
+    // The contact page was the only public page without an <h1>. It is also
+    // the page most likely to be surfaced for brand + "contact" queries, so it
+    // is typed explicitly as a ContactPage.
+    app(\App\Services\SeoService::class)->addNode([
+        '@type' => 'ContactPage',
+        '@id' => $seo['canonical'] . '#contactpage',
+        'name' => $translation->title,
+        'url' => $seo['canonical'],
+        'mainEntity' => ['@id' => app(\App\Services\SeoService::class)->organizationId()],
+    ]);
 @endphp
 
 <section class="section section-white">
+    <div class="container">
+        <div class="section-header contact-page-header">
+            <span class="eyebrow">{{ $text['badge'] }}</span>
+            <h1>{{ $translation->title }}</h1>
+            @if ($translation->intro)
+                <p>{{ $translation->intro }}</p>
+            @endif
+            <p class="contact-area-line">{{ $areaLine }}</p>
+        </div>
+    </div>
+</section>
+
+<section class="section section-white section-contact-body">
     <div class="container">
         <div class="contact-layout">
             <aside class="contact-info-card">

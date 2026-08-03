@@ -3,6 +3,7 @@
 return [
     'heating' => [
         'is_active' => true,
+        'hero_image' => 'assets/images/verwarming-hero.webp',
         'translations' => [
             'nl' => [
                 'title' => 'Verwarming',
@@ -24,6 +25,7 @@ return [
 
     'airco' => [
         'is_active' => true,
+        'hero_image' => 'assets/images/airco-hero.webp',
         'translations' => [
             'nl' => [
                 'title' => 'Airco',
@@ -45,6 +47,7 @@ return [
 
     'plumbing' => [
         'is_active' => true,
+        'hero_image' => 'assets/images/sanitair-hero.webp',
         'translations' => [
             'nl' => [
                 'title' => 'Sanitair',
@@ -66,6 +69,7 @@ return [
 
     'ventilation' => [
         'is_active' => true,
+        'hero_image' => 'assets/images/ventilatie-hero.webp',
         'translations' => [
             'nl' => [
                 'title' => 'Ventilatie',
@@ -87,6 +91,7 @@ return [
 
     'water-softeners' => [
         'is_active' => true,
+        'hero_image' => 'assets/images/waterverzachter-hero.webp',
         'translations' => [
             'nl' => [
                 'title' => 'Waterverzachters',
@@ -108,6 +113,7 @@ return [
 
     'cold-rooms' => [
         'is_active' => true,
+        'hero_image' => 'assets/images/koelcellen-hero.webp',
         'translations' => [
             'nl' => [
                 'title' => 'Koelcellen',

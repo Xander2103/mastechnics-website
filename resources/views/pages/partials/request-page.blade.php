@@ -434,7 +434,7 @@
                                             @foreach ($oldRooms as $ri => $room)
                                                 <div class="room-entry" data-room-index="{{ $ri }}">
                                                     <div class="room-entry-header">
-                                                        <h4 class="room-entry-title">{{ $text['room_label'] }} {{ $ri + 1 }}</h4>
+                                                        <h3 class="room-entry-title">{{ $text['room_label'] }} {{ $ri + 1 }}</h3>
                                                         <button type="button" class="room-remove-btn button button-ghost button-small"
                                                             style="{{ $ri === 0 ? 'display:none' : '' }}">{{ $text['room_remove'] }}</button>
                                                     </div>

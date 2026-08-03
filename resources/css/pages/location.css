@@ -245,3 +245,15 @@
 .error-page-links {
     justify-content: center;
 }
+
+/* ================================
+   Homepage service-area strip
+================================ */
+
+.home-area-links {
+    justify-content: center;
+}
+
+.section-werkgebied .services-hub-areas-link {
+    margin-top: 24px;
+}

@@ -15,9 +15,9 @@
         'nl' => [
             'primary_cta'    => 'Start aanvraag',
             'secondary_cta'  => 'Bekijk diensten',
-            'hero_badge'     => 'Technische service — Voor particulieren & bedrijven',
+            'hero_badge'     => 'Technische service in de Druivenstreek — particulieren & bedrijven',
             'hero_headline'  => 'Technische oplossingen voor comfort en zekerheid.',
-            'hero_intro'     => 'Uw partner voor sanitair, verwarming, airco, ventilatie, waterverzachters en koelcellen. Duurzame technologie, perfecte afwerking en service op maat.',
+            'hero_intro'     => 'Uw partner voor sanitair, verwarming, airco, ventilatie, waterverzachters en koelcellen in Tervuren, Overijse, Hoeilaart en omgeving. Duurzame technologie, perfecte afwerking en service op maat.',
 
             'services_label' => 'Diensten',
             'services_title' => 'Waarvoor zoekt u hulp?',
@@ -104,14 +104,19 @@
                 'en' => 'Vertaald uit het Engels',
             ],
             'reviews_rating_aria' => ':rating van 5 sterren',
+            'areas_label' => 'Werkgebied',
+            'areas_title' => 'Actief in de Druivenstreek en oostelijk Vlaams-Brabant',
+            'areas_intro' => 'Door het werkgebied compact te houden blijven verplaatsingen kort en is een dringende interventie realistisch in te plannen. Bekijk de pagina van uw gemeente voor wat er lokaal anders is.',
+            'areas_all' => 'Volledig werkgebied bekijken',
+            'services_all' => 'Alle diensten bekijken',
         ],
 
         'fr' => [
             'primary_cta'    => 'Lancer une demande',
             'secondary_cta'  => 'Voir nos services',
-            'hero_badge'     => 'Service technique — particuliers et entreprises',
+            'hero_badge'     => 'Service technique dans le Druivenstreek — particuliers et entreprises',
             'hero_headline'  => 'Des solutions techniques qui créent le confort.',
-            'hero_intro'     => 'Votre partenaire pour la plomberie, le chauffage, la climatisation, la ventilation, les adoucisseurs d\'eau et les chambres froides. Technologie durable, finition parfaite et service sur mesure.',
+            'hero_intro'     => 'Votre partenaire pour la plomberie, le chauffage, la climatisation, la ventilation, les adoucisseurs d\'eau et les chambres froides à Tervuren, Overijse, Hoeilaart et environs. Technologie durable, finition parfaite et service sur mesure.',
 
             'services_label' => 'Services',
             'services_title' => 'Tous les services techniques sous un même toit',
@@ -198,14 +203,19 @@
                 'en' => "Traduit de l'anglais",
             ],
             'reviews_rating_aria' => ':rating sur 5 étoiles',
+            'areas_label' => 'Zone d\'intervention',
+            'areas_title' => 'Actifs dans le Druivenstreek et l\'est du Brabant flamand',
+            'areas_intro' => 'En gardant une zone d\'intervention compacte, les déplacements restent courts et une intervention urgente reste réellement planifiable. Consultez la page de votre commune pour les particularités locales.',
+            'areas_all' => 'Voir toute la zone d\'intervention',
+            'services_all' => 'Voir tous les services',
         ],
 
         'en' => [
             'primary_cta'    => 'Start request',
             'secondary_cta'  => 'View our services',
-            'hero_badge'     => 'Technical service — homes and businesses',
+            'hero_badge'     => 'Technical service in the Druivenstreek — homes and businesses',
             'hero_headline'  => 'Technical solutions that create comfort.',
-            'hero_intro'     => 'Your partner for plumbing, heating, air conditioning, ventilation, water softeners and cold rooms. Durable technology, perfect finish and tailored service.',
+            'hero_intro'     => 'Your partner for plumbing, heating, air conditioning, ventilation, water softeners and cold rooms in Tervuren, Overijse, Hoeilaart and the surrounding area. Durable technology, perfect finish and tailored service.',
 
             'services_label' => 'Services',
             'services_title' => 'All technical services under one roof',
@@ -292,12 +302,23 @@
                 'fr' => 'Translated from French',
             ],
             'reviews_rating_aria' => ':rating out of 5 stars',
+            'areas_label' => 'Service area',
+            'areas_title' => 'Active across the Druivenstreek and eastern Flemish Brabant',
+            'areas_intro' => 'Keeping the service area compact keeps travel short and makes an urgent call-out realistic to schedule. Check your municipality page for what is different locally.',
+            'areas_all' => 'View the full service area',
+            'services_all' => 'View all services',
         ],
     ];
 
+    $seoService = app(\App\Services\SeoService::class);
+
     $text = $labels[$locale] ?? $labels['nl'];
-    $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
+    $requestSlug = $seoService->pageSlug('request', $locale);
     $hexServices = $services->keyBy('key');
+
+    $serviceAreas = collect(config('site.service_areas', []))
+        ->filter(fn ($area) => $area['page'] ?? false)
+        ->values();
 
     // ── Reviews: source-labeled, locale-aware, faithfully translated ───────────
     $platformIcons = [
@@ -488,6 +509,39 @@
                 </a>
             @endforeach
         </div>
+
+        {{-- Link on to the services hub: the homepage should not be the only
+             route into the service cluster. --}}
+        <p class="services-hub-areas-link">
+            <a href="{{ $seoService->pageUrl('services', $locale) }}">{{ $text['services_all'] }}</a>
+        </p>
+    </div>
+</section>
+
+{{-- ═══════════════════════════════════════════════════════════
+     Service area — the homepage previously carried no geographic
+     signal at all, and no route into the municipality pages.
+═══════════════════════════════════════════════════════════ --}}
+<section class="section section-white section-werkgebied" id="werkgebied">
+    <div class="container">
+        <div class="section-header">
+            <span class="eyebrow">{{ $text['areas_label'] }}</span>
+            <h2>{{ $text['areas_title'] }}</h2>
+            <p>{{ $text['areas_intro'] }}</p>
+        </div>
+
+        <div class="service-related-links home-area-links">
+            @foreach ($serviceAreas as $area)
+                <a class="service-related-link"
+                   href="{{ route('pages.show', ['locale' => $locale, 'slug' => \Illuminate\Support\Str::slug($area['name'])]) }}">
+                    {{ $area['name'] }}
+                </a>
+            @endforeach
+        </div>
+
+        <p class="services-hub-areas-link">
+            <a href="{{ $seoService->pageUrl('service_area', $locale) }}">{{ $text['areas_all'] }}</a>
+        </p>
     </div>
 </section>
 

@@ -58,6 +58,13 @@
         </If>
     </FilesMatch>
 
+    # Customer-uploaded attachments are served from the public disk. robots.txt
+    # keeps crawlers away; this header makes sure that a URL which does reach an
+    # index gets dropped rather than merely un-crawled.
+    <If "%{REQUEST_URI} =~ m#^/storage/#">
+        Header set X-Robots-Tag "noindex, nofollow, noarchive"
+    </If>
+
     # HTTP -> HTTPS is already a 301, but every first request of a session still
     # pays for that hop. HSTS removes it. No includeSubDomains and no preload:
     # both are hard to reverse and only the apex is served over TLS today.

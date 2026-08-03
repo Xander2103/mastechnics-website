@@ -1,4 +1,20 @@
+# https://mastechnics.be/robots.txt
+
 User-agent: *
+Allow: /
+
+# Admin dashboard — behind auth, but there is no reason to spend crawl budget
+# on the login form either.
+Disallow: /admin
 Disallow: /admin/
+
+# Framework health endpoint. Returns HTML, is linked from nowhere, and has no
+# business appearing in search results.
+Disallow: /up
+
+# Customer-uploaded attachments. Not linked from any page; this keeps them out
+# of the crawl even if a URL ever leaks through a referrer or an email client.
+# An X-Robots-Tag: noindex header on the same path backs it up.
+Disallow: /storage/
 
 Sitemap: https://mastechnics.be/sitemap.xml

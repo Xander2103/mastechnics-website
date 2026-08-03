@@ -219,3 +219,29 @@
         transition: none;
     }
 }
+
+/* ================================
+   404 page
+================================ */
+
+.error-page {
+    min-height: 62vh;
+    display: flex;
+    align-items: center;
+}
+
+.error-page-actions {
+    justify-content: center;
+    margin-bottom: 48px;
+}
+
+.error-page-links-title {
+    margin: 0 0 16px;
+    font-size: 1.05rem;
+    text-align: center;
+    color: var(--color-primary-dark);
+}
+
+.error-page-links {
+    justify-content: center;
+}

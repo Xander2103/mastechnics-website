@@ -407,6 +407,22 @@
 }
 
 /* ================================
+   Service area links (into the municipality landing pages)
+================================ */
+
+.service-areas-section {
+    padding: 40px 0 8px;
+    background: var(--color-white);
+}
+
+.service-areas-intro {
+    max-width: 68ch;
+    margin: 0 0 18px;
+    color: var(--color-muted);
+    font-size: 0.95rem;
+}
+
+/* ================================
    Service CTA section
 ================================ */
 

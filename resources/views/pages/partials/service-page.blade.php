@@ -1,5 +1,6 @@
 @php
     $siteName = config('site.name');
+    $seoService = app(\App\Services\SeoService::class);
 
     // Detect service key from config by matching the current translation slug
     $currentServiceKey = null;
@@ -20,16 +21,11 @@
         'cold-rooms' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>',
     ];
 
-    $serviceHeroImages = [
-        'heating'        => 'verwarming-hero.webp',
-        'plumbing'       => 'sanitair-hero.webp',
-        'airco'          => 'airco-hero.webp',
-        'ventilation'    => 'ventilatie-hero.webp',
-        'water-softeners' => 'waterverzachter-hero.webp',
-        'cold-rooms'     => 'koelcellen-hero.webp',
-    ];
-
-    $heroImage = $currentServiceKey ? ($serviceHeroImages[$currentServiceKey] ?? null) : null;
+    // Hero artwork lives in config/services.php so the sitemap's image entries
+    // and this template can never point at different files.
+    $heroImage = $currentServiceKey
+        ? config("services.{$currentServiceKey}.hero_image")
+        : null;
 
     // ── Shared labels ──────────────────────────────────────────────────────────
     $labels = [
@@ -44,6 +40,10 @@
             'cta_text'   => 'Beschrijf uw probleem of project via de slimme aanvraagflow en wij nemen zo snel mogelijk contact op.',
             'cta_button' => 'Start aanvraag',
             'related_heading' => 'Onze andere diensten',
+            'areas_heading' => 'Waar we deze dienst uitvoeren',
+            'areas_intro' => 'Mastechnics werkt in de Druivenstreek en het oosten van Vlaams-Brabant. Bekijk de pagina van uw gemeente voor wat er lokaal anders is.',
+            'areas_all' => 'Volledig werkgebied',
+            'faq_heading' => 'Veelgestelde vragen',
         ],
         'fr' => [
             'type'       => 'Service',
@@ -56,6 +56,10 @@
             'cta_text'   => 'Décrivez votre problème ou projet via le flux de demande intelligent et nous vous contacterons dès que possible.',
             'cta_button' => 'Démarrer ma demande',
             'related_heading' => 'Nos autres services',
+            'areas_heading' => 'Où nous réalisons ce service',
+            'areas_intro' => 'Mastechnics intervient dans le Druivenstreek et l\'est du Brabant flamand. Consultez la page de votre commune pour les particularités locales.',
+            'areas_all' => 'Toute la zone d\'intervention',
+            'faq_heading' => 'Questions fréquentes',
         ],
         'en' => [
             'type'       => 'Service',
@@ -68,11 +72,28 @@
             'cta_text'   => 'Describe your issue or project via the smart request flow and we will get back to you as soon as possible.',
             'cta_button' => 'Start request',
             'related_heading' => 'Our other services',
+            'areas_heading' => 'Where we deliver this service',
+            'areas_intro' => 'Mastechnics works throughout the Druivenstreek and the east of Flemish Brabant. Check your municipality page for what is different locally.',
+            'areas_all' => 'Full service area',
+            'faq_heading' => 'Frequently asked questions',
         ],
     ];
 
     $text = $labels[$locale] ?? $labels['nl'];
-    $requestSlug = $locale === 'fr' ? 'demande' : ($locale === 'en' ? 'request' : 'aanvraag');
+    $requestSlug = $seoService->pageSlug('request', $locale);
+
+    $faqs = $currentServiceKey
+        ? (config("service-faqs.{$currentServiceKey}.{$locale}")
+            ?? config("service-faqs.{$currentServiceKey}.nl")
+            ?? [])
+        : [];
+
+    // Municipalities with a landing page — a service page is where "airco
+    // Tervuren" intent lands, so it should route on to the local page instead
+    // of dead-ending.
+    $serviceAreas = collect(config('site.service_areas', []))
+        ->filter(fn ($area) => $area['page'] ?? false)
+        ->values();
 
     // ── Service-specific content ───────────────────────────────────────────────
     $serviceContent = [
@@ -358,6 +379,19 @@
             return ['title' => $trans['title'], 'slug' => $trans['slug']];
         })
         ->values();
+
+    // Service node scoped to this discipline, plus FAQPage mirroring the block
+    // rendered further down. Both join the shared @graph in the layout head.
+    $seoService->addNode($seoService->serviceNode(
+        $seo['canonical'],
+        $translation->title,
+        $seo['description'],
+        $locale,
+    ));
+
+    if ($faqs !== []) {
+        $seoService->addNode($seoService->faqNode($seo['canonical'], $faqs));
+    }
 @endphp
 
 <div class="service-page service-page--{{ $currentServiceKey ?? '' }}">
@@ -458,6 +492,39 @@
                         <p>{{ $item['description'] }}</p>
                     </article>
                 @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
+{{-- ═══════════════════════════════════════════════════════════
+     FAQ — visible answers plus FAQPage structured data
+═══════════════════════════════════════════════════════════ --}}
+@if ($faqs !== [])
+    @include('partials.faq', ['faqs' => $faqs, 'faqTitle' => $text['faq_heading']])
+@endif
+
+{{-- ═══════════════════════════════════════════════════════════
+     Service area (internal links into the location cluster)
+═══════════════════════════════════════════════════════════ --}}
+@if ($serviceAreas->isNotEmpty())
+    <section class="service-areas-section">
+        <div class="container">
+            <h2 class="service-related-heading">{{ $text['areas_heading'] }}</h2>
+            <p class="service-areas-intro">{{ $text['areas_intro'] }}</p>
+
+            <div class="service-related-links">
+                @foreach ($serviceAreas as $area)
+                    <a class="service-related-link"
+                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => \Illuminate\Support\Str::slug($area['name'])]) }}">
+                        {{ $translation->title }} {{ $area['name'] }}
+                    </a>
+                @endforeach
+
+                <a class="service-related-link"
+                   href="{{ $seoService->pageUrl('service_area', $locale) }}">
+                    {{ $text['areas_all'] }}
+                </a>
             </div>
         </div>
     </section>

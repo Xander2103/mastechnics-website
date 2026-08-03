@@ -401,12 +401,19 @@
 ═══════════════════════════════════════════════════════════ --}}
 <section class="service-hero">
     @if ($heroImage)
+        {{-- LCP candidate on this page: eager, high priority and preloaded from
+             the head. Decorative, so no alt — the headline on top carries the
+             meaning. --}}
         <img
             class="service-hero-bg-img"
-            src="{{ asset('assets/images/' . $heroImage) }}"
+            src="{{ asset($heroImage) }}"
             alt=""
             aria-hidden="true"
             loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            width="2048"
+            height="768"
         >
         <div class="service-hero-bg-overlay" aria-hidden="true"></div>
         <div class="service-hero-accent-glow" aria-hidden="true"></div>
@@ -415,7 +422,12 @@
     <div class="container">
         <div class="service-hero-inner">
 
-            <div class="service-hero-text reveal">
+            {{-- Deliberately not `.reveal`: this block contains the H1, which
+                 is the LCP element. A fade-in that starts at opacity:0 defers
+                 LCP until the JavaScript bundle has parsed and the observer has
+                 fired — a measurable delay for zero design benefit above the
+                 fold. Sections further down keep the animation. --}}
+            <div class="service-hero-text">
                 <div class="service-hero-kicker">
                     <span class="eyebrow">{{ $text['type'] }}</span>
 

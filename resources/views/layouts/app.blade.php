@@ -106,10 +106,15 @@
 
     $canonical = $isPublicPage ? $seo['canonical'] : url()->current();
 
-    // Hero image doubles as the LCP candidate and the social preview image.
+    // The hero backdrop is discovered late (it sits inside the content section,
+    // not the head), so preloading it moves LCP forward on both the homepage
+    // and the six service pages.
     $heroPreloadImage = match (true) {
         !$isPublicPage => null,
         $page->type === 'home' => asset('assets/images/hero.webp'),
+        $page->type === 'service' => config("services.{$page->code}.hero_image")
+            ? asset(config("services.{$page->code}.hero_image"))
+            : null,
         default => null,
     };
 @endphp
@@ -241,10 +246,11 @@
         <a class="site-logo" href="{{ route('pages.home', ['locale' => $locale ?? 'nl']) }}">
             <img
                 src="{{ asset('assets/images/Logo.webp') }}"
-                alt="MAS Technics"
+                alt="{{ $siteName }}"
                 class="site-logo-img"
                 width="176"
                 height="44"
+                decoding="async"
             >
         </a>
 

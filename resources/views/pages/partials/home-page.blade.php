@@ -360,6 +360,9 @@
 @endphp
 
 <section class="home-hero">
+    {{-- Decorative backdrop: the readable content sits on top of it, so it
+         carries no alt text. Intrinsic dimensions are declared anyway — they
+         let the browser reserve the aspect ratio before the bytes arrive. --}}
     <img
         src="{{ asset('assets/images/hero.webp') }}"
         alt=""
@@ -367,6 +370,9 @@
         aria-hidden="true"
         loading="eager"
         fetchpriority="high"
+        decoding="async"
+        width="1672"
+        height="941"
     >
     <div class="container">
         <div class="home-hero-layout">
@@ -499,6 +505,9 @@
                     alt=""
                     aria-hidden="true"
                     loading="lazy"
+                    decoding="async"
+                    width="1672"
+                    height="941"
                 >
             </div>
             <div class="about-intro-text">

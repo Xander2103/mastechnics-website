@@ -364,6 +364,8 @@ function initCustomCursor() {
         pendingRaf = false;
     }
 
+    // Passive: neither handler calls preventDefault, and telling the browser so
+    // keeps these high-frequency pointer events off the blocking path.
     document.addEventListener('mousemove', (e) => {
         cx = e.clientX;
         cy = e.clientY;
@@ -371,7 +373,7 @@ function initCustomCursor() {
             pendingRaf = true;
             requestAnimationFrame(render);
         }
-    });
+    }, { passive: true });
 
     const interactiveSelector =
         'a, button, [role="button"], .button, ' +
@@ -379,7 +381,7 @@ function initCustomCursor() {
 
     document.addEventListener('mouseover', (e) => {
         cursor.classList.toggle('is-hovering', !!e.target.closest(interactiveSelector));
-    });
+    }, { passive: true });
 
     function isInteractiveTarget(target) {
         return Boolean(target.closest(

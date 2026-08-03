@@ -24,9 +24,14 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
-# Compress text-based responses
+# Compress text-based responses. Brotli where available (better ratio on the
+# CSS/JS bundle), gzip as the fallback for older clients and older servers.
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/plain text/xml application/xml application/xhtml+xml application/javascript application/json image/svg+xml
+</IfModule>
+
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/xml application/javascript application/json image/svg+xml
+    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/xml application/xhtml+xml application/javascript application/json image/svg+xml
 </IfModule>
 
 # Browser caching for static assets. Vite build output is content-hashed and
@@ -41,4 +46,20 @@
     ExpiresByType image/svg+xml "access plus 1 month"
     ExpiresByType image/x-icon "access plus 1 month"
     ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Vite writes content-hashed filenames into public/build, so those bytes can
+    # never change under a given URL. `immutable` lets the browser skip even the
+    # revalidation request on repeat views.
+    <FilesMatch "\.(css|js)$">
+        <If "%{REQUEST_URI} =~ m#^/build/#">
+            Header set Cache-Control "public, max-age=31536000, immutable"
+        </If>
+    </FilesMatch>
+
+    # HTTP -> HTTPS is already a 301, but every first request of a session still
+    # pays for that hop. HSTS removes it. No includeSubDomains and no preload:
+    # both are hard to reverse and only the apex is served over TLS today.
+    Header always set Strict-Transport-Security "max-age=15768000"
 </IfModule>

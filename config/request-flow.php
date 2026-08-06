@@ -11,7 +11,7 @@ return [
     // Step 5  : airco_customer_context       (conditional: airco_offerte, airco_onderhoud)
     // Step 6  : customer_context             (conditional: non-airco categories)
     // Step 7  : description                  (conditional: non-airco_offerte; file upload lives here)
-    // Step 8  : technical_details
+    // Step 8  : technical_details            (conditional: existing-device flows — not airco_offerte / waterverzachter)
     // Step 9  : location_availability
     // Step 10 : contact_details
     // Step 11 : summary
@@ -600,16 +600,16 @@ return [
                 ],
             ],
             'helper_box' => [
-                'render_upload' => false,
+                'render_upload' => true,
                 'title'         => [
                     'nl' => 'Foto\'s van de ruimtes (optioneel)',
                     'fr' => 'Photos des pièces (facultatif)',
                     'en' => 'Room photos (optional)',
                 ],
                 'text'          => [
-                    'nl' => 'Foto\'s van de ruimtes of de geplande locatie voor de buitenunit helpen bij het opmaken van uw offerte. U kunt ze uploaden bij \'Technische gegevens\' hieronder.',
-                    'fr' => 'Des photos des pièces ou de l\'emplacement prévu pour l\'unité extérieure facilitent l\'établissement de votre devis. Vous pouvez les télécharger dans \'Informations techniques\' ci-dessous.',
-                    'en' => 'Photos of the rooms or the planned outdoor unit location help with your quote. You can upload them in \'Technical details\' below.',
+                    'nl' => 'Foto\'s van de ruimtes of de geplande locatie voor de buitenunit helpen bij het opmaken van uw offerte.',
+                    'fr' => 'Des photos des pièces ou de l\'emplacement prévu pour l\'unité extérieure facilitent l\'établissement de votre devis.',
+                    'en' => 'Photos of the rooms or the planned outdoor unit location help with your quote.',
                 ],
             ],
         ],
@@ -873,10 +873,15 @@ return [
             ],
         ],
 
-        // ── Step 8 ────────────────────────────────────────────────────────────
-        // Always shown; brand/device_model here serve categories without a dedicated detail step.
+        // ── Step 8 (conditional) ─────────────────────────────────────────────
+        // Brand/model/serial only make sense for flows about an EXISTING device.
+        // Quote flows for a new installation (airco_offerte, waterverzachter)
+        // skip this step entirely — those customers don't own the device yet.
         [
-            'code'   => 'technical_details',
+            'code'      => 'technical_details',
+            'condition' => [
+                'service_categories' => ['airco_onderhoud', 'onderhoud_cv', 'herstelling_cv', 'dringend_lek', 'sanitair', 'ventilatie', 'koeling', 'andere'],
+            ],
             'labels' => [
                 'nl' => 'Technische gegevens',
                 'fr' => 'Informations techniques',

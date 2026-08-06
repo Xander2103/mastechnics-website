@@ -550,9 +550,34 @@
                                         @endif
 
                                         @if (isset($step['helper_box']))
-                                            <div class="upload-box upload-box--info-only" style="margin-top: 18px;">
+                                            @php $roomsBoxUpload = $step['helper_box']['render_upload'] ?? false; @endphp
+                                            <div class="upload-box {{ $roomsBoxUpload ? '' : 'upload-box--info-only' }} {{ $roomsBoxUpload && ($errors->has('attachments') || $errors->has('attachments.*')) ? 'field-has-error' : '' }}" style="margin-top: 18px;">
                                                 <strong>{{ $step['helper_box']['title'][$locale] ?? $step['helper_box']['title']['nl'] }}</strong>
                                                 <p>{{ $step['helper_box']['text'][$locale] ?? $step['helper_box']['text']['nl'] }}</p>
+
+                                                @if ($roomsBoxUpload)
+                                                    <label class="upload-file-control">
+                                                        <span>{{ $text['choose_files'] }}</span>
+                                                        <input
+                                                            type="file"
+                                                            name="attachments[]"
+                                                            multiple
+                                                            accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                                            class="js-attachment-input"
+                                                        >
+                                                    </label>
+
+                                                    <div class="selected-attachments js-attachment-list"
+                                                         data-remove-label="{{ $locale === 'fr' ? 'Supprimer' : ($locale === 'en' ? 'Remove' : 'Verwijder') }}"></div>
+
+                                                    @error('attachments')
+                                                        <p class="field-error-text">{{ $message }}</p>
+                                                    @enderror
+
+                                                    @error('attachments.*')
+                                                        <p class="field-error-text">{{ $message }}</p>
+                                                    @enderror
+                                                @endif
                                             </div>
                                         @endif
 
@@ -678,15 +703,15 @@
                                                 <label class="upload-file-control">
                                                     <span>{{ $text['choose_files'] }}</span>
                                                     <input
-                                                        id="techAttachmentsInput"
                                                         type="file"
                                                         name="attachments[]"
                                                         multiple
                                                         accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                                        class="js-attachment-input"
                                                     >
                                                 </label>
 
-                                                <div id="techSelectedAttachments" class="selected-attachments"
+                                                <div class="selected-attachments js-attachment-list"
                                                      data-remove-label="{{ $locale === 'fr' ? 'Supprimer' : ($locale === 'en' ? 'Remove' : 'Verwijder') }}"></div>
                                             </div>
                                         @endif
@@ -708,15 +733,15 @@
                                                         </span>
 
                                                         <input
-                                                            id="attachmentsInput"
                                                             type="file"
                                                             name="attachments[]"
                                                             multiple
                                                             accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                                            class="js-attachment-input"
                                                         >
                                                     </label>
 
-                                                    <div id="selectedAttachments" class="selected-attachments"
+                                                    <div class="selected-attachments js-attachment-list"
                                                          data-remove-label="{{ $locale === 'fr' ? 'Supprimer' : ($locale === 'en' ? 'Remove' : 'Verwijder') }}"></div>
 
                                                     @error('attachments')
@@ -820,10 +845,6 @@
     var progressArea    = document.getElementById('wizardProgressArea');
     var allSections     = Array.from(document.querySelectorAll('.form-section[data-step]'));
     var categoryInputs  = document.querySelectorAll('input[name="service_category"]');
-    var attachInput     = document.getElementById('attachmentsInput');
-    var attachList      = document.getElementById('selectedAttachments');
-    var techAttachInput = document.getElementById('techAttachmentsInput');
-    var techAttachList  = document.getElementById('techSelectedAttachments');
 
     // ── State ─────────────────────────────────────────────────────────────────
     var currentIndex    = 0;
@@ -1042,22 +1063,17 @@
         });
     }
 
-    // ── File attachment preview (description step upload) ─────────────────────
+    // ── File attachment previews (all upload boxes) ────────────────────────────
     // SECURITY: file.name is rendered via textContent only — never innerHTML
-    if (attachInput && attachList) {
+    document.querySelectorAll('.js-attachment-input').forEach(function (input) {
+        var box  = input.closest('.upload-box');
+        var list = box ? box.querySelector('.js-attachment-list') : null;
+        if (!list) return;
+
         var files = [];
 
-        attachInput.addEventListener('change', function () {
-            Array.from(attachInput.files).forEach(function (file) {
-                if (!files.find(function (f) { return f.name === file.name && f.size === file.size; })) {
-                    files.push(file);
-                }
-            });
-            renderAttachments();
-        });
-
-        function renderAttachments() {
-            attachList.innerHTML = '';
+        function renderAttachmentList() {
+            list.innerHTML = '';
             files.forEach(function (file, i) {
                 var item = document.createElement('div');
                 item.className = 'selected-attachment-item';
@@ -1067,63 +1083,29 @@
 
                 var removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
-                removeBtn.setAttribute('aria-label', attachList.dataset.removeLabel || 'Verwijder');
+                removeBtn.setAttribute('aria-label', list.dataset.removeLabel || 'Verwijder');
                 removeBtn.textContent = '×';
 
-                removeBtn.addEventListener('click', (function (index) {
-                    return function () {
-                        files.splice(index, 1);
-                        renderAttachments();
-                    };
-                })(i));
+                removeBtn.addEventListener('click', function () {
+                    files.splice(i, 1);
+                    renderAttachmentList();
+                });
 
                 item.appendChild(nameSpan);
                 item.appendChild(removeBtn);
-                attachList.appendChild(item);
+                list.appendChild(item);
             });
         }
-    }
 
-    // ── Technical photo upload preview ─────────────────────────────────────────
-    if (techAttachInput && techAttachList) {
-        var techFiles = [];
-
-        techAttachInput.addEventListener('change', function () {
-            Array.from(techAttachInput.files).forEach(function (file) {
-                if (!techFiles.find(function (f) { return f.name === file.name && f.size === file.size; })) {
-                    techFiles.push(file);
+        input.addEventListener('change', function () {
+            Array.from(input.files).forEach(function (file) {
+                if (!files.find(function (f) { return f.name === file.name && f.size === file.size; })) {
+                    files.push(file);
                 }
             });
-            renderTechAttachments();
+            renderAttachmentList();
         });
-
-        function renderTechAttachments() {
-            techAttachList.innerHTML = '';
-            techFiles.forEach(function (file, i) {
-                var item = document.createElement('div');
-                item.className = 'selected-attachment-item';
-
-                var nameSpan = document.createElement('span');
-                nameSpan.textContent = file.name;
-
-                var removeBtn = document.createElement('button');
-                removeBtn.type = 'button';
-                removeBtn.setAttribute('aria-label', techAttachList.dataset.removeLabel || 'Verwijder');
-                removeBtn.textContent = '×';
-
-                removeBtn.addEventListener('click', (function (index) {
-                    return function () {
-                        techFiles.splice(index, 1);
-                        renderTechAttachments();
-                    };
-                })(i));
-
-                item.appendChild(nameSpan);
-                item.appendChild(removeBtn);
-                techAttachList.appendChild(item);
-            });
-        }
-    }
+    });
 
     // ── Serial number help tooltip ─────────────────────────────────────────────
     document.querySelectorAll('.serial-help-btn').forEach(function (btn) {

@@ -116,8 +116,12 @@ class CustomerRequest extends Model
             $missing[] = 'Locatiegegevens zijn onvolledig.';
         }
 
-        // 5. No description
-        if (empty($this->description) && empty($this->customer_message)) {
+        // Quote flows for a new installation never ask for an existing device
+        // or a problem description — don't flag those as missing there.
+        $isNewInstallationQuote = in_array($this->service_category, ['airco_offerte', 'waterverzachter'], true);
+
+        // 5. No description (not asked in new-installation quote flows)
+        if (! $isNewInstallationQuote && empty($this->description) && empty($this->customer_message)) {
             $missing[] = 'Geen duidelijke beschrijving ingevuld.';
         }
 
@@ -126,8 +130,11 @@ class CustomerRequest extends Model
             $missing[] = 'Geen gewenst moment ingevuld.';
         }
 
-        // 7. Brand/model missing (and not unknown)
-        if ((empty($this->brand) || empty($this->device_model)) && ! $this->unknown_device_details) {
+        // 7. Brand/model missing (and not unknown; not asked in new-installation quote flows)
+        if (! $isNewInstallationQuote
+            && (empty($this->brand) || empty($this->device_model))
+            && ! $this->unknown_device_details
+        ) {
             $missing[] = 'Merk/model ontbreekt.';
         }
 

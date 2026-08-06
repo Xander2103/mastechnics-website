@@ -41,6 +41,7 @@ class RequestFlowDeviceStepTest extends TestCase
             'service_category' => 'airco_offerte',
             'customer_type'    => 'residential',
             'airco_house_age'  => 'yes',
+            'insulation_level' => 'good',
             'rooms'            => [
                 [
                     'type'        => 'slaapkamer',

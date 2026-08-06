@@ -95,11 +95,7 @@
             'room_add'              => 'Kamer toevoegen',
             'room_remove'           => 'Verwijder kamer',
             'room_type_label'       => 'Type ruimte',
-            'room_width_label'      => 'Breedte (m)',
-            'room_length_label'     => 'Lengte (m)',
-            'room_surface_label'    => 'Oppervlakte (m²)',
-            'room_attic_label'      => 'Zolderkamer of onder plat dak?',
-            'room_windows_label'    => 'Veel grote ramen?',
+            'room_surface_label'    => 'Geschatte oppervlakte (m²)',
             'unknown_device_helper'   => 'Geen probleem, dan bekijken we dit op basis van uw beschrijving en foto\'s.',
             'brand_model_error'       => 'Vul merk en model in, of vink aan dat u dit niet weet.',
             'summary_category'        => 'Gekozen dienst',
@@ -107,8 +103,11 @@
             'summary_room'            => 'Kamer',
             'summary_dimensions'      => 'Afmetingen',
             'summary_surface'         => 'Oppervlakte',
-            'summary_attic'           => 'Zolder/plat dak',
-            'summary_large_windows'   => 'Grote ramen',
+            'summary_height'          => 'Hoogte',
+            'summary_roof'            => 'Dak',
+            'summary_windows_short'   => 'Ramen',
+            'summary_orientation'     => 'Ligging',
+            'summary_insulation'      => 'Isolatie',
             'summary_house_age'       => 'Woning ouder dan 10 jaar',
             'summary_outdoor_unit'    => 'Buitenunit aanwezig',
             'summary_timing'          => 'Gewenste termijn',
@@ -165,11 +164,7 @@
             'room_add'              => 'Ajouter une pièce',
             'room_remove'           => 'Supprimer la pièce',
             'room_type_label'       => 'Type de pièce',
-            'room_width_label'      => 'Largeur (m)',
-            'room_length_label'     => 'Longueur (m)',
-            'room_surface_label'    => 'Surface (m²)',
-            'room_attic_label'      => 'Chambre mansardée ou sous toit plat ?',
-            'room_windows_label'    => 'Beaucoup de grandes fenêtres ?',
+            'room_surface_label'    => 'Surface estimée (m²)',
             'unknown_device_helper'   => 'Pas de problème, nous l\'évaluerons sur base de votre description et de vos photos.',
             'brand_model_error'       => 'Indiquez la marque et le modèle, ou cochez que vous ne les connaissez pas.',
             'summary_category'        => 'Service choisi',
@@ -177,8 +172,11 @@
             'summary_room'            => 'Pièce',
             'summary_dimensions'      => 'Dimensions',
             'summary_surface'         => 'Surface',
-            'summary_attic'           => 'Mansardée/toit plat',
-            'summary_large_windows'   => 'Grandes fenêtres',
+            'summary_height'          => 'Hauteur',
+            'summary_roof'            => 'Toit',
+            'summary_windows_short'   => 'Fenêtres',
+            'summary_orientation'     => 'Orientation',
+            'summary_insulation'      => 'Isolation',
             'summary_house_age'       => 'Logement de plus de 10 ans',
             'summary_outdoor_unit'    => 'Unité extérieure présente',
             'summary_timing'          => 'Délai souhaité',
@@ -235,11 +233,7 @@
             'room_add'              => 'Add room',
             'room_remove'           => 'Remove room',
             'room_type_label'       => 'Room type',
-            'room_width_label'      => 'Width (m)',
-            'room_length_label'     => 'Length (m)',
-            'room_surface_label'    => 'Area (m²)',
-            'room_attic_label'      => 'Attic or flat roof?',
-            'room_windows_label'    => 'Many large windows?',
+            'room_surface_label'    => 'Estimated area (m²)',
             'unknown_device_helper'   => 'No problem, we will review it based on your description and photos.',
             'brand_model_error'       => 'Enter the brand and model, or check that you don\'t know them.',
             'summary_category'        => 'Chosen service',
@@ -247,8 +241,11 @@
             'summary_room'            => 'Room',
             'summary_dimensions'      => 'Dimensions',
             'summary_surface'         => 'Area',
-            'summary_attic'           => 'Attic/flat roof',
-            'summary_large_windows'   => 'Large windows',
+            'summary_height'          => 'Height',
+            'summary_roof'            => 'Roof',
+            'summary_windows_short'   => 'Windows',
+            'summary_orientation'     => 'Orientation',
+            'summary_insulation'      => 'Insulation',
             'summary_house_age'       => 'Property older than 10 years',
             'summary_outdoor_unit'    => 'Outdoor unit present',
             'summary_timing'          => 'Desired timeframe',
@@ -437,14 +434,11 @@
                                         @enderror
                                     @elseif (($step['type'] ?? '') === 'airco_rooms')
                                         @php
-                                            $roomTypes = $step['room_types'] ?? [];
-                                            $oldRooms  = old('rooms', [
-                                                ['type' => '', 'width' => '', 'length' => '', 'surface' => '', 'attic_or_flat_roof' => '', 'large_windows' => ''],
+                                            $roomTypes  = $step['room_types'] ?? [];
+                                            $roomFields = $step['room_fields'] ?? [];
+                                            $oldRooms   = old('rooms', [
+                                                collect($roomFields)->pluck('name')->flip()->map(fn () => '')->put('type', '')->all(),
                                             ]);
-                                            $yesNoOptions = [
-                                                ['value' => 'yes', 'label' => $text['yes'] ?? 'Ja'],
-                                                ['value' => 'no',  'label' => $text['no']  ?? 'Nee'],
-                                            ];
                                         @endphp
 
                                         <div class="room-manager" id="roomManager"
@@ -472,52 +466,68 @@
                                                                 @endforeach
                                                             </select>
                                                         </label>
-                                                        <label>
-                                                            <span>{{ $text['room_width_label'] }}</span>
-                                                            <input type="number" name="rooms[{{ $ri }}][width]"
-                                                                   value="{{ $room['width'] ?? '' }}"
-                                                                   min="1" max="50" step="0.1"
-                                                                   class="room-dim-input room-width"
-                                                                   data-required="true">
-                                                        </label>
-                                                        <label>
-                                                            <span>{{ $text['room_length_label'] }}</span>
-                                                            <input type="number" name="rooms[{{ $ri }}][length]"
-                                                                   value="{{ $room['length'] ?? '' }}"
-                                                                   min="1" max="50" step="0.1"
-                                                                   class="room-dim-input room-length"
-                                                                   data-required="true">
-                                                        </label>
-                                                        <label>
-                                                            <span>{{ $text['room_surface_label'] }}</span>
-                                                            <input type="number" name="rooms[{{ $ri }}][surface]"
-                                                                   value="{{ ($room['width'] ?? '') !== '' && ($room['length'] ?? '') !== '' ? round((float)$room['width'] * (float)$room['length'], 1) : '' }}"
-                                                                   readonly class="room-surface">
-                                                        </label>
-                                                        <label>
-                                                            <span>{{ $text['room_attic_label'] }}</span>
-                                                            <select name="rooms[{{ $ri }}][attic_or_flat_roof]" data-required="true">
-                                                                <option value="">{{ $text['choose_option'] }}</option>
-                                                                @foreach ($yesNoOptions as $opt)
-                                                                    <option value="{{ $opt['value'] }}"
-                                                                        {{ ($room['attic_or_flat_roof'] ?? '') === $opt['value'] ? 'selected' : '' }}>
-                                                                        {{ $opt['label'] }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </label>
-                                                        <label>
-                                                            <span>{{ $text['room_windows_label'] }}</span>
-                                                            <select name="rooms[{{ $ri }}][large_windows]" data-required="true">
-                                                                <option value="">{{ $text['choose_option'] }}</option>
-                                                                @foreach ($yesNoOptions as $opt)
-                                                                    <option value="{{ $opt['value'] }}"
-                                                                        {{ ($room['large_windows'] ?? '') === $opt['value'] ? 'selected' : '' }}>
-                                                                        {{ $opt['label'] }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </label>
+                                                        @foreach ($roomFields as $rf)
+                                                            @php
+                                                                $rfVw      = $rf['visible_when'] ?? null;
+                                                                $rfVal     = $room[$rf['name']] ?? '';
+                                                                $rfVisible = $rfVw === null || (($room[$rfVw['field']] ?? '') === $rfVw['value']);
+                                                            @endphp
+                                                            @if (($rf['type'] ?? '') === 'select')
+                                                                <label
+                                                                    class="{{ $rfVw !== null && ! $rfVisible ? 'is-reveal-hidden' : '' }}"
+                                                                    @if ($rfVw !== null)
+                                                                        data-visible-when-field="{{ $rfVw['field'] }}"
+                                                                        data-visible-when-value="{{ $rfVw['value'] }}"
+                                                                    @endif
+                                                                >
+                                                                    <span>{{ $getLabel($rf) }}</span>
+                                                                    <select name="rooms[{{ $ri }}][{{ $rf['name'] }}]"
+                                                                            @if ($rf['required'] ?? false) data-required="true" @endif
+                                                                            @if ($rfVw !== null && ! $rfVisible) disabled @endif>
+                                                                        <option value="">{{ $text['choose_option'] }}</option>
+                                                                        @foreach ($rf['options'] ?? [] as $option)
+                                                                            <option value="{{ $option['value'] }}"
+                                                                                {{ $rfVal === $option['value'] ? 'selected' : '' }}>
+                                                                                {{ $getLabel($option) }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </label>
+                                                            @elseif (($rf['type'] ?? '') === 'number')
+                                                                <label>
+                                                                    <span>{{ $getLabel($rf) }}</span>
+                                                                    <input type="number" name="rooms[{{ $ri }}][{{ $rf['name'] }}]"
+                                                                           value="{{ $rfVal }}"
+                                                                           min="{{ $rf['min'] ?? 0 }}"
+                                                                           @if (isset($rf['max'])) max="{{ $rf['max'] }}" @endif
+                                                                           step="{{ ($rf['decimal'] ?? false) ? '0.1' : '1' }}"
+                                                                           class="room-dim-input room-{{ $rf['name'] }}"
+                                                                           @if ($rf['required'] ?? false) data-required="true" @endif>
+                                                                </label>
+                                                                @if ($rf['name'] === 'height')
+                                                                    {{-- Calculated surface directly after the dimensions --}}
+                                                                    <label>
+                                                                        <span>{{ $text['room_surface_label'] }}</span>
+                                                                        <input type="number" name="rooms[{{ $ri }}][surface]"
+                                                                               value="{{ ($room['width'] ?? '') !== '' && ($room['length'] ?? '') !== '' ? round((float)$room['width'] * (float)$room['length'], 1) : '' }}"
+                                                                               readonly class="room-surface">
+                                                                    </label>
+                                                                @endif
+                                                            @else
+                                                                <label
+                                                                    class="{{ $rfVw !== null && ! $rfVisible ? 'is-reveal-hidden' : '' }}"
+                                                                    @if ($rfVw !== null)
+                                                                        data-visible-when-field="{{ $rfVw['field'] }}"
+                                                                        data-visible-when-value="{{ $rfVw['value'] }}"
+                                                                    @endif
+                                                                >
+                                                                    <span>{{ $getLabel($rf) }}</span>
+                                                                    <input type="text" name="rooms[{{ $ri }}][{{ $rf['name'] }}]"
+                                                                           value="{{ $rfVal }}"
+                                                                           @if ($rfVw !== null && ! $rfVisible) disabled @endif>
+                                                                </label>
+                                                            @endif
+                                                        @endforeach
                                                     </div>
                                                 </div>
                                             @endforeach
@@ -531,7 +541,17 @@
                                         @if (!empty($step['fields']))
                                             <div class="form-grid" style="margin-top: 24px;">
                                                 @foreach ($step['fields'] as $field)
-                                                    <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
+                                                    @php
+                                                        $vw        = $field['visible_when'] ?? null;
+                                                        $vwVisible = $vw === null || old($vw['field']) === $vw['value'];
+                                                    @endphp
+                                                    <label
+                                                        class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }} {{ $vw !== null && ! $vwVisible ? 'is-reveal-hidden' : '' }}"
+                                                        @if ($vw !== null)
+                                                            data-visible-when-field="{{ $vw['field'] }}"
+                                                            data-visible-when-value="{{ $vw['value'] }}"
+                                                        @endif
+                                                    >
                                                         <span>
                                                             {{ $getLabel($field) }}
                                                             @if ($isRequiredField($field))
@@ -539,7 +559,9 @@
                                                             @endif
                                                         </span>
                                                         @if (($field['type'] ?? '') === 'select')
-                                                            <select name="{{ $field['name'] }}" @if ($isRequiredField($field)) data-required="true" @endif>
+                                                            <select name="{{ $field['name'] }}"
+                                                                    @if ($isRequiredField($field)) data-required="true" @endif
+                                                                    @if ($vw !== null && ! $vwVisible) disabled @endif>
                                                                 <option value="">{{ $text['choose_option'] }}</option>
                                                                 @foreach ($field['options'] ?? [] as $option)
                                                                     <option value="{{ $option['value'] }}"
@@ -560,7 +582,8 @@
                                                                    name="{{ $field['name'] }}"
                                                                    value="{{ old($field['name']) }}"
                                                                    placeholder="{{ $getPlaceholder($field) }}"
-                                                                   @if ($isRequiredField($field)) data-required="true" @endif>
+                                                                   @if ($isRequiredField($field)) data-required="true" @endif
+                                                                   @if ($vw !== null && ! $vwVisible) disabled @endif>
                                                         @endif
                                                         @error($field['name'])
                                                             <p class="field-error-text">{{ $message }}</p>
@@ -1274,6 +1297,11 @@
                 manager.insertBefore(clone, addBtn);
                 renumber();
 
+                // Re-sync "Andere" reveal fields for the cleared clone
+                clone.querySelectorAll('select').forEach(function (sel) {
+                    updateRevealFields(sel);
+                });
+
                 clone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
         }
@@ -1388,8 +1416,11 @@
             'category'      => $text['summary_category'],
             'rooms'         => $text['summary_rooms'],
             'room'          => $text['summary_room'],
-            'attic'         => $text['summary_attic'],
-            'largeWindows'  => $text['summary_large_windows'],
+            'height'        => $text['summary_height'],
+            'roof'          => $text['summary_roof'],
+            'windowsShort'  => $text['summary_windows_short'],
+            'orientation'   => $text['summary_orientation'],
+            'insulation'    => $text['summary_insulation'],
             'houseAge'      => $text['summary_house_age'],
             'outdoorUnit'   => $text['summary_outdoor_unit'],
             'timing'        => $text['summary_timing'],
@@ -1491,33 +1522,35 @@
             var roomEntries = document.querySelectorAll('.room-entry');
             var roomItems = [];
 
+            function optText(sel) {
+                if (!sel || !sel.value) return '';
+                var o = Array.from(sel.options).find(function (x) { return x.value === sel.value; });
+                return o ? o.text : '';
+            }
+
             roomEntries.forEach(function (entry, i) {
                 var typeEl    = entry.querySelector('select[name*="[type]"]');
                 var surfaceEl = entry.querySelector('.room-surface');
-                var atticEl   = entry.querySelector('select[name*="[attic_or_flat_roof]"]');
-                var windowsEl = entry.querySelector('select[name*="[large_windows]"]');
+                var heightEl  = entry.querySelector('input[name*="[height]"]');
+                var roofEl    = entry.querySelector('select[name*="[roof_type]"]');
+                var windowsEl = entry.querySelector('select[name*="[windows]"]');
+                var orientEl  = entry.querySelector('select[name*="[orientation]"]');
 
                 var parts = [];
-                if (typeEl && typeEl.value) {
-                    var tOpt = Array.from(typeEl.options).find(function (o) { return o.value === typeEl.value; });
-                    if (tOpt) parts.push(tOpt.text);
-                }
-                if (surfaceEl && surfaceEl.value) {
-                    parts.push(surfaceEl.value + ' m²');
-                }
-                if (atticEl && atticEl.value) {
-                    var aOpt = Array.from(atticEl.options).find(function (o) { return o.value === atticEl.value; });
-                    if (aOpt) parts.push(summaryLabels.attic + ': ' + aOpt.text);
-                }
-                if (windowsEl && windowsEl.value) {
-                    var wOpt = Array.from(windowsEl.options).find(function (o) { return o.value === windowsEl.value; });
-                    if (wOpt) parts.push(summaryLabels.largeWindows + ': ' + wOpt.text);
-                }
+                if (typeEl && typeEl.value) parts.push(optText(typeEl));
+                if (surfaceEl && surfaceEl.value) parts.push(surfaceEl.value + ' m²');
+                if (heightEl && heightEl.value) parts.push(summaryLabels.height + ': ' + heightEl.value + ' m');
+                if (roofEl && roofEl.value) parts.push(summaryLabels.roof + ': ' + optText(roofEl));
+                if (windowsEl && windowsEl.value) parts.push(summaryLabels.windowsShort + ': ' + optText(windowsEl));
+                if (orientEl && orientEl.value) parts.push(summaryLabels.orientation + ': ' + optText(orientEl));
 
                 if (parts.length) {
                     roomItems.push({ label: summaryLabels.room + ' ' + (i + 1), value: parts.join(' · ') });
                 }
             });
+
+            var insulationText = qSelectText('insulation_level');
+            if (insulationText) roomItems.push({ label: summaryLabels.insulation, value: insulationText });
 
             var houseAgeText = qSelectText('airco_house_age');
             var outdoorText  = qSelectText('airco_has_outdoor_unit');

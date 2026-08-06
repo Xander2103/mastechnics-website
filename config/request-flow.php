@@ -782,7 +782,212 @@ return [
                     'labels' => ['nl' => 'Andere ruimte', 'fr' => 'Autre pièce', 'en' => 'Other room'],
                 ],
             ],
+            // Per-room fields, rendered inside every room entry. Numbers are in
+            // metres; surface is calculated (width × length), never asked.
+            'room_fields' => [
+                [
+                    'name'     => 'width',
+                    'type'     => 'number',
+                    'decimal'  => true,
+                    'min'      => 1,
+                    'max'      => 50,
+                    'required' => true,
+                    'labels'   => ['nl' => 'Breedte (m)', 'fr' => 'Largeur (m)', 'en' => 'Width (m)'],
+                ],
+                [
+                    'name'     => 'length',
+                    'type'     => 'number',
+                    'decimal'  => true,
+                    'min'      => 1,
+                    'max'      => 50,
+                    'required' => true,
+                    'labels'   => ['nl' => 'Lengte (m)', 'fr' => 'Longueur (m)', 'en' => 'Length (m)'],
+                ],
+                [
+                    'name'     => 'height',
+                    'type'     => 'number',
+                    'decimal'  => true,
+                    'min'      => 1.5,
+                    'max'      => 8,
+                    'required' => true,
+                    'labels'   => ['nl' => 'Hoogte (m)', 'fr' => 'Hauteur (m)', 'en' => 'Height (m)'],
+                ],
+                [
+                    'name'     => 'roof_type',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Type dak of zolderkamer',
+                        'fr' => 'Type de toiture ou de chambre mansardée',
+                        'en' => 'Roof or attic room type',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'flat_roof',
+                            'labels' => ['nl' => 'Plat dak', 'fr' => 'Toit plat', 'en' => 'Flat roof'],
+                        ],
+                        [
+                            'value'  => 'attic_no_roof_window',
+                            'labels' => ['nl' => 'Zolderkamer zonder dakraam', 'fr' => 'Chambre mansardée sans fenêtre de toit', 'en' => 'Attic room without roof window'],
+                        ],
+                        [
+                            'value'  => 'attic_with_roof_window',
+                            'labels' => ['nl' => 'Zolderkamer met dakraam', 'fr' => 'Chambre mansardée avec fenêtre de toit', 'en' => 'Attic room with roof window'],
+                        ],
+                        [
+                            'value'  => 'none',
+                            'labels' => ['nl' => 'Geen van deze', 'fr' => 'Aucun de ces cas', 'en' => 'None of these'],
+                        ],
+                        [
+                            'value'  => 'other',
+                            'labels' => ['nl' => 'Andere', 'fr' => 'Autre', 'en' => 'Other'],
+                        ],
+                    ],
+                ],
+                [
+                    'name'         => 'roof_type_other',
+                    'type'         => 'text',
+                    'required'     => false,
+                    'visible_when' => ['field' => 'roof_type', 'value' => 'other'],
+                    'labels'       => [
+                        'nl' => 'Beschrijf het dak of de kamer',
+                        'fr' => 'Décrivez la toiture ou la pièce',
+                        'en' => 'Describe the roof or room',
+                    ],
+                ],
+                [
+                    'name'     => 'windows',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => ['nl' => 'Ramen', 'fr' => 'Fenêtres', 'en' => 'Windows'],
+                    'options'  => [
+                        [
+                            'value'  => 'large',
+                            'labels' => ['nl' => 'Grote ramen', 'fr' => 'Grandes fenêtres', 'en' => 'Large windows'],
+                        ],
+                        [
+                            'value'  => 'small',
+                            'labels' => ['nl' => 'Kleine ramen', 'fr' => 'Petites fenêtres', 'en' => 'Small windows'],
+                        ],
+                        [
+                            'value'  => 'mixed',
+                            'labels' => ['nl' => 'Gemengde ramen', 'fr' => 'Fenêtres mixtes', 'en' => 'Mixed windows'],
+                        ],
+                        [
+                            'value'  => 'few_none',
+                            'labels' => ['nl' => 'Weinig of geen ramen', 'fr' => 'Peu ou pas de fenêtres', 'en' => 'Few or no windows'],
+                        ],
+                        [
+                            'value'  => 'other',
+                            'labels' => ['nl' => 'Andere', 'fr' => 'Autre', 'en' => 'Other'],
+                        ],
+                    ],
+                ],
+                [
+                    'name'         => 'windows_other',
+                    'type'         => 'text',
+                    'required'     => false,
+                    'visible_when' => ['field' => 'windows', 'value' => 'other'],
+                    'labels'       => [
+                        'nl' => 'Beschrijf de ramen',
+                        'fr' => 'Décrivez les fenêtres',
+                        'en' => 'Describe the windows',
+                    ],
+                ],
+                [
+                    'name'     => 'orientation',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Ligging van de ruimte',
+                        'fr' => 'Orientation de la pièce',
+                        'en' => 'Room orientation',
+                    ],
+                    'options' => [
+                        ['value' => 'north', 'labels' => ['nl' => 'Noord', 'fr' => 'Nord', 'en' => 'North']],
+                        ['value' => 'east', 'labels' => ['nl' => 'Oost', 'fr' => 'Est', 'en' => 'East']],
+                        ['value' => 'west', 'labels' => ['nl' => 'West', 'fr' => 'Ouest', 'en' => 'West']],
+                        ['value' => 'south', 'labels' => ['nl' => 'Zuid', 'fr' => 'Sud', 'en' => 'South']],
+                        ['value' => 'other', 'labels' => ['nl' => 'Andere', 'fr' => 'Autre', 'en' => 'Other']],
+                        ['value' => 'unknown', 'labels' => ['nl' => 'Ik weet het niet', 'fr' => 'Je ne sais pas', 'en' => 'I don\'t know']],
+                    ],
+                ],
+                [
+                    'name'         => 'orientation_other',
+                    'type'         => 'text',
+                    'required'     => false,
+                    'visible_when' => ['field' => 'orientation', 'value' => 'other'],
+                    'labels'       => [
+                        'nl' => 'Beschrijf de ligging',
+                        'fr' => 'Décrivez l\'orientation',
+                        'en' => 'Describe the orientation',
+                    ],
+                ],
+            ],
             'fields' => [
+                [
+                    'name'         => 'insulation_level',
+                    'type'         => 'select',
+                    'required'     => true,
+                    'labels'       => [
+                        'nl' => 'Isolatiegraad van de woning',
+                        'fr' => 'Niveau d\'isolation du logement',
+                        'en' => 'Insulation level of the property',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'excellent',
+                            'labels' => [
+                                'nl' => 'Uitstekend — nieuwbouw, EPB of passiefwoning',
+                                'fr' => 'Excellente — construction neuve, PEB ou maison passive',
+                                'en' => 'Excellent — new build, energy-efficient or passive house',
+                            ],
+                        ],
+                        [
+                            'value'  => 'good',
+                            'labels' => [
+                                'nl' => 'Goed — woning vanaf ongeveer 2015',
+                                'fr' => 'Bonne — logement à partir d\'environ 2015',
+                                'en' => 'Good — property built from approximately 2015',
+                            ],
+                        ],
+                        [
+                            'value'  => 'average',
+                            'labels' => [
+                                'nl' => 'Gemiddeld — woning van ongeveer 2000 tot 2015',
+                                'fr' => 'Moyenne — logement d\'environ 2000 à 2015',
+                                'en' => 'Average — property built from approximately 2000 to 2015',
+                            ],
+                        ],
+                        [
+                            'value'  => 'poor',
+                            'labels' => [
+                                'nl' => 'Beperkt — oudere woning',
+                                'fr' => 'Faible — logement plus ancien',
+                                'en' => 'Poor — older property',
+                            ],
+                        ],
+                        [
+                            'value'  => 'other',
+                            'labels' => ['nl' => 'Andere', 'fr' => 'Autre', 'en' => 'Other'],
+                        ],
+                        [
+                            'value'  => 'unknown',
+                            'labels' => ['nl' => 'Ik weet het niet', 'fr' => 'Je ne sais pas', 'en' => 'I don\'t know'],
+                        ],
+                    ],
+                ],
+                [
+                    'name'         => 'insulation_level_other',
+                    'type'         => 'text',
+                    'required'     => false,
+                    'visible_when' => ['field' => 'insulation_level', 'value' => 'other'],
+                    'labels'       => [
+                        'nl' => 'Beschrijf de isolatie',
+                        'fr' => 'Décrivez l\'isolation',
+                        'en' => 'Describe the insulation',
+                    ],
+                ],
                 [
                     'name'     => 'airco_has_outdoor_unit',
                     'type'     => 'select',

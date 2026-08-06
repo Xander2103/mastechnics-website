@@ -67,12 +67,17 @@ class CustomerRequestController extends Controller
         // Rooms validation (only for airco_offerte)
         $categoryForRooms = $request->input('service_category', '');
         if ($categoryForRooms === 'airco_offerte') {
-            $rules['rooms']                          = ['required', 'array', 'min:1', 'max:10'];
-            $rules['rooms.*.type']                   = ['required', 'string', 'in:slaapkamer,woonkamer,bureau,keuken,zolderkamer,andere'];
-            $rules['rooms.*.width']                  = ['required', 'numeric', 'min:1', 'max:50'];
-            $rules['rooms.*.length']                 = ['required', 'numeric', 'min:1', 'max:50'];
-            $rules['rooms.*.attic_or_flat_roof']     = ['nullable', 'string', 'in:yes,no'];
-            $rules['rooms.*.large_windows']          = ['nullable', 'string', 'in:yes,no'];
+            $rules['rooms']                     = ['required', 'array', 'min:1', 'max:10'];
+            $rules['rooms.*.type']              = ['required', 'string', 'in:slaapkamer,woonkamer,bureau,keuken,zolderkamer,andere'];
+            $rules['rooms.*.width']             = ['required', 'numeric', 'min:1', 'max:50'];
+            $rules['rooms.*.length']            = ['required', 'numeric', 'min:1', 'max:50'];
+            $rules['rooms.*.height']            = ['required', 'numeric', 'min:1.5', 'max:8'];
+            $rules['rooms.*.roof_type']         = ['nullable', 'string', 'in:flat_roof,attic_no_roof_window,attic_with_roof_window,none,other'];
+            $rules['rooms.*.roof_type_other']   = ['nullable', 'string', 'max:255'];
+            $rules['rooms.*.windows']           = ['nullable', 'string', 'in:large,small,mixed,few_none,other'];
+            $rules['rooms.*.windows_other']     = ['nullable', 'string', 'max:255'];
+            $rules['rooms.*.orientation']       = ['nullable', 'string', 'in:north,east,west,south,other,unknown'];
+            $rules['rooms.*.orientation_other'] = ['nullable', 'string', 'max:255'];
         }
 
         $attributes = $this->buildValidationAttributes($dynamicFields, $locale);
@@ -116,19 +121,27 @@ class CustomerRequestController extends Controller
             $answers[$fieldName] = $validatedData[$fieldName] ?? null;
         }
 
-        // Store rooms for airco_offerte with server-side surface calculation
+        // Store rooms for airco_offerte with server-side surface calculation.
+        // "Other" free-text values are only kept when the matching select is
+        // actually set to other, so stray hidden-input values never persist.
         if ($submittedCategory === 'airco_offerte' && $request->has('rooms')) {
             $processedRooms = [];
             foreach ($request->input('rooms', []) as $room) {
                 $w = round((float) ($room['width']  ?? 0), 2);
                 $l = round((float) ($room['length'] ?? 0), 2);
+                $h = round((float) ($room['height'] ?? 0), 2);
                 $processedRooms[] = [
-                    'type'               => $room['type']               ?? null,
-                    'width'              => $w,
-                    'length'             => $l,
-                    'surface'            => ($w > 0 && $l > 0) ? round($w * $l, 1) : null,
-                    'attic_or_flat_roof' => $room['attic_or_flat_roof'] ?? null,
-                    'large_windows'      => $room['large_windows']      ?? null,
+                    'type'              => $room['type'] ?? null,
+                    'width'             => $w,
+                    'length'            => $l,
+                    'height'            => $h > 0 ? $h : null,
+                    'surface'           => ($w > 0 && $l > 0) ? round($w * $l, 1) : null,
+                    'roof_type'         => $room['roof_type'] ?? null,
+                    'roof_type_other'   => ($room['roof_type'] ?? null) === 'other' ? ($room['roof_type_other'] ?? null) : null,
+                    'windows'           => $room['windows'] ?? null,
+                    'windows_other'     => ($room['windows'] ?? null) === 'other' ? ($room['windows_other'] ?? null) : null,
+                    'orientation'       => $room['orientation'] ?? null,
+                    'orientation_other' => ($room['orientation'] ?? null) === 'other' ? ($room['orientation_other'] ?? null) : null,
                 ];
             }
             $answers['rooms'] = $processedRooms;

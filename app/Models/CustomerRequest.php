@@ -148,16 +148,30 @@ class CustomerRequest extends Model
             $missing[] = 'Leeftijd woning niet ingevuld.';
         }
 
-        // 10. Airco offerte — incomplete rooms (add once even if multiple rooms are incomplete)
+        // 10. Airco offerte — incomplete rooms (add once even if multiple rooms are incomplete).
+        // New submissions store height/roof_type/windows/orientation; legacy
+        // requests (pre-2026-08 rework) stored attic_or_flat_roof/large_windows.
         if ($this->service_category === 'airco_offerte' && is_array($answers['rooms'] ?? null) && ! empty($answers['rooms'])) {
             $roomIncomplete = false;
             foreach ($answers['rooms'] as $room) {
-                if (
-                    empty($room['type']) ||
-                    empty($room['width']) ||
-                    empty($room['length']) ||
-                    empty($room['attic_or_flat_roof']) ||
-                    empty($room['large_windows'])
+                if (empty($room['type']) || empty($room['width']) || empty($room['length'])) {
+                    $roomIncomplete = true;
+                    break;
+                }
+
+                $isLegacyRoom = array_key_exists('attic_or_flat_roof', $room)
+                    && ! array_key_exists('roof_type', $room);
+
+                if ($isLegacyRoom) {
+                    if (empty($room['attic_or_flat_roof']) || empty($room['large_windows'])) {
+                        $roomIncomplete = true;
+                        break;
+                    }
+                } elseif (
+                    empty($room['height']) ||
+                    empty($room['roof_type']) ||
+                    empty($room['windows']) ||
+                    empty($room['orientation'])
                 ) {
                     $roomIncomplete = true;
                     break;

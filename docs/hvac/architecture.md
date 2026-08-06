@@ -74,6 +74,17 @@ block the calculation when missing.
   never auto-valid. Missing prices → no approvable recommendation.
 - Preference order: valid > in stock > shortest lead time > price.
 
+## Overrides (post-audit remediation)
+
+Beyond item quantity/price, VAT and catalog-only product changes, the admin
+can override a **room's calculated load** (watts → class re-derived from the
+same rule snapshot; original values stay in the snapshot; `system_with_overrides`
+is stored next to the untouched `system`; recommendations are rebuilt on the
+overridden class) and add **discount lines** (mandatory reason, capped at the
+subtotal, server-side recompute). AI explanations are generated automatically
+after each build (null provider → no-op), deduplicated on input hash, and
+displayed in the panel once validated.
+
 ## Admin workflow
 
 `/admin/requests/{id}` → panel "Automatische airco-voorcalculatie"

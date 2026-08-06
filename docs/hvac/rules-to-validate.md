@@ -1,5 +1,9 @@
 # HVAC-regels die Martin moet valideren vóór productiegebruik
 
+Statuslegende: **[P]** placeholder (verzonnen startwaarde) · **[V]** te
+valideren vakregel · **[F]** fabrikant-specifiek (komt uit productdata zodra
+geïmporteerd) · **[OK]** gevalideerd (nog geen enkele regel heeft deze status).
+
 **Het systeem mag niet als productie-klaar beschouwd worden vóór elke regel
 hieronder expliciet gevalideerd of aangepast is.** Alle waarden staan in
 `config/hvac.php` en worden als regelset v1 in de databank gezet; na
@@ -54,14 +58,19 @@ berekeningen ongewijzigd blijven.
 | Basisuren installatie | 6,0 u | ☐ |
 | Extra binnenunit | +3,0 u | ☐ |
 | Leidingwerk > 5 m | +0,25 u per meter | ☐ |
-| Doorboring per kamer | +0,5 u | ☐ |
-| Condensaatpomp | +1,0 u | ☐ |
-| Toeslag dak/zolder | +2,0 u | ☐ |
-| **Uurtarief** | **€ 65 excl. btw (placeholder!)** | ☐ |
-| **Verplaatsing** | **€ 35 forfait (placeholder!)** | ☐ |
-| Terugvalmarge zonder verkoopprijs | 35 % op aankoopprijs | ☐ |
-| Materiaalopslag | 25 % op aankoopprijs | ☐ |
-| Btw | standaard 21 %, 6 % enkel als suggestie bij woning >10 jaar + particulier, altijd handmatig te bevestigen | ☐ |
+| Doorboring per kamer | +0,5 u | ☐ [P] |
+| Condensaatpomp | +1,0 u | ☐ [P] |
+| Toeslag dak/zolder | +2,0 u | ☐ [P] |
+| Elektrische aansluiting (schatting) | +1,5 u | ☐ [P] |
+| Tweede technieker | vanaf 3 binnenunits, +4,0 u | ☐ [P] |
+| Extra koelmiddel gemarkeerd vanaf | 10 m equivalente leidinglengte (optionele regel, hoeveelheid door installateur) | ☐ [V]/[F] |
+| Wi-Fi-module | enkel toegevoegd als product expliciet géén Wi-Fi heeft | ☐ [V] |
+| **Uurtarief** | **€ 65 excl. btw** | ☐ **[P]** |
+| **Verplaatsing** | **€ 35 forfait** | ☐ **[P]** |
+| Terugvalmarge zonder verkoopprijs | 35 % op aankoopprijs | ☐ [P] |
+| Materiaalopslag | 25 % op aankoopprijs | ☐ [P] |
+| Korting | handmatig per optie, verplichte reden, nooit groter dan subtotaal | ☐ [V] |
+| Btw | standaard 21 %, 6 % enkel als suggestie bij woning >10 jaar + particulier, altijd handmatig te bevestigen | ☐ [V] |
 
 ## Catalogus (leveranciersdata vereist)
 

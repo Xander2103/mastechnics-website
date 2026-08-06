@@ -3,6 +3,11 @@
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BlockedEmailController as AdminBlockedEmailController;
+use App\Http\Controllers\Admin\HvacBrandController;
+use App\Http\Controllers\Admin\HvacCompatibilityController;
+use App\Http\Controllers\Admin\HvacImportController;
+use App\Http\Controllers\Admin\HvacProductController;
+use App\Http\Controllers\Admin\HvacSupplierController;
 use App\Http\Controllers\Admin\QuoteController as AdminQuoteController;
 use App\Http\Controllers\Admin\RequestController as AdminRequestController;
 use App\Http\Controllers\ContactController;
@@ -88,6 +93,53 @@ Route::middleware('admin')
 
         Route::post('/requests/{customerRequest}/quote/send-email', [AdminQuoteController::class, 'sendEmail'])
             ->name('requests.quote.send-email');
+
+        // ── HVAC product catalog ─────────────────────────────────────────────
+        Route::get('/hvac/products', [HvacProductController::class, 'index'])
+            ->name('hvac.products.index');
+        Route::get('/hvac/products/create', [HvacProductController::class, 'create'])
+            ->name('hvac.products.create');
+        Route::post('/hvac/products', [HvacProductController::class, 'store'])
+            ->name('hvac.products.store');
+        Route::get('/hvac/products/{product}/edit', [HvacProductController::class, 'edit'])
+            ->name('hvac.products.edit');
+        Route::patch('/hvac/products/{product}', [HvacProductController::class, 'update'])
+            ->name('hvac.products.update');
+        Route::patch('/hvac/products/{product}/toggle-active', [HvacProductController::class, 'toggleActive'])
+            ->name('hvac.products.toggle');
+        Route::post('/hvac/products/{product}/duplicate', [HvacProductController::class, 'duplicate'])
+            ->name('hvac.products.duplicate');
+
+        Route::get('/hvac/brands', [HvacBrandController::class, 'index'])
+            ->name('hvac.brands.index');
+        Route::post('/hvac/brands', [HvacBrandController::class, 'store'])
+            ->name('hvac.brands.store');
+        Route::patch('/hvac/brands/{brand}/toggle', [HvacBrandController::class, 'toggle'])
+            ->name('hvac.brands.toggle');
+
+        Route::get('/hvac/suppliers', [HvacSupplierController::class, 'index'])
+            ->name('hvac.suppliers.index');
+        Route::post('/hvac/suppliers', [HvacSupplierController::class, 'store'])
+            ->name('hvac.suppliers.store');
+        Route::patch('/hvac/suppliers/{supplier}/toggle', [HvacSupplierController::class, 'toggle'])
+            ->name('hvac.suppliers.toggle');
+
+        Route::post('/hvac/compatibilities', [HvacCompatibilityController::class, 'store'])
+            ->name('hvac.compatibilities.store');
+        Route::patch('/hvac/compatibilities/{compatibility}/toggle', [HvacCompatibilityController::class, 'toggle'])
+            ->name('hvac.compatibilities.toggle');
+
+        Route::get('/hvac/import', [HvacImportController::class, 'index'])
+            ->name('hvac.import.index');
+        Route::post('/hvac/import/preview', [HvacImportController::class, 'preview'])
+            ->name('hvac.import.preview');
+        Route::post('/hvac/import/confirm', [HvacImportController::class, 'confirm'])
+            ->name('hvac.import.confirm');
+        Route::get('/hvac/import/template', [HvacImportController::class, 'template'])
+            ->name('hvac.import.template');
+        Route::get('/hvac/import/errors/{token}', [HvacImportController::class, 'errorReport'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.errors');
 
         Route::get('/blocked-emails', [AdminBlockedEmailController::class, 'index'])
             ->name('blocked-emails.index');

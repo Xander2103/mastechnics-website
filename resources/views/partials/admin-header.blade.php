@@ -37,6 +37,11 @@
             >Aanvragen</a>
 
             <a
+                href="{{ route('admin.hvac.products.index') }}"
+                @if (request()->routeIs('admin.hvac.*')) class="is-active" aria-current="page" @endif
+            >HVAC-producten</a>
+
+            <a
                 href="{{ route('admin.account.edit') }}"
                 @if (request()->routeIs('admin.account.*')) class="is-active" aria-current="page" @endif
             >Account</a>

@@ -113,6 +113,88 @@
         $urgencyLevel = $customerRequest->urgency_level ?? ($answers['urgency'] ?? null);
         $urgencyLabel = $urgencyLevelLabels[$urgencyLevel] ?? null;
 
+        // ── Label maps for normalized values (2026-08 form rework) ────────────
+        // Legacy requests store 'yes'/'no' strings; new fields add 'unknown'.
+        $yesNoLabel = function ($v) {
+            if ($v === 'yes' || $v === true || $v === 1 || $v === '1') {
+                return 'Ja';
+            }
+            if ($v === 'no' || $v === false || $v === 0 || $v === '0') {
+                return 'Nee';
+            }
+            if ($v === 'unknown') {
+                return 'Onbekend';
+            }
+            return $v !== null && $v !== '' ? (string) $v : '-';
+        };
+
+        $timeframeLabels = [
+            'within_1_month'  => 'Binnen 1 maand',
+            'within_3_months' => 'Binnen 3 maanden',
+            'undecided'       => 'Nog geen beslissing',
+            'other'           => 'Andere termijn',
+        ];
+        $softenerTypeLabels = [
+            'salt'          => 'Met zout',
+            'other'         => 'Andere',
+            'no_preference' => 'Geen voorkeur, wil advies',
+        ];
+        $drainDistanceLabels = [
+            'within_1m'    => 'Binnen 1 meter',
+            'within_2_5m'  => 'Tussen 2 en 5 meter',
+            'more_than_5m' => 'Meer dan 5 meter',
+            'none'         => 'Geen afvoer aanwezig',
+            'unknown'      => 'Onbekend',
+        ];
+        $roofTypeLabels = [
+            'flat_roof'              => 'Plat dak',
+            'attic_no_roof_window'   => 'Zolderkamer zonder dakraam',
+            'attic_with_roof_window' => 'Zolderkamer met dakraam',
+            'none'                   => 'Geen van deze',
+            'other'                  => 'Andere',
+        ];
+        $windowsLabels = [
+            'large'    => 'Grote ramen',
+            'small'    => 'Kleine ramen',
+            'mixed'    => 'Gemengde ramen',
+            'few_none' => 'Weinig of geen ramen',
+            'other'    => 'Andere',
+        ];
+        $orientationLabels = [
+            'north'   => 'Noord',
+            'east'    => 'Oost',
+            'west'    => 'West',
+            'south'   => 'Zuid',
+            'other'   => 'Andere',
+            'unknown' => 'Onbekend',
+        ];
+        $insulationLabels = [
+            'excellent' => 'Uitstekend',
+            'good'      => 'Goed',
+            'average'   => 'Gemiddeld',
+            'poor'      => 'Beperkt',
+            'other'     => 'Andere',
+            'unknown'   => 'Onbekend',
+        ];
+        $aircoTimingLabels = [
+            'asap'            => 'Zo snel mogelijk',
+            'within_3_months' => 'Binnen 1 tot 3 maanden',
+            'exploring'       => 'Nog aan het oriënteren',
+        ];
+
+        // preferred_time may hold a normalized enum from the quote flows —
+        // map it to a label; free text passes through untouched.
+        $pt = $customerRequest->preferred_time;
+        $preferredTimeDisplay = $pt;
+        if ($customerRequest->service_category === 'waterverzachter' && isset($timeframeLabels[$pt])) {
+            $preferredTimeDisplay = $timeframeLabels[$pt];
+            if ($pt === 'other' && ! empty($answers['installation_timeframe_other'])) {
+                $preferredTimeDisplay .= ' — ' . $answers['installation_timeframe_other'];
+            }
+        } elseif ($customerRequest->service_category === 'airco_offerte' && isset($aircoTimingLabels[$pt])) {
+            $preferredTimeDisplay = $aircoTimingLabels[$pt];
+        }
+
         // Standard reply: one generated text shared by email, preview and WhatsApp.
         $standardReplyMessage = \App\Services\StandardReplyService::message($customerRequest);
         $waUrl = \App\Services\StandardReplyService::whatsappUrl($customerRequest);
@@ -702,7 +784,7 @@
                             @if ($customerRequest->preferred_time)
                                 <div>
                                     <dt>Gewenst moment</dt>
-                                    <dd>{{ $customerRequest->preferred_time }}</dd>
+                                    <dd>{{ $preferredTimeDisplay }}</dd>
                                 </div>
                             @endif
 
@@ -714,6 +796,97 @@
                             @endif
                         </dl>
                     </div>
+
+                    {{-- Waterverzachter offerte-details --}}
+                    @php
+                        $isWaterSoftener = $customerRequest->service_category === 'waterverzachter';
+                        $waterDetailKeys = [
+                            'installation_timeframe', 'water_usage_m3', 'water_usage_unknown',
+                            'bathrooms_count', 'household_size', 'softener_type_preference',
+                            'drain_distance', 'power_socket_available', 'free_space_available',
+                        ];
+                        $hasWaterDetails = $isWaterSoftener
+                            && collect($waterDetailKeys)->contains(fn ($k) => ! empty($answers[$k]));
+                    @endphp
+                    @if ($hasWaterDetails)
+                        <div class="admin-detail-card">
+                            <h2>Waterverzachter</h2>
+
+                            <dl class="admin-detail-list">
+                                @if (! empty($answers['installation_timeframe']))
+                                    <div>
+                                        <dt>Gewenste termijn</dt>
+                                        <dd>
+                                            {{ $timeframeLabels[$answers['installation_timeframe']] ?? $answers['installation_timeframe'] }}
+                                            @if ($answers['installation_timeframe'] === 'other' && ! empty($answers['installation_timeframe_other']))
+                                                — {{ $answers['installation_timeframe_other'] }}
+                                            @endif
+                                        </dd>
+                                    </div>
+                                @endif
+
+                                <div>
+                                    <dt>Jaarlijks waterverbruik</dt>
+                                    <dd>
+                                        @if (! empty($answers['water_usage_m3']))
+                                            {{ $answers['water_usage_m3'] }} m³ per jaar
+                                        @elseif (! empty($answers['water_usage_unknown']))
+                                            Onbekend bij klant
+                                        @else
+                                            -
+                                        @endif
+                                    </dd>
+                                </div>
+
+                                @if (! empty($answers['bathrooms_count']))
+                                    <div>
+                                        <dt>Aantal badkamers</dt>
+                                        <dd>{{ $answers['bathrooms_count'] }}</dd>
+                                    </div>
+                                @endif
+
+                                @if (! empty($answers['household_size']))
+                                    <div>
+                                        <dt>Personen in huishouden</dt>
+                                        <dd>{{ $answers['household_size'] }}</dd>
+                                    </div>
+                                @endif
+
+                                @if (! empty($answers['softener_type_preference']))
+                                    <div>
+                                        <dt>Type voorkeur</dt>
+                                        <dd>
+                                            {{ $softenerTypeLabels[$answers['softener_type_preference']] ?? $answers['softener_type_preference'] }}
+                                            @if ($answers['softener_type_preference'] === 'other' && ! empty($answers['softener_type_other']))
+                                                — {{ $answers['softener_type_other'] }}
+                                            @endif
+                                        </dd>
+                                    </div>
+                                @endif
+
+                                @if (! empty($answers['drain_distance']))
+                                    <div>
+                                        <dt>Afvoer</dt>
+                                        <dd>{{ $drainDistanceLabels[$answers['drain_distance']] ?? $answers['drain_distance'] }}</dd>
+                                    </div>
+                                @endif
+
+                                @if (! empty($answers['power_socket_available']))
+                                    <div>
+                                        <dt>Stopcontact aanwezig</dt>
+                                        <dd>{{ $yesNoLabel($answers['power_socket_available']) }}</dd>
+                                    </div>
+                                @endif
+
+                                @if (! empty($answers['free_space_available']))
+                                    <div>
+                                        <dt>Voldoende vrije ruimte</dt>
+                                        <dd>{{ $yesNoLabel($answers['free_space_available']) }}</dd>
+                                    </div>
+                                @endif
+                            </dl>
+                        </div>
+                    @endif
 
                     {{-- Omschrijving --}}
                     <div class="admin-detail-card">
@@ -783,8 +956,9 @@
                         $isAircoOfferte = ($customerRequest->service_category === 'airco_offerte');
                         $rooms = $answers['rooms'] ?? [];
                         $aircoHouseAge = $answers['airco_house_age'] ?? null;
+                        $insulationLevel = $isAircoOfferte ? ($answers['insulation_level'] ?? null) : null;
                         $hasRooms = $isAircoOfferte && !empty($rooms) && is_array($rooms);
-                        if ($isAircoOfferte && !is_null($aircoHouseAge)) {
+                        if ($isAircoOfferte && (!is_null($aircoHouseAge) || !empty($insulationLevel))) {
                             $hasTechnical = true;
                         }
                     @endphp
@@ -829,43 +1003,108 @@
                                         @if (!empty($room['type']))
                                             <div>
                                                 <dt>Type</dt>
-                                                <dd>{{ $room['type'] }}</dd>
+                                                <dd>{{ ucfirst($room['type']) }}</dd>
                                             </div>
                                         @endif
                                         @if (!empty($room['width']) || !empty($room['breedte']))
                                             <div>
                                                 <dt>Breedte</dt>
-                                                <dd>{{ $room['width'] ?? $room['breedte'] }}</dd>
+                                                <dd>{{ $room['width'] ?? $room['breedte'] }} m</dd>
                                             </div>
                                         @endif
                                         @if (!empty($room['length']) || !empty($room['lengte']))
                                             <div>
                                                 <dt>Lengte</dt>
-                                                <dd>{{ $room['length'] ?? $room['lengte'] }}</dd>
+                                                <dd>{{ $room['length'] ?? $room['lengte'] }} m</dd>
                                             </div>
                                         @endif
+                                        @if (!empty($room['height']))
+                                            <div>
+                                                <dt>Hoogte</dt>
+                                                <dd>{{ $room['height'] }} m</dd>
+                                            </div>
+                                        @endif
+                                        @php
+                                            $roomSurface = $room['surface']
+                                                ?? ((!empty($room['width']) && !empty($room['length']))
+                                                    ? round((float) $room['width'] * (float) $room['length'], 1)
+                                                    : null);
+                                        @endphp
+                                        @if ($roomSurface)
+                                            <div>
+                                                <dt>Oppervlakte</dt>
+                                                <dd>{{ $roomSurface }} m²</dd>
+                                            </div>
+                                        @endif
+                                        @if (!empty($room['roof_type']))
+                                            <div>
+                                                <dt>Dak / zolder</dt>
+                                                <dd>
+                                                    {{ $roofTypeLabels[$room['roof_type']] ?? $room['roof_type'] }}
+                                                    @if ($room['roof_type'] === 'other' && !empty($room['roof_type_other']))
+                                                        — {{ $room['roof_type_other'] }}
+                                                    @endif
+                                                </dd>
+                                            </div>
+                                        @endif
+                                        @if (!empty($room['windows']))
+                                            <div>
+                                                <dt>Ramen</dt>
+                                                <dd>
+                                                    {{ $windowsLabels[$room['windows']] ?? $room['windows'] }}
+                                                    @if ($room['windows'] === 'other' && !empty($room['windows_other']))
+                                                        — {{ $room['windows_other'] }}
+                                                    @endif
+                                                </dd>
+                                            </div>
+                                        @endif
+                                        @if (!empty($room['orientation']))
+                                            <div>
+                                                <dt>Ligging</dt>
+                                                <dd>
+                                                    {{ $orientationLabels[$room['orientation']] ?? $room['orientation'] }}
+                                                    @if ($room['orientation'] === 'other' && !empty($room['orientation_other']))
+                                                        — {{ $room['orientation_other'] }}
+                                                    @endif
+                                                </dd>
+                                            </div>
+                                        @endif
+                                        {{-- Legacy rooms (pre-2026-08 rework): attic / large-windows yes-no pair --}}
                                         @if (isset($room['attic_or_flat_roof']) || isset($room['zolderkamer']))
                                             <div>
                                                 <dt>Zolderkamer / plat dak</dt>
-                                                <dd>{{ ($room['attic_or_flat_roof'] ?? $room['zolderkamer'] ?? false) ? 'Ja' : 'Nee' }}</dd>
+                                                <dd>{{ $yesNoLabel($room['attic_or_flat_roof'] ?? $room['zolderkamer'] ?? null) }}</dd>
                                             </div>
                                         @endif
                                         @if (isset($room['large_windows']) || isset($room['grote_ramen']))
                                             <div>
                                                 <dt>Grote ramen</dt>
-                                                <dd>{{ ($room['large_windows'] ?? $room['grote_ramen'] ?? false) ? 'Ja' : 'Nee' }}</dd>
+                                                <dd>{{ $yesNoLabel($room['large_windows'] ?? $room['grote_ramen'] ?? null) }}</dd>
                                             </div>
                                         @endif
                                     </dl>
                                 @endforeach
                             @endif
 
-                            @if ($isAircoOfferte && !is_null($aircoHouseAge))
+                            @if ($isAircoOfferte && (!is_null($aircoHouseAge) || !empty($insulationLevel)))
                                 <dl class="admin-detail-list">
-                                    <div>
-                                        <dt>Woning ouder dan 10 jaar</dt>
-                                        <dd>{{ $aircoHouseAge ? 'Ja' : 'Nee' }}</dd>
-                                    </div>
+                                    @if (!is_null($aircoHouseAge))
+                                        <div>
+                                            <dt>Woning ouder dan 10 jaar</dt>
+                                            <dd>{{ $yesNoLabel($aircoHouseAge) }}</dd>
+                                        </div>
+                                    @endif
+                                    @if (!empty($insulationLevel))
+                                        <div>
+                                            <dt>Isolatiegraad woning</dt>
+                                            <dd>
+                                                {{ $insulationLabels[$insulationLevel] ?? $insulationLevel }}
+                                                @if ($insulationLevel === 'other' && !empty($answers['insulation_level_other']))
+                                                    — {{ $answers['insulation_level_other'] }}
+                                                @endif
+                                            </dd>
+                                        </div>
+                                    @endif
                                 </dl>
                             @endif
                         </div>
@@ -1102,6 +1341,23 @@
             </div>
 
             {{-- Alle antwoorden — collapsed by default --}}
+            @php
+                // Arrays are flattened to readable "key: value" lines — never raw JSON.
+                $flattenAnswer = function ($value) use (&$flattenAnswer) {
+                    if (is_bool($value)) {
+                        return $value ? 'Ja' : 'Nee';
+                    }
+                    if (is_array($value)) {
+                        return collect($value)
+                            ->map(function ($v, $k) use (&$flattenAnswer) {
+                                $prefix = is_int($k) ? '' : str_replace('_', ' ', (string) $k) . ': ';
+                                return $prefix . $flattenAnswer($v);
+                            })
+                            ->implode(' · ');
+                    }
+                    return $value === null || $value === '' ? '-' : (string) $value;
+                };
+            @endphp
             <div class="admin-detail-card admin-answers-card">
                 <details>
                     <summary style="cursor:pointer;font-size:1.1rem;font-weight:600;">Alle antwoorden tonen</summary>
@@ -1110,15 +1366,7 @@
                         @foreach ($answers as $key => $value)
                             <div>
                                 <dt>{{ str_replace('_', ' ', ucfirst($key)) }}</dt>
-                                <dd>
-                                    @if (is_bool($value))
-                                        {{ $value ? 'Ja' : 'Nee' }}
-                                    @elseif (is_array($value))
-                                        <pre>{{ json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                                    @else
-                                        {{ $value ?: '-' }}
-                                    @endif
-                                </dd>
+                                <dd>{{ $flattenAnswer($value) }}</dd>
                             </div>
                         @endforeach
                     </dl>

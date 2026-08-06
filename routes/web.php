@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BlockedEmailController as AdminBlockedEmailController;
 use App\Http\Controllers\Admin\HvacBrandController;
+use App\Http\Controllers\Admin\HvacCalculationController;
 use App\Http\Controllers\Admin\HvacCompatibilityController;
 use App\Http\Controllers\Admin\HvacImportController;
 use App\Http\Controllers\Admin\HvacProductController;
@@ -93,6 +94,22 @@ Route::middleware('admin')
 
         Route::post('/requests/{customerRequest}/quote/send-email', [AdminQuoteController::class, 'sendEmail'])
             ->name('requests.quote.send-email');
+
+        // ── HVAC pre-calculation on a request ────────────────────────────────
+        Route::post('/requests/{customerRequest}/hvac/calculate', [HvacCalculationController::class, 'calculate'])
+            ->name('requests.hvac.calculate');
+        Route::post('/requests/{customerRequest}/hvac/recommendations/{recommendation}/approve', [HvacCalculationController::class, 'approve'])
+            ->name('requests.hvac.approve');
+        Route::post('/requests/{customerRequest}/hvac/recommendations/{recommendation}/reject', [HvacCalculationController::class, 'reject'])
+            ->name('requests.hvac.reject');
+        Route::post('/requests/{customerRequest}/hvac/recommendations/{recommendation}/acknowledge', [HvacCalculationController::class, 'acknowledgeWarnings'])
+            ->name('requests.hvac.acknowledge');
+        Route::post('/requests/{customerRequest}/hvac/recommendations/{recommendation}/vat', [HvacCalculationController::class, 'overrideVat'])
+            ->name('requests.hvac.vat');
+        Route::post('/requests/{customerRequest}/hvac/items/{item}/override', [HvacCalculationController::class, 'overrideItem'])
+            ->name('requests.hvac.items.override');
+        Route::post('/requests/{customerRequest}/hvac/items/{item}/change-product', [HvacCalculationController::class, 'changeProduct'])
+            ->name('requests.hvac.items.change-product');
 
         // ── HVAC product catalog ─────────────────────────────────────────────
         Route::get('/hvac/products', [HvacProductController::class, 'index'])

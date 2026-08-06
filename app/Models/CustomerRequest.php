@@ -78,6 +78,11 @@ class CustomerRequest extends Model
         return $this->hasMany(MailLog::class)->latest();
     }
 
+    public function hvacCalculations(): HasMany
+    {
+        return $this->hasMany(HvacCalculation::class)->latest('calculated_at');
+    }
+
     /**
      * Human-readable reference shown to customers and staff (e.g. in emails, CSV export).
      * Computed from the primary key — no schema change needed.

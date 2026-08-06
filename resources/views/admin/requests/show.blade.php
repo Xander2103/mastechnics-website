@@ -728,6 +728,11 @@
                         </script>
                     @endif
 
+                    {{-- Automatische airco-voorcalculatie — airco installation quotes only --}}
+                    @if ($customerRequest->service_category === 'airco_offerte')
+                        @include('admin.requests.partials.hvac-panel')
+                    @endif
+
                     {{-- Ontbrekende informatie — only render if there are missing items --}}
                     @php $missingItems = $customerRequest->getMissingInfoChecklist(); @endphp
                     @if (!empty($missingItems))

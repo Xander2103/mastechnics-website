@@ -87,7 +87,15 @@
         <div class="form-error-list">Deze optie werd eerder al goedgekeurd.</div>
     @elseif (session('success') === 'hvac_not_approvable')
         <div class="form-error-list">Deze optie kan niet goedgekeurd worden in de huidige status. Bevestig eerst de waarschuwingen.</div>
+    @elseif (session('success') === 'hvac_converted')
+        <div class="form-success">Optie omgezet naar een conceptofferte. Controleer de offerte en de PDF vóór verzending — er wordt nooit automatisch gemaild.</div>
+    @elseif (session('success') === 'hvac_conversion_in_progress')
+        <div class="form-error-list">Er loopt al een omzetting. Probeer zo dadelijk opnieuw.</div>
     @endif
+
+    @error('hvac_convert')
+        <div class="form-error-list">{{ $message }}</div>
+    @enderror
 
     <form method="POST" action="{{ route('admin.requests.hvac.calculate', $customerRequest) }}" style="margin-bottom: 0.5rem;">
         @csrf
@@ -366,6 +374,20 @@
                                 @csrf
                                 <button type="submit" class="button button-primary">Optie goedkeuren</button>
                             </form>
+                        @endif
+
+                        @if ($recommendation->status === 'approved')
+                            <form method="POST" action="{{ route('admin.requests.hvac.convert', [$customerRequest, $recommendation]) }}"
+                                  onsubmit="return confirm('Deze goedgekeurde optie omzetten naar een conceptofferte?');">
+                                @csrf
+                                <button type="submit" class="button button-primary">Omzetten naar offerte</button>
+                            </form>
+                        @endif
+
+                        @if ($recommendation->status === 'converted' && $recommendation->converted_quote_id)
+                            <span class="hvac-option-status is-approved">
+                                Offerte {{ $recommendation->convertedQuote?->quote_number }} aangemaakt — verzending blijft een aparte handmatige stap.
+                            </span>
                         @endif
 
                         @if (in_array($recommendation->status, ['draft', 'manual_review', 'approved'], true))

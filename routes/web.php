@@ -106,6 +106,8 @@ Route::middleware('admin')
             ->name('requests.hvac.acknowledge');
         Route::post('/requests/{customerRequest}/hvac/recommendations/{recommendation}/vat', [HvacCalculationController::class, 'overrideVat'])
             ->name('requests.hvac.vat');
+        Route::post('/requests/{customerRequest}/hvac/recommendations/{recommendation}/convert', [HvacCalculationController::class, 'convert'])
+            ->name('requests.hvac.convert');
         Route::post('/requests/{customerRequest}/hvac/items/{item}/override', [HvacCalculationController::class, 'overrideItem'])
             ->name('requests.hvac.items.override');
         Route::post('/requests/{customerRequest}/hvac/items/{item}/change-product', [HvacCalculationController::class, 'changeProduct'])

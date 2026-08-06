@@ -9,6 +9,7 @@ use App\Models\HvacRecommendation;
 use App\Models\HvacRecommendationItem;
 use App\Services\Hvac\HvacCalculationService;
 use App\Services\Hvac\HvacManualOverrideService;
+use App\Services\Hvac\HvacQuoteConversionService;
 use App\Services\Hvac\HvacRecommendationBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -193,6 +194,33 @@ class HvacCalculationController extends Controller
         }
 
         return back()->with('success', 'hvac_override_applied');
+    }
+
+    public function convert(
+        Request $request,
+        CustomerRequest $customerRequest,
+        HvacRecommendation $recommendation,
+        HvacQuoteConversionService $conversionService
+    ): RedirectResponse {
+        $this->guardScope($customerRequest, $recommendation);
+
+        // Idempotency: block double-submits creating duplicate quotes.
+        $lock = Cache::lock("hvac-convert:{$recommendation->id}", 30);
+        if (! $lock->get()) {
+            return back()->with('success', 'hvac_conversion_in_progress');
+        }
+
+        try {
+            $conversionService->convert($recommendation, (string) session('admin_user_email'));
+        } catch (\DomainException $e) {
+            return back()->withErrors(['hvac_convert' => $e->getMessage()]);
+        } finally {
+            $lock->release();
+        }
+
+        return redirect()
+            ->route('admin.requests.show', $customerRequest)
+            ->with('success', 'hvac_converted');
     }
 
     private function guardScope(CustomerRequest $customerRequest, HvacRecommendation $recommendation): void

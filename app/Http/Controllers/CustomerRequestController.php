@@ -147,9 +147,11 @@ class CustomerRequestController extends Controller
             'ai_summary'                => null,
             'ai_detected_missing_fields' => null,
 
-            // Preferred time: text from most flows, or structured timing value for airco installation
+            // Preferred time: text from most flows, or a structured timing value
+            // (airco installation / water softener quote flows)
             'preferred_time' => $answers['preferred_time']
                 ?? $answers['airco_installation_timing']
+                ?? $answers['installation_timeframe']
                 ?? $answers['availability']
                 ?? null,
 
@@ -354,8 +356,12 @@ class CustomerRequestController extends Controller
         }
 
         if ($type === 'number') {
-            $rules[] = 'integer';
-            $rules[] = 'min:0';
+            $rules[] = ($field['decimal'] ?? false) ? 'numeric' : 'integer';
+            $rules[] = 'min:' . ($field['min'] ?? 0);
+
+            if (isset($field['max'])) {
+                $rules[] = 'max:' . $field['max'];
+            }
 
             return $rules;
         }

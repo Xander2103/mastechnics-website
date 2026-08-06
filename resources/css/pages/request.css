@@ -375,6 +375,23 @@ textarea {
 }
 
 /* ================================
+   Field helpers
+================================ */
+
+/* "Andere" reveal fields stay hidden until their controlling select matches */
+.is-reveal-hidden {
+    display: none !important;
+}
+
+.field-help-text {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: #6b7c8f;
+}
+
+/* ================================
    Upload attachments
 ================================ */
 

@@ -127,14 +127,14 @@ return [
                 [
                     'value'       => 'waterverzachter',
                     'labels'      => [
-                        'nl' => 'Ik zoek een waterverzachter',
-                        'fr' => 'Je cherche un adoucisseur d\'eau',
-                        'en' => 'I\'m looking for a water softener',
+                        'nl' => 'Offerte voor een waterverzachter',
+                        'fr' => 'Demande de devis pour un adoucisseur d\'eau',
+                        'en' => 'Request a quote for a water softener',
                     ],
                     'description' => [
-                        'nl' => 'Voor installatie, onderhoud of controle.',
-                        'fr' => 'Pour installation, entretien ou contrôle.',
-                        'en' => 'For installation, maintenance or inspection.',
+                        'nl' => 'Voor advies, plaatsing en een vrijblijvende prijsinschatting.',
+                        'fr' => 'Pour un conseil, l\'installation et une estimation de prix sans engagement.',
+                        'en' => 'For advice, installation and a no-obligation price estimate.',
                     ],
                 ],
                 [
@@ -460,6 +460,290 @@ return [
             ],
         ],
 
+        // ── Water softener quote flow (conditional) ──────────────────────────
+        // Dedicated commercial flow: timeframe, household/usage, installation
+        // location. No urgency question — timing is stored as
+        // installation_timeframe, never as an urgency badge.
+        [
+            'code'      => 'waterverzachter_timing',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['waterverzachter'],
+            ],
+            'labels' => [
+                'nl' => 'Gewenste termijn voor plaatsing',
+                'fr' => 'Délai souhaité pour l\'installation',
+                'en' => 'Preferred installation timeframe',
+            ],
+            'fields' => [
+                [
+                    'name'     => 'customer_type',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Klanttype',
+                        'fr' => 'Type de client',
+                        'en' => 'Customer type',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'residential',
+                            'labels' => ['nl' => 'Particulier', 'fr' => 'Particulier', 'en' => 'Residential'],
+                        ],
+                        [
+                            'value'  => 'business',
+                            'labels' => ['nl' => 'Bedrijf', 'fr' => 'Entreprise', 'en' => 'Business'],
+                        ],
+                    ],
+                ],
+                [
+                    'name'     => 'installation_timeframe',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Wanneer wenst u de plaatsing?',
+                        'fr' => 'Quand souhaitez-vous l\'installation ?',
+                        'en' => 'When would you like the installation?',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'within_1_month',
+                            'labels' => ['nl' => 'Binnen 1 maand', 'fr' => 'Dans le mois', 'en' => 'Within 1 month'],
+                        ],
+                        [
+                            'value'  => 'within_3_months',
+                            'labels' => ['nl' => 'Binnen 3 maanden', 'fr' => 'Dans les 3 mois', 'en' => 'Within 3 months'],
+                        ],
+                        [
+                            'value'  => 'undecided',
+                            'labels' => ['nl' => 'Nog geen beslissing', 'fr' => 'Pas encore décidé', 'en' => 'Not decided yet'],
+                        ],
+                        [
+                            'value'  => 'other',
+                            'labels' => ['nl' => 'Andere termijn', 'fr' => 'Autre délai', 'en' => 'Other timeframe'],
+                        ],
+                    ],
+                ],
+                [
+                    'name'         => 'installation_timeframe_other',
+                    'type'         => 'text',
+                    'required'     => false,
+                    'visible_when' => ['field' => 'installation_timeframe', 'value' => 'other'],
+                    'labels'       => [
+                        'nl' => 'Welke termijn heeft u in gedachten?',
+                        'fr' => 'Quel délai avez-vous en tête ?',
+                        'en' => 'Which timeframe do you have in mind?',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijv. na de verbouwing, in het najaar...',
+                        'fr' => 'P.ex. après les travaux, à l\'automne...',
+                        'en' => 'E.g. after the renovation, in autumn...',
+                    ],
+                ],
+            ],
+        ],
+        [
+            'code'      => 'waterverzachter_household',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['waterverzachter'],
+            ],
+            'labels' => [
+                'nl' => 'Huishouden en waterverbruik',
+                'fr' => 'Ménage et consommation d\'eau',
+                'en' => 'Household and water usage',
+            ],
+            'fields' => [
+                [
+                    'name'      => 'water_usage_m3',
+                    'type'      => 'number',
+                    'decimal'   => true,
+                    'min'       => 1,
+                    'max'       => 2000,
+                    'required'  => false,
+                    'labels'    => [
+                        'nl' => 'Geschat jaarlijks waterverbruik (m³ per jaar)',
+                        'fr' => 'Consommation d\'eau annuelle estimée (m³ par an)',
+                        'en' => 'Estimated yearly water usage (m³ per year)',
+                    ],
+                    'help_text' => [
+                        'nl' => 'U vindt dit meestal terug op uw waterfactuur.',
+                        'fr' => 'Vous le trouverez généralement sur votre facture d\'eau.',
+                        'en' => 'You will usually find this on your water bill.',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijv. 120',
+                        'fr' => 'P.ex. 120',
+                        'en' => 'E.g. 120',
+                    ],
+                ],
+                [
+                    'name'     => 'water_usage_unknown',
+                    'type'     => 'checkbox',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Ik weet het jaarlijkse verbruik niet',
+                        'fr' => 'Je ne connais pas la consommation annuelle',
+                        'en' => 'I don\'t know the yearly usage',
+                    ],
+                ],
+                [
+                    'name'     => 'bathrooms_count',
+                    'type'     => 'number',
+                    'min'      => 1,
+                    'max'      => 20,
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Aantal badkamers of douchekamers',
+                        'fr' => 'Nombre de salles de bains ou de douche',
+                        'en' => 'Number of bathrooms or shower rooms',
+                    ],
+                    'placeholder' => ['nl' => '1', 'fr' => '1', 'en' => '1'],
+                ],
+                [
+                    'name'     => 'household_size',
+                    'type'     => 'number',
+                    'min'      => 1,
+                    'max'      => 20,
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Aantal personen in het huishouden',
+                        'fr' => 'Nombre de personnes dans le ménage',
+                        'en' => 'Number of people in the household',
+                    ],
+                    'placeholder' => ['nl' => '4', 'fr' => '4', 'en' => '4'],
+                ],
+                [
+                    'name'     => 'softener_type_preference',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Voorkeur voor type waterverzachter',
+                        'fr' => 'Préférence de type d\'adoucisseur',
+                        'en' => 'Preferred water softener type',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'salt',
+                            'labels' => ['nl' => 'Met zout', 'fr' => 'Avec sel', 'en' => 'Salt-based'],
+                        ],
+                        [
+                            'value'  => 'other',
+                            'labels' => ['nl' => 'Andere', 'fr' => 'Autre', 'en' => 'Other'],
+                        ],
+                        [
+                            'value'  => 'no_preference',
+                            'labels' => [
+                                'nl' => 'Geen voorkeur, ik ontvang graag advies',
+                                'fr' => 'Pas de préférence, je souhaite être conseillé',
+                                'en' => 'No preference, I would like advice',
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'name'         => 'softener_type_other',
+                    'type'         => 'text',
+                    'required'     => false,
+                    'visible_when' => ['field' => 'softener_type_preference', 'value' => 'other'],
+                    'labels'       => [
+                        'nl' => 'Welk type heeft u in gedachten?',
+                        'fr' => 'Quel type avez-vous en tête ?',
+                        'en' => 'Which type do you have in mind?',
+                    ],
+                ],
+            ],
+        ],
+        [
+            'code'      => 'waterverzachter_installation',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['waterverzachter'],
+            ],
+            'labels' => [
+                'nl' => 'Plaats van installatie',
+                'fr' => 'Lieu d\'installation',
+                'en' => 'Installation location',
+            ],
+            'fields' => [
+                [
+                    'name'     => 'drain_distance',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Is er een afvoer aanwezig?',
+                        'fr' => 'Y a-t-il une évacuation à proximité ?',
+                        'en' => 'Is there a drain nearby?',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'within_1m',
+                            'labels' => ['nl' => 'Binnen 1 meter', 'fr' => 'À moins d\'1 mètre', 'en' => 'Within 1 metre'],
+                        ],
+                        [
+                            'value'  => 'within_2_5m',
+                            'labels' => ['nl' => 'Tussen 2 en 5 meter', 'fr' => 'Entre 2 et 5 mètres', 'en' => 'Between 2 and 5 metres'],
+                        ],
+                        [
+                            'value'  => 'more_than_5m',
+                            'labels' => ['nl' => 'Meer dan 5 meter', 'fr' => 'Plus de 5 mètres', 'en' => 'More than 5 metres'],
+                        ],
+                        [
+                            'value'  => 'none',
+                            'labels' => ['nl' => 'Geen afvoer aanwezig', 'fr' => 'Pas d\'évacuation', 'en' => 'No drain available'],
+                        ],
+                        [
+                            'value'  => 'unknown',
+                            'labels' => ['nl' => 'Ik weet het niet', 'fr' => 'Je ne sais pas', 'en' => 'I don\'t know'],
+                        ],
+                    ],
+                ],
+                [
+                    'name'     => 'power_socket_available',
+                    'type'     => 'select',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Stopcontact aanwezig?',
+                        'fr' => 'Prise électrique disponible ?',
+                        'en' => 'Power socket available?',
+                    ],
+                    'options' => [
+                        ['value' => 'yes', 'labels' => ['nl' => 'Ja', 'fr' => 'Oui', 'en' => 'Yes']],
+                        ['value' => 'no', 'labels' => ['nl' => 'Nee', 'fr' => 'Non', 'en' => 'No']],
+                        ['value' => 'unknown', 'labels' => ['nl' => 'Ik weet het niet', 'fr' => 'Je ne sais pas', 'en' => 'I don\'t know']],
+                    ],
+                ],
+                [
+                    'name'     => 'free_space_available',
+                    'type'     => 'select',
+                    'required' => false,
+                    'labels'   => [
+                        'nl' => 'Voldoende vrije ruimte?',
+                        'fr' => 'Espace libre suffisant ?',
+                        'en' => 'Enough free space?',
+                    ],
+                    'options' => [
+                        ['value' => 'yes', 'labels' => ['nl' => 'Ja', 'fr' => 'Oui', 'en' => 'Yes']],
+                        ['value' => 'no', 'labels' => ['nl' => 'Nee', 'fr' => 'Non', 'en' => 'No']],
+                        ['value' => 'unknown', 'labels' => ['nl' => 'Ik weet het niet', 'fr' => 'Je ne sais pas', 'en' => 'I don\'t know']],
+                    ],
+                ],
+            ],
+            'helper_box' => [
+                'render_upload' => true,
+                'title'         => [
+                    'nl' => 'Foto\'s van de plaats van installatie',
+                    'fr' => 'Photos de l\'emplacement d\'installation',
+                    'en' => 'Photos of the installation location',
+                ],
+                'text'          => [
+                    'nl' => 'Een waterverzachter wordt bij voorkeur zo dicht mogelijk na de waterteller geplaatst. Voeg indien mogelijk foto\'s toe van de waterteller, de beschikbare ruimte, de afvoer en het stopcontact.',
+                    'fr' => 'Un adoucisseur d\'eau s\'installe de préférence juste après le compteur d\'eau. Ajoutez si possible des photos du compteur d\'eau, de l\'espace disponible, de l\'évacuation et de la prise électrique.',
+                    'en' => 'A water softener is preferably installed as close as possible after the water meter. If possible, add photos of the water meter, the available space, the drain and the power socket.',
+                ],
+            ],
+        ],
+
         // ── Step 3 (conditional) ─────────────────────────────────────────────
         [
             'code'      => 'airco_offerte_details',
@@ -754,7 +1038,7 @@ return [
         [
             'code'      => 'customer_context',
             'condition' => [
-                'service_categories' => ['onderhoud_cv', 'herstelling_cv', 'dringend_lek', 'sanitair', 'ventilatie', 'waterverzachter', 'koeling', 'andere'],
+                'service_categories' => ['onderhoud_cv', 'herstelling_cv', 'dringend_lek', 'sanitair', 'ventilatie', 'koeling', 'andere'],
             ],
             'labels' => [
                 'nl' => 'Klant en urgentie',
@@ -834,7 +1118,7 @@ return [
         [
             'code'      => 'description',
             'condition' => [
-                'service_categories' => ['airco_onderhoud', 'onderhoud_cv', 'herstelling_cv', 'dringend_lek', 'sanitair', 'ventilatie', 'waterverzachter', 'koeling', 'andere'],
+                'service_categories' => ['airco_onderhoud', 'onderhoud_cv', 'herstelling_cv', 'dringend_lek', 'sanitair', 'ventilatie', 'koeling', 'andere'],
             ],
             'labels' => [
                 'nl' => 'Beschrijf het probleem',

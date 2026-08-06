@@ -113,6 +113,13 @@
             'summary_outdoor_unit'    => 'Buitenunit aanwezig',
             'summary_timing'          => 'Gewenste termijn',
             'summary_timing_notes'    => 'Toelichting',
+            'summary_water_softener'  => 'Waterverzachter',
+            'summary_water_usage'     => 'Jaarlijks verbruik',
+            'summary_bathrooms'       => 'Badkamers',
+            'summary_household'       => 'Personen',
+            'summary_softener_type'   => 'Type',
+            'summary_drain'           => 'Afvoer',
+            'summary_unknown_value'   => 'Onbekend',
             'summary_customer'        => 'Klant en urgentie',
             'summary_problem'         => 'Situatie / probleem',
             'summary_technical'       => 'Technische gegevens',
@@ -176,6 +183,13 @@
             'summary_outdoor_unit'    => 'Unité extérieure présente',
             'summary_timing'          => 'Délai souhaité',
             'summary_timing_notes'    => 'Précision',
+            'summary_water_softener'  => 'Adoucisseur d\'eau',
+            'summary_water_usage'     => 'Consommation annuelle',
+            'summary_bathrooms'       => 'Salles de bains',
+            'summary_household'       => 'Personnes',
+            'summary_softener_type'   => 'Type',
+            'summary_drain'           => 'Évacuation',
+            'summary_unknown_value'   => 'Inconnu',
             'summary_customer'        => 'Client et urgence',
             'summary_problem'         => 'Situation / problème',
             'summary_technical'       => 'Informations techniques',
@@ -239,6 +253,13 @@
             'summary_outdoor_unit'    => 'Outdoor unit present',
             'summary_timing'          => 'Desired timeframe',
             'summary_timing_notes'    => 'Details',
+            'summary_water_softener'  => 'Water softener',
+            'summary_water_usage'     => 'Yearly usage',
+            'summary_bathrooms'       => 'Bathrooms',
+            'summary_household'       => 'People',
+            'summary_softener_type'   => 'Type',
+            'summary_drain'           => 'Drain',
+            'summary_unknown_value'   => 'Unknown',
             'summary_customer'        => 'Customer and urgency',
             'summary_problem'         => 'Situation / problem',
             'summary_technical'       => 'Technical details',
@@ -590,6 +611,13 @@
 
                                         <div class="form-grid">
                                             @foreach ($step['fields'] ?? [] as $field)
+                                                @php
+                                                    // Reveal fields ("Andere" → free text) stay hidden and
+                                                    // disabled until their controlling select has the value.
+                                                    $vw        = $field['visible_when'] ?? null;
+                                                    $vwVisible = $vw === null || old($vw['field']) === $vw['value'];
+                                                    $helpText  = $field['help_text'][$locale] ?? $field['help_text']['nl'] ?? null;
+                                                @endphp
                                                 @if (($field['type'] ?? '') === 'checkbox')
                                                     <label class="{{ $field['name'] === 'unknown_device_details' ? 'checkbox-helper-card' : 'checkbox-field' }} {{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
                                                         <input
@@ -640,6 +668,10 @@
                                                             @endif
                                                         </span>
 
+                                                        @if ($helpText)
+                                                            <small class="field-help-text">{{ $helpText }}</small>
+                                                        @endif
+
                                                         <select name="{{ $field['name'] }}" @if ($isRequiredField($field)) data-required="true" @endif>
                                                             <option value="">{{ $text['choose_option'] }}</option>
 
@@ -655,7 +687,13 @@
                                                         @enderror
                                                     </label>
                                                 @else
-                                                    <label class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }}">
+                                                    <label
+                                                        class="{{ $errors->has($field['name']) ? 'field-has-error' : '' }} {{ $vw !== null && ! $vwVisible ? 'is-reveal-hidden' : '' }}"
+                                                        @if ($vw !== null)
+                                                            data-visible-when-field="{{ $vw['field'] }}"
+                                                            data-visible-when-value="{{ $vw['value'] }}"
+                                                        @endif
+                                                    >
                                                         <span>
                                                             {{ $getLabel($field) }}
                                                             @if ($isRequiredField($field))
@@ -672,6 +710,10 @@
                                                             @endif
                                                         </span>
 
+                                                        @if ($helpText)
+                                                            <small class="field-help-text">{{ $helpText }}</small>
+                                                        @endif
+
                                                         @if ($field['name'] === 'serial_number')
                                                             <div class="serial-help-box" id="serialHelpBox" hidden>
                                                                 {{ $serialHelpText[$locale] ?? $serialHelpText['nl'] }}
@@ -683,7 +725,13 @@
                                                             name="{{ $field['name'] }}"
                                                             value="{{ old($field['name']) }}"
                                                             placeholder="{{ $getPlaceholder($field) }}"
+                                                            @if (($field['type'] ?? '') === 'number')
+                                                                min="{{ $field['min'] ?? 0 }}"
+                                                                @if (isset($field['max'])) max="{{ $field['max'] }}" @endif
+                                                                step="{{ ($field['decimal'] ?? false) ? '0.1' : '1' }}"
+                                                            @endif
                                                             @if ($isRequiredField($field)) data-required="true" @endif
+                                                            @if ($vw !== null && ! $vwVisible) disabled @endif
                                                         >
 
                                                         @error($field['name'])
@@ -875,9 +923,38 @@
             // Disable fields in hidden conditional sections so duplicate-named
             // fields (e.g. customer_type, preferred_time) from mutually exclusive
             // flows aren't submitted alongside the visible step's values.
+            // Fields inside a collapsed reveal wrapper stay disabled either way.
             el.querySelectorAll('input, select, textarea').forEach(function (field) {
-                field.disabled = !matches;
+                var revealWrap = field.closest('[data-visible-when-field]');
+                var revealHidden = revealWrap && revealWrap.classList.contains('is-reveal-hidden');
+                field.disabled = !matches || !!revealHidden;
             });
+        });
+    }
+
+    // ── Reveal fields ("Andere" → free text input) ────────────────────────────
+    function fieldBaseName(name) {
+        var m = (name || '').match(/\[([a-z0-9_]+)\]$/i);
+        return m ? m[1] : (name || '');
+    }
+
+    function updateRevealFields(sourceEl) {
+        var scope = sourceEl.closest('.room-entry') || sourceEl.closest('.form-section') || formCard;
+        var baseName = fieldBaseName(sourceEl.name);
+        if (!baseName) return;
+
+        scope.querySelectorAll('[data-visible-when-field="' + baseName + '"]').forEach(function (wrap) {
+            var show = sourceEl.value === wrap.dataset.visibleWhenValue;
+            wrap.classList.toggle('is-reveal-hidden', !show);
+            wrap.querySelectorAll('input, textarea, select').forEach(function (f) {
+                f.disabled = !show;
+            });
+        });
+    }
+
+    function syncAllRevealFields() {
+        Array.from(formCard.querySelectorAll('select')).forEach(function (sel) {
+            updateRevealFields(sel);
         });
     }
 
@@ -1036,6 +1113,9 @@
         });
         formCard.addEventListener('change', function (e) {
             var field = e.target;
+            if (field.tagName === 'SELECT') {
+                updateRevealFields(field);
+            }
             if (field.name === 'unknown_device_details') {
                 if (field.checked) {
                     var sec = field.closest('.form-section');
@@ -1314,6 +1394,13 @@
             'outdoorUnit'   => $text['summary_outdoor_unit'],
             'timing'        => $text['summary_timing'],
             'timingNotes'   => $text['summary_timing_notes'],
+            'waterSoftener' => $text['summary_water_softener'],
+            'waterUsage'    => $text['summary_water_usage'],
+            'bathrooms'     => $text['summary_bathrooms'],
+            'household'     => $text['summary_household'],
+            'softenerType'  => $text['summary_softener_type'],
+            'drain'         => $text['summary_drain'],
+            'unknownValue'  => $text['summary_unknown_value'],
             'customer'      => $text['summary_customer'],
             'problem'       => $text['summary_problem'],
             'technical'     => $text['summary_technical'],
@@ -1336,14 +1423,18 @@
         var form = container.closest('form');
         var category = getSelectedCategory();
 
+        // Duplicate field names exist across mutually exclusive flows; the
+        // inactive copies are disabled, so only read enabled fields.
         function qVal(name) {
-            var el = form ? form.querySelector('[name="' + name + '"]') : null;
+            var els = form ? Array.from(form.querySelectorAll('[name="' + name + '"]')) : [];
+            var el = els.find(function (e) { return !e.disabled; });
             return el ? el.value.trim() : '';
         }
 
         function qSelectText(name) {
-            var el = form ? form.querySelector('select[name="' + name + '"]') : null;
-            if (!el || !el.value) return '';
+            var els = form ? Array.from(form.querySelectorAll('select[name="' + name + '"]')) : [];
+            var el = els.find(function (e) { return !e.disabled && e.value; });
+            if (!el) return '';
             var opt = Array.from(el.options).find(function (o) { return o.value === el.value; });
             return opt ? opt.text : '';
         }
@@ -1441,6 +1532,26 @@
             addSection(summaryLabels.rooms, roomItems);
         }
 
+        // 2b. Water softener quote flow
+        if (category === 'waterverzachter') {
+            var usageVal = qVal('water_usage_m3');
+            var usageUnknownCb = form ? form.querySelector('input[name="water_usage_unknown"]') : null;
+            var usageText = usageVal
+                ? usageVal + ' m³'
+                : (usageUnknownCb && usageUnknownCb.checked ? summaryLabels.unknownValue : '');
+
+            addSection(summaryLabels.waterSoftener, [
+                { label: summaryLabels.timing, value: qSelectText('installation_timeframe') },
+                { value: qVal('installation_timeframe_other') },
+                { label: summaryLabels.waterUsage, value: usageText },
+                { label: summaryLabels.bathrooms, value: qVal('bathrooms_count') },
+                { label: summaryLabels.household, value: qVal('household_size') },
+                { label: summaryLabels.softenerType, value: qSelectText('softener_type_preference') },
+                { value: qVal('softener_type_other') },
+                { label: summaryLabels.drain, value: qSelectText('drain_distance') },
+            ]);
+        }
+
         // 3. Customer / urgency
         addSection(summaryLabels.customer, [
             { label: 'Type', value: qSelectText('customer_type') },
@@ -1491,6 +1602,7 @@
     function init() {
         formCard.classList.add('is-wizard-active');
         initRoomManager();
+        syncAllRevealFields();
         var initialCategory = getSelectedCategory();
         visibleSections     = computeVisible(initialCategory);
         updateConditionalVisibility(initialCategory);

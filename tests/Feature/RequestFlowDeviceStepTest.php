@@ -68,6 +68,7 @@ class RequestFlowDeviceStepTest extends TestCase
             'bathrooms_count'          => '2',
             'household_size'           => '4',
             'softener_type_preference' => 'salt',
+            'drain_distance'           => 'within_1m',
         ]);
     }
 

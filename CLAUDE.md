@@ -120,3 +120,26 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   (normalized English values for the future HVAC engine, defined in
   `room_fields` config); admin detail renders everything as labels with
   legacy fallbacks. Committed locally, **not pushed**.
+- **Sprint 13 (HVAC) ✅** — Deterministic pre-quotation system for airco
+  installations: versioned rule sets (`config/hvac.php` → `hvac_rule_sets`),
+  immutable calculation snapshots, catalog + compatibility-driven product
+  selection, CSV import, accessories/labor/pricing/margin, admin panel
+  "Automatische airco-voorcalculatie" with approval + audited overrides,
+  conversion of approved options into draft quotes (never auto-mailed), and a
+  null-by-default AI explanation boundary with strict output validation.
+  Production catalog is empty until real supplier data is imported. See
+  `docs/hvac/architecture.md` and `docs/hvac/rules-to-validate.md`.
+  Committed locally, **not pushed**.
+
+## HVAC Architecture
+
+- Deterministic services live in `app/Services/Hvac/`; rules only via
+  `HvacRuleSetResolver` (never read `config/hvac.php` directly in services).
+- Never hard-delete `HvacProduct` rows — deactivate. Model + FK guards throw.
+- AI (`Explanation/`) may only explain validated results; output is validated
+  by `AiExplanationValidator` and logged in `hvac_ai_logs`. The system must
+  keep working with `NullHvacExplanationGenerator`.
+- Do not seed real-brand products or invent manufacturer compatibility;
+  factories/tests use fictional TestBrand data only.
+- Rule values are placeholders until validated — see
+  `docs/hvac/rules-to-validate.md` before touching them.

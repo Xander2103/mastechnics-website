@@ -15,7 +15,7 @@ class HvacRecommendation extends Model
         'subtotal_excl_vat', 'vat_rate', 'vat_amount', 'total_incl_vat',
         'margin_amount', 'margin_percentage',
         'explanation_nl', 'explanation_fr', 'explanation_en',
-        'approved_by', 'approved_at', 'converted_quote_id',
+        'metadata', 'approved_by', 'approved_at', 'converted_quote_id',
     ];
 
     protected $casts = [
@@ -29,6 +29,7 @@ class HvacRecommendation extends Model
         'total_incl_vat'           => 'float',
         'margin_amount'            => 'float',
         'margin_percentage'        => 'float',
+        'metadata'                 => 'array',
         'approved_at'              => 'datetime',
     ];
 

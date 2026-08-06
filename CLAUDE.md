@@ -112,3 +112,11 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   single `@graph`, services hub, service-area hub, six municipality landing
   pages, FAQ content + FAQPage, visible breadcrumbs, meta rewrite, image/CWV
   work, custom 404, crawl controls. Committed locally, **not pushed**.
+- **Sprint 12 (request form) ✅** — Quote-flow rework. Device-technical step
+  now conditional (skipped for `airco_offerte` + `waterverzachter`); dedicated
+  water-softener quote flow (`installation_timeframe`, household/usage,
+  installation location + upload); airco rooms ask width/length/height,
+  `roof_type`, `windows`, `orientation` per room and house `insulation_level`
+  (normalized English values for the future HVAC engine, defined in
+  `room_fields` config); admin detail renders everything as labels with
+  legacy fallbacks. Committed locally, **not pushed**.

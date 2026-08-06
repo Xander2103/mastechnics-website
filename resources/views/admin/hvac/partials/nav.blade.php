@@ -18,4 +18,17 @@
     <a href="{{ route('admin.hvac.brands.index') }}" @if (request()->routeIs('admin.hvac.brands.*')) class="is-active" aria-current="page" @endif>Merken</a>
     <a href="{{ route('admin.hvac.suppliers.index') }}" @if (request()->routeIs('admin.hvac.suppliers.*')) class="is-active" aria-current="page" @endif>Leveranciers</a>
     <a href="{{ route('admin.hvac.import.index') }}" @if (request()->routeIs('admin.hvac.import.*')) class="is-active" aria-current="page" @endif>Import</a>
+    <a href="{{ route('admin.hvac.rules.index') }}" @if (request()->routeIs('admin.hvac.rules.*')) class="is-active" aria-current="page" @endif>Berekeningsregels</a>
+    <a href="{{ route('admin.hvac.checklist') }}" @if (request()->routeIs('admin.hvac.checklist')) class="is-active" aria-current="page" @endif>Checklist</a>
 </nav>
+
+@php
+    $hvacTestCatalogActive = \App\Models\HvacProduct::active()
+        ->where(fn ($q) => $q->where('sku', 'like', 'TEST%')->orWhere('name', 'like', 'TEST%'))
+        ->exists();
+@endphp
+@if ($hvacTestCatalogActive)
+    <div style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:8px;padding:0.7rem 1rem;font-size:0.88rem;margin-bottom:1.25rem;font-weight:600;">
+        Testcatalogus — niet gebruiken voor echte offertes.
+    </div>
+@endif

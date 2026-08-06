@@ -1,0 +1,3 @@
+parent_sku;compatible_sku;compatibility_type;minimum_connected_capacity_kw;maximum_connected_capacity_kw;maximum_units;notes
+TEST-MULTI-80;TEST-BIN-25;multi_split_indoor;;;4;voorbeeldrij - verwijderen voor echte import
+TEST-BUITEN-35;TEST-BIN-35;indoor_outdoor;;;;voorbeeldrij - verwijderen voor echte import

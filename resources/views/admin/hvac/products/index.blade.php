@@ -19,6 +19,43 @@
                 <div class="form-success">Opgeslagen.</div>
             @endif
 
+            {{-- Datakwaliteit --}}
+            <div class="admin-stats-row" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+                @foreach ([
+                    ['label' => 'Merken', 'value' => $quality['brands'], 'filter' => null],
+                    ['label' => 'Leveranciers', 'value' => $quality['suppliers'], 'filter' => null],
+                    ['label' => 'Actieve producten', 'value' => $quality['active_products'], 'filter' => null],
+                    ['label' => 'Zonder prijs', 'value' => $quality['missing_price'], 'filter' => 'missing_price'],
+                    ['label' => 'Zonder voorraad', 'value' => $quality['missing_stock'], 'filter' => 'missing_stock'],
+                    ['label' => 'Zonder elektrische data', 'value' => $quality['missing_electrical'], 'filter' => 'missing_electrical'],
+                    ['label' => 'Zonder leidinglimieten', 'value' => $quality['missing_pipe'], 'filter' => 'missing_pipe'],
+                    ['label' => 'Zonder compatibiliteit', 'value' => $quality['missing_compat'], 'filter' => 'missing_compat'],
+                    ['label' => 'Klaar voor aanbeveling', 'value' => $quality['ready'], 'filter' => 'ready'],
+                    ['label' => 'Geblokkeerd', 'value' => $quality['blocked'], 'filter' => null],
+                ] as $card)
+                    @php
+                        $cardInner = '<span style="display:block;font-size:1.3rem;font-weight:700;color:' . ($card['label'] === 'Geblokkeerd' && $card['value'] > 0 ? '#dc2626' : '#111827') . ';">' . $card['value'] . '</span><span style="display:block;font-size:0.72rem;color:#6b7280;">' . e($card['label']) . '</span>';
+                    @endphp
+                    @if ($card['filter'] !== null && $card['value'] > 0)
+                        <a href="{{ route('admin.hvac.products.index', ['quality' => $card['filter']]) }}"
+                           style="flex:1 1 120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.7rem;text-align:center;text-decoration:none;">
+                            {!! $cardInner !!}
+                        </a>
+                    @else
+                        <div style="flex:1 1 120px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.7rem;text-align:center;">
+                            {!! $cardInner !!}
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+
+            @if (request('quality'))
+                <p class="hvac-muted" style="margin-bottom:0.75rem;">
+                    Gefilterd op datakwaliteit: <strong>{{ request('quality') }}</strong> —
+                    <a class="admin-link" href="{{ route('admin.hvac.products.index') }}">filter wissen</a>
+                </p>
+            @endif
+
             <div class="admin-detail-card">
                 <form method="GET" action="{{ route('admin.hvac.products.index') }}" class="hvac-form-grid" style="margin-bottom: 1rem;">
                     <label>

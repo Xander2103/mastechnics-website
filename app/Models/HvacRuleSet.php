@@ -21,4 +21,9 @@ class HvacRuleSet extends Model
     {
         return $this->hasMany(HvacCalculation::class);
     }
+
+    public function validations(): HasMany
+    {
+        return $this->hasMany(HvacRuleValidation::class);
+    }
 }

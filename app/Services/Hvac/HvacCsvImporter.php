@@ -27,12 +27,18 @@ class HvacCsvImporter
         'voltage', 'phase', 'breaker_a', 'cable',
         'liquid_pipe_diameter', 'gas_pipe_diameter',
         'max_pipe_length_m', 'max_pipe_length_per_unit_m', 'max_height_difference_m',
-        'max_connected_indoor_units', 'sound_level_db', 'wifi_included',
+        'max_connected_indoor_units', 'sound_level_db', 'seer', 'scop', 'wifi_included',
+        'active', 'notes',
+    ];
+
+    // Product types that make no sense without a cooling capacity.
+    private const CAPACITY_REQUIRED_TYPES = [
+        'indoor_unit', 'outdoor_unit', 'single_split_set', 'multi_split_outdoor',
     ];
 
     private const NUMERIC_FIELDS = [
         'cooling_capacity_kw', 'heating_capacity_kw', 'minimum_capacity_kw', 'maximum_capacity_kw',
-        'purchase_price_excl_vat', 'sale_price_excl_vat', 'sound_level_db',
+        'purchase_price_excl_vat', 'sale_price_excl_vat', 'sound_level_db', 'seer', 'scop',
         'max_pipe_length_m', 'max_pipe_length_per_unit_m', 'max_height_difference_m',
     ];
 
@@ -86,10 +92,12 @@ class HvacCsvImporter
 
             // The same supplier+SKU twice in one file would silently
             // last-win — flag it as a row error instead.
+            // Only clean rows claim the supplier+SKU — a rejected row is never
+            // imported and must not shadow a later valid one.
             $key = strtolower(($row['data']['supplier'] ?? '') . '|' . ($row['data']['sku'] ?? ''));
             if ($key !== '|' && isset($seenKeys[$key])) {
                 $row['errors'][] = "Dubbele rij: leverancier + SKU kwamen al voor op lijn {$seenKeys[$key]}.";
-            } else {
+            } elseif ($key !== '|' && $row['errors'] === []) {
                 $seenKeys[$key] = $lineNumber;
             }
 
@@ -154,12 +162,34 @@ class HvacCsvImporter
             }
         }
 
-        $wifi = strtolower($raw['wifi_included'] ?? '');
-        $data['wifi_included'] = match (true) {
-            in_array($wifi, ['1', 'ja', 'yes', 'true'], true)  => true,
-            in_array($wifi, ['0', 'nee', 'no', 'false'], true) => false,
-            default => null,
-        };
+        foreach (['wifi_included', 'active'] as $boolField) {
+            $value = strtolower($raw[$boolField] ?? '');
+            if ($value === '') {
+                $data[$boolField] = null;
+                continue;
+            }
+            $data[$boolField] = match (true) {
+                in_array($value, ['1', 'ja', 'yes', 'true'], true)  => true,
+                in_array($value, ['0', 'nee', 'no', 'false'], true) => false,
+                default => null,
+            };
+            if ($data[$boolField] === null) {
+                $errors[] = "Kolom '{$boolField}': '{$raw[$boolField]}' is geen geldige ja/nee-waarde (gebruik ja/nee).";
+            }
+        }
+
+        // Units without a cooling capacity can never be selected — reject early.
+        if (in_array($productType, self::CAPACITY_REQUIRED_TYPES, true)
+            && ($data['cooling_capacity_kw'] ?? null) === null) {
+            $errors[] = "Producttype '{$productType}' vereist een koelvermogen (cooling_capacity_kw).";
+        }
+
+        // Voltage plausibility: free text is allowed, but it must at least
+        // contain a recognisable voltage number.
+        $voltage = $raw['voltage'] ?? '';
+        if ($voltage !== '' && preg_match('/\d{3}/', $voltage) !== 1) {
+            $errors[] = "Kolom 'voltage': '{$voltage}' wordt niet herkend (verwacht bv. '230V mono' of '400V tri').";
+        }
 
         $data += [
             'supplier'             => $raw['supplier'] ?? '',
@@ -173,6 +203,7 @@ class HvacCsvImporter
             'cable'                => ($raw['cable'] ?? '') ?: null,
             'liquid_pipe_diameter' => ($raw['liquid_pipe_diameter'] ?? '') ?: null,
             'gas_pipe_diameter'    => ($raw['gas_pipe_diameter'] ?? '') ?: null,
+            'notes'                => ($raw['notes'] ?? '') ?: null,
         ];
 
         $action = 'create';
@@ -258,8 +289,17 @@ class HvacCsvImporter
                     'stock_quantity'                 => $data['stock_quantity'],
                     'lead_time_days'                 => $data['lead_time_days'],
                     'sound_level_db'                 => $data['sound_level_db'],
+                    'seer'                           => $data['seer'],
+                    'scop'                           => $data['scop'],
                     'wifi_included'                  => $data['wifi_included'],
                 ];
+
+                if ($data['active'] !== null) {
+                    $attributes['is_active'] = $data['active'];
+                }
+                if ($data['notes'] !== null) {
+                    $attributes['metadata'] = ['notes' => $data['notes']];
+                }
 
                 if ($existing !== null) {
                     $existing->update($attributes);
@@ -268,7 +308,7 @@ class HvacCsvImporter
                     HvacProduct::create($attributes + [
                         'hvac_supplier_id' => $supplier->id,
                         'sku'              => $data['sku'],
-                        'is_active'        => true,
+                        'is_active'        => $data['active'] ?? true,
                     ]);
                     $created++;
                 }
@@ -285,8 +325,8 @@ class HvacCsvImporter
     {
         $lines = [
             implode(';', self::COLUMNS),
-            'Voorbeeld Leverancier BV;VoorbeeldMerk;VB-SET-25;Voorbeeld 25 Set;Voorbeeld single split 2.5 kW;single_split_set;2.5;3.2;;;780.00;1250.00;4;3;230V mono;1;16;3G2.5;1/4;3/8;20;;15;;19.5;ja',
-            'Voorbeeld Leverancier BV;VoorbeeldMerk;VB-MULTI-80;Voorbeeld Multi 80;Voorbeeld multi-split buitenunit 8 kW;multi_split_outdoor;8.0;9.0;4.0;9.6;1900.00;2950.00;2;5;230V mono;1;25;3G4;1/4;1/2;60;25;15;4;48;nee',
+            'TEST Leverancier BV;TESTMERK;TEST-SET-25;TEST 25 Set;TEST single split 2.5 kW;single_split_set;2.5;3.2;;;780.00;1250.00;4;3;230V mono;1;16;3G2.5;1/4;3/8;20;;15;;19.5;6.5;4.6;ja;ja;voorbeeldrij - verwijderen voor echte import',
+            'TEST Leverancier BV;TESTMERK;TEST-MULTI-80;TEST Multi 80;TEST multi-split buitenunit 8 kW;multi_split_outdoor;8.0;9.0;4.0;9.6;1900.00;2950.00;2;5;230V mono;1;25;3G4;1/4;1/2;60;25;15;4;48;7.1;4.2;nee;ja;voorbeeldrij - verwijderen voor echte import',
         ];
 
         return implode("\r\n", $lines) . "\r\n";

@@ -12,6 +12,7 @@ use App\Services\Hvac\HvacCalculationService;
 use App\Services\Hvac\HvacManualOverrideService;
 use App\Services\Hvac\HvacQuoteConversionService;
 use App\Services\Hvac\HvacRecommendationBuilder;
+use App\Services\Hvac\HvacRecommendationReadiness;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -61,8 +62,12 @@ class HvacCalculationController extends Controller
             ->with('success', $calculation->status === 'blocked' ? 'hvac_calculation_blocked' : 'hvac_calculated');
     }
 
-    public function approve(Request $request, CustomerRequest $customerRequest, HvacRecommendation $recommendation): RedirectResponse
-    {
+    public function approve(
+        Request $request,
+        CustomerRequest $customerRequest,
+        HvacRecommendation $recommendation,
+        HvacRecommendationReadiness $readiness
+    ): RedirectResponse {
         $this->guardScope($customerRequest, $recommendation);
 
         if ($recommendation->status === 'approved') {
@@ -70,6 +75,13 @@ class HvacCalculationController extends Controller
         }
         if ($recommendation->status !== 'draft') {
             return back()->with('success', 'hvac_not_approvable');
+        }
+
+        // Production safety: technical + price + validated critical rules
+        // (test-catalog recommendations bypass only the rule gate).
+        $evaluation = $readiness->evaluate($recommendation);
+        if (! $evaluation['ready']) {
+            return back()->withErrors(['hvac_approve' => implode(' ', $evaluation['blockers'])]);
         }
 
         $recommendation->update([

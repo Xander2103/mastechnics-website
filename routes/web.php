@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\HvacCalculationController;
 use App\Http\Controllers\Admin\HvacCompatibilityController;
 use App\Http\Controllers\Admin\HvacImportController;
 use App\Http\Controllers\Admin\HvacProductController;
+use App\Http\Controllers\Admin\HvacRuleController;
 use App\Http\Controllers\Admin\HvacSupplierController;
 use App\Http\Controllers\Admin\QuoteController as AdminQuoteController;
 use App\Http\Controllers\Admin\RequestController as AdminRequestController;
@@ -152,6 +153,20 @@ Route::middleware('admin')
         Route::patch('/hvac/compatibilities/{compatibility}/toggle', [HvacCompatibilityController::class, 'toggle'])
             ->name('hvac.compatibilities.toggle');
 
+        Route::get('/hvac/rules', [HvacRuleController::class, 'index'])
+            ->name('hvac.rules.index');
+        Route::post('/hvac/rules/validate', [HvacRuleController::class, 'validateRule'])
+            ->name('hvac.rules.validate');
+        Route::post('/hvac/rules/unvalidate', [HvacRuleController::class, 'unvalidateRule'])
+            ->name('hvac.rules.unvalidate');
+        Route::post('/hvac/rules/draft', [HvacRuleController::class, 'createDraft'])
+            ->name('hvac.rules.draft');
+        Route::post('/hvac/rules/{ruleSet}/activate', [HvacRuleController::class, 'activate'])
+            ->name('hvac.rules.activate');
+
+        Route::view('/hvac/checklist', 'admin.hvac.checklist')
+            ->name('hvac.checklist');
+
         Route::get('/hvac/import', [HvacImportController::class, 'index'])
             ->name('hvac.import.index');
         Route::post('/hvac/import/preview', [HvacImportController::class, 'preview'])
@@ -163,6 +178,12 @@ Route::middleware('admin')
         Route::get('/hvac/import/errors/{token}', [HvacImportController::class, 'errorReport'])
             ->where('token', '[A-Za-z0-9]{40}')
             ->name('hvac.import.errors');
+        Route::post('/hvac/import/compat/preview', [HvacImportController::class, 'compatPreview'])
+            ->name('hvac.import.compat.preview');
+        Route::post('/hvac/import/compat/confirm', [HvacImportController::class, 'compatConfirm'])
+            ->name('hvac.import.compat.confirm');
+        Route::get('/hvac/import/compat/template', [HvacImportController::class, 'compatTemplate'])
+            ->name('hvac.import.compat.template');
 
         Route::get('/blocked-emails', [AdminBlockedEmailController::class, 'index'])
             ->name('blocked-emails.index');

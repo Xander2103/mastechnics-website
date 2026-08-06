@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\Hvac\HvacCompatibilityCsvImporter;
 use App\Services\Hvac\HvacCsvImporter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -96,6 +97,61 @@ class HvacImportController extends Controller
         return response(HvacCsvImporter::template(), 200, [
             'Content-Type'        => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="hvac-producten-sjabloon.csv"',
+        ]);
+    }
+
+    // ── Compatibility import ──────────────────────────────────────────────────
+
+    public function compatPreview(Request $request, HvacCompatibilityCsvImporter $importer): View|RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:4096'],
+        ]);
+
+        $parsed = $importer->parse((string) file_get_contents($request->file('file')->getRealPath()));
+
+        if ($parsed['rows'] === []) {
+            return back()->withErrors(['compat_file' => implode(' ', $parsed['global_errors']) ?: 'Het bestand kon niet gelezen worden.']);
+        }
+
+        $token = Str::random(40);
+        Cache::put("hvac-compat-import:{$token}", ['rows' => $parsed['rows']], self::CACHE_TTL);
+
+        $rows = collect($parsed['rows']);
+
+        return view('admin.hvac.imports.compat-preview', [
+            'token'        => $token,
+            'rows'         => $rows->take(100),
+            'totalRows'    => $rows->count(),
+            'validCount'   => $rows->filter(fn ($r) => $r['errors'] === [])->count(),
+            'errorCount'   => $rows->filter(fn ($r) => $r['errors'] !== [])->count(),
+            'globalErrors' => $parsed['global_errors'],
+        ]);
+    }
+
+    public function compatConfirm(Request $request, HvacCompatibilityCsvImporter $importer): RedirectResponse
+    {
+        $request->validate(['token' => ['required', 'string', 'size:40']]);
+
+        $payload = Cache::pull('hvac-compat-import:' . $request->string('token')->toString());
+        if ($payload === null) {
+            return redirect()->route('admin.hvac.import.index')
+                ->withErrors(['compat_file' => 'De voorbereide import is verlopen. Upload het bestand opnieuw.']);
+        }
+
+        $result = $importer->import($payload['rows']);
+
+        return redirect()->route('admin.hvac.import.index')->with([
+            'success'              => 'hvac_compat_import_done',
+            'compat_import_result' => $result,
+        ]);
+    }
+
+    public function compatTemplate(): Response
+    {
+        return response(HvacCompatibilityCsvImporter::template(), 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="hvac-compatibiliteit-sjabloon.csv"',
         ]);
     }
 }

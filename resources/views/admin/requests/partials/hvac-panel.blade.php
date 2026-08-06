@@ -110,6 +110,10 @@
         <div class="form-error-list">{{ $message }}</div>
     @enderror
 
+    @error('hvac_approve')
+        <div class="form-error-list">Goedkeuren geblokkeerd: {{ $message }}</div>
+    @enderror
+
     <form method="POST" action="{{ route('admin.requests.hvac.calculate', $customerRequest) }}" style="margin-bottom: 0.5rem;">
         @csrf
         <button type="submit" class="button button-primary">
@@ -306,14 +310,29 @@
                     $internalCost = $purchaseTotal
                         + (float) $recommendation->labor_total_excl_vat
                         + (float) $recommendation->travel_total_excl_vat;
+                    $readinessEval = app(\App\Services\Hvac\HvacRecommendationReadiness::class)->evaluate($recommendation);
                 @endphp
                 <div class="hvac-option">
                     <div class="hvac-option-header">
                         <h3 style="margin: 0;">Optie: {{ $hvacOptionLabels[$recommendation->option_type] ?? ucfirst($recommendation->option_type) }}</h3>
-                        <span class="hvac-option-status {{ $recommendation->status === 'approved' ? 'is-approved' : ($recommendation->status === 'manual_review' ? 'is-manual' : ($recommendation->status === 'rejected' ? 'is-rejected' : '')) }}">
-                            {{ $hvacStatusLabels[$recommendation->status] ?? $recommendation->status }}
+                        <span class="hvac-option-status {{ $recommendation->status === 'approved' || $readinessEval['ready'] ? 'is-approved' : ($recommendation->status === 'rejected' ? 'is-rejected' : 'is-manual') }}">
+                            {{ $readinessEval['state_label'] }}
                         </span>
                     </div>
+
+                    @if ($readinessEval['demo'])
+                        <p class="hvac-disclaimer" style="background:#fef2f2;border-color:#fecaca;color:#991b1b;margin:0.5rem 0 0;">
+                            Testcatalogus — niet gebruiken voor echte offertes.
+                        </p>
+                    @endif
+
+                    @if ($readinessEval['blockers'] !== [] && in_array($recommendation->status, ['draft', 'manual_review'], true))
+                        <ul class="hvac-warning-list" style="margin-top:0.5rem;">
+                            @foreach ($readinessEval['blockers'] as $blocker)
+                                <li>{{ $blocker }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
 
                     @if ($candidate)
                         <p style="font-size: 0.82rem; color: #6b7280; margin: 0.4rem 0 0;">

@@ -13,10 +13,64 @@ use Illuminate\View\View;
 
 class HvacProductController extends Controller
 {
+    private const UNIT_TYPES = ['indoor_unit', 'outdoor_unit', 'single_split_set', 'multi_split_outdoor'];
+
+    /**
+     * Reusable quality constraints — also power the dashboard counts.
+     */
+    private function qualityScopes(): array
+    {
+        $noCompat = fn ($q) => $q->whereIn('product_type', ['indoor_unit', 'outdoor_unit', 'multi_split_outdoor'])
+            ->whereDoesntHave('compatibilities')
+            ->whereDoesntHave('reverseCompatibilities');
+
+        return [
+            'missing_price'      => fn ($q) => $q->whereNull('default_sale_price_excl_vat')->whereNull('purchase_price_excl_vat'),
+            'missing_stock'      => fn ($q) => $q->whereNull('stock_quantity'),
+            'missing_electrical' => fn ($q) => $q->whereIn('product_type', self::UNIT_TYPES)
+                ->whereNull('supported_voltage')->whereNull('required_breaker_a'),
+            'missing_pipe'       => fn ($q) => $q->whereIn('product_type', self::UNIT_TYPES)
+                ->whereNull('maximum_pipe_length_m'),
+            'missing_compat'     => $noCompat,
+            'ready'              => fn ($q) => $q->whereIn('product_type', self::UNIT_TYPES)
+                ->whereNotNull('cooling_capacity_kw')
+                ->where(fn ($p) => $p->whereNotNull('default_sale_price_excl_vat')->orWhereNotNull('purchase_price_excl_vat'))
+                ->whereNotNull('maximum_pipe_length_m')
+                ->whereNotNull('maximum_height_difference_m')
+                ->where(fn ($p) => $p
+                    ->where('product_type', 'single_split_set')
+                    ->orWhereHas('compatibilities')
+                    ->orWhereHas('reverseCompatibilities')),
+        ];
+    }
+
     public function index(Request $request): View
     {
+        $scopes = $this->qualityScopes();
+
+        $activeBase = fn () => HvacProduct::query()->where('is_active', true);
+        $unitCount = $activeBase()->whereIn('product_type', self::UNIT_TYPES)->count();
+        $readyCount = $activeBase()->tap($scopes['ready'])->count();
+
+        $quality = [
+            'brands'             => \App\Models\HvacBrand::where('is_active', true)->count(),
+            'suppliers'          => \App\Models\HvacSupplier::where('is_active', true)->count(),
+            'active_products'    => $activeBase()->count(),
+            'missing_price'      => $activeBase()->tap($scopes['missing_price'])->count(),
+            'missing_stock'      => $activeBase()->tap($scopes['missing_stock'])->count(),
+            'missing_electrical' => $activeBase()->tap($scopes['missing_electrical'])->count(),
+            'missing_pipe'       => $activeBase()->tap($scopes['missing_pipe'])->count(),
+            'missing_compat'     => $activeBase()->tap($scopes['missing_compat'])->count(),
+            'ready'              => $readyCount,
+            'blocked'            => max(0, $unitCount - $readyCount),
+        ];
+
         $products = HvacProduct::query()
             ->with(['brand', 'supplier'])
+            ->when(
+                $request->filled('quality') && isset($scopes[$request->string('quality')->toString()]),
+                fn ($q) => $q->where('is_active', true)->tap($scopes[$request->string('quality')->toString()])
+            )
             ->when($request->filled('type'), fn ($q) => $q->where('product_type', $request->string('type')))
             ->when($request->filled('brand'), fn ($q) => $q->where('hvac_brand_id', $request->integer('brand')))
             ->when($request->string('active')->toString() === '1', fn ($q) => $q->where('is_active', true))
@@ -37,6 +91,7 @@ class HvacProductController extends Controller
             'products' => $products,
             'brands'   => HvacBrand::orderBy('name')->get(),
             'types'    => HvacProduct::PRODUCT_TYPES,
+            'quality'  => $quality,
         ]);
     }
 
@@ -145,6 +200,8 @@ class HvacProductController extends Controller
             'stock_quantity'                 => ['nullable', 'integer', 'min:0'],
             'lead_time_days'                 => ['nullable', 'integer', 'min:0', 'max:365'],
             'sound_level_db'                 => ['nullable', 'numeric', 'min:0', 'max:120'],
+            'seer'                           => ['nullable', 'numeric', 'min:0', 'max:15'],
+            'scop'                           => ['nullable', 'numeric', 'min:0', 'max:10'],
             'wifi_included'                  => ['nullable', 'boolean'],
             'is_active'                      => ['nullable', 'boolean'],
         ]);

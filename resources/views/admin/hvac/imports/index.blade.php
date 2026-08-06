@@ -68,6 +68,37 @@
                     </div>
                 </form>
             </div>
+
+            @if (session('success') === 'hvac_compat_import_done')
+                @php $compatResult = session('compat_import_result', []); @endphp
+                <div class="form-success">
+                    Compatibiliteitsimport afgerond: {{ $compatResult['created'] ?? 0 }} aangemaakt,
+                    {{ $compatResult['updated'] ?? 0 }} bijgewerkt,
+                    {{ $compatResult['skipped'] ?? 0 }} overgeslagen.
+                </div>
+            @endif
+
+            <div class="admin-detail-card" style="margin-top: 1.5rem;">
+                <h2>Compatibiliteit importeren (CSV)</h2>
+                <p class="hvac-muted" style="margin-bottom:1rem;">
+                    Koppel fabrikantcompatibiliteit via SKU's. Beide producten moeten al in de catalogus
+                    bestaan — importeer dus eerst de producten. Gebruik het
+                    <a class="admin-link" href="{{ route('admin.hvac.import.compat.template') }}">compatibiliteitssjabloon</a>.
+                </p>
+
+                <form method="POST" action="{{ route('admin.hvac.import.compat.preview') }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="hvac-form-grid">
+                        <label>
+                            <span>CSV-bestand *</span>
+                            <input type="file" name="file" accept=".csv,.txt" required>
+                        </label>
+                    </div>
+                    <div style="margin-top:1rem;">
+                        <button type="submit" class="button button-primary">Voorbeeld bekijken</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </section>
 @endsection

@@ -37,7 +37,7 @@ class HvacProduct extends Model
         'required_breaker_a', 'required_cable', 'liquid_pipe_diameter', 'gas_pipe_diameter',
         'maximum_pipe_length_m', 'maximum_pipe_length_per_unit_m', 'maximum_height_difference_m',
         'maximum_connected_indoor_units', 'purchase_price_excl_vat', 'default_sale_price_excl_vat',
-        'stock_quantity', 'lead_time_days', 'sound_level_db', 'wifi_included',
+        'stock_quantity', 'lead_time_days', 'sound_level_db', 'seer', 'scop', 'wifi_included',
         'is_active', 'metadata',
     ];
 
@@ -52,6 +52,8 @@ class HvacProduct extends Model
         'purchase_price_excl_vat'        => 'float',
         'default_sale_price_excl_vat'    => 'float',
         'sound_level_db'                 => 'float',
+        'seer'                           => 'float',
+        'scop'                           => 'float',
         'wifi_included'                  => 'boolean',
         'is_active'                      => 'boolean',
         'metadata'                       => 'array',

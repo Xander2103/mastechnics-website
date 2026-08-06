@@ -94,6 +94,8 @@
                             <label><span>Max. aantal binnenunits</span><input type="number" min="1" max="20" name="maximum_connected_indoor_units" value="{{ old('maximum_connected_indoor_units', $product->maximum_connected_indoor_units) }}"></label>
                             <label><span>Geluidsniveau (dB)</span><input type="number" step="0.1" min="0" name="sound_level_db" value="{{ old('sound_level_db', $product->sound_level_db) }}"></label>
                             <label><span>Nominaal opgenomen vermogen (W)</span><input type="number" min="0" name="nominal_input_power_w" value="{{ old('nominal_input_power_w', $product->nominal_input_power_w) }}"></label>
+                            <label><span>SEER (koelrendement)</span><input type="number" step="0.1" min="0" max="15" name="seer" value="{{ old('seer', $product->seer) }}"></label>
+                            <label><span>SCOP (verwarmingsrendement)</span><input type="number" step="0.1" min="0" max="10" name="scop" value="{{ old('scop', $product->scop) }}"></label>
                         </div>
                     </div>
 

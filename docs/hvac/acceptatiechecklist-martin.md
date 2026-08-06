@@ -26,3 +26,35 @@ nieuwe leverancierscatalogus. Dezelfde checklist staat in het beheer onder
 **Herinnering:** zolang de rode banner "Testcatalogus — niet gebruiken voor
 echte offertes" zichtbaar is, bevat de catalogus TEST-producten. Deactiveer
 die vóór echte offertes.
+
+---
+
+## A. Vóór het eerste productiegebruik
+
+☐ Leveranciersproducten geïmporteerd (incl. toebehoren met prijzen)
+☐ Compatibiliteit geïmporteerd of ingevoerd
+☐ Prijzen steekproefsgewijs geverifieerd
+☐ Voorraad en levertijden geverifieerd
+☐ Alle KRITIEKE berekeningsregels gevalideerd
+☐ Uurtarief bevestigd · ☐ Verplaatsingsforfait bevestigd
+☐ Marges bevestigd · ☐ Btw-beleid bevestigd
+☐ Eén single-split-test volledig doorlopen
+☐ Eén multi-split-test volledig doorlopen
+☐ PDF gecontroleerd · ☐ Testmail gecontroleerd
+☐ TEST-producten gedeactiveerd (banner weg)
+
+## B. Vóór het goedkeuren van een aanbeveling
+
+☐ Kamergegevens correct · ☐ Vermogen plausibel
+☐ Compatibiliteit bevestigd · ☐ Elektrische data gecontroleerd
+☐ Leidinglimieten gecontroleerd · ☐ Toebehoren gecontroleerd
+☐ Arbeid gecontroleerd · ☐ Prijs/marge gecontroleerd
+☐ Waarschuwingen opgelost of bewust bevestigd · ☐ Foto's bekeken
+
+## C. Vóór het versturen van een offerte
+
+☐ Klantgegevens correct · ☐ Taal van de klant correct
+☐ Goedgekeurde optie omgezet · ☐ Beschikbaarheid producten gecheckt
+☐ Totaal gecontroleerd · ☐ Btw gecontroleerd
+☐ PDF geopend en nagelezen · ☐ Voorwaarden gecheckt
+☐ Ontvanger-e-mailadres gecheckt · ☐ Handmatige verzending bevestigd

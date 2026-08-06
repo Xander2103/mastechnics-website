@@ -50,6 +50,19 @@ class LaborEstimator
             $lines[] = ['key' => 'condensate_pump', 'hours' => $pump, 'reason' => 'Plaatsing condensaatpomp (indien nodig).'];
         }
 
+        $electrical = (float) ($labor['electrical_work_hours'] ?? 1.5);
+        $lines[] = ['key' => 'electrical', 'hours' => $electrical, 'reason' => 'Elektrische aansluiting en aparte voedingskring (schatting — controle door installateur vereist).'];
+
+        $secondTechFrom = (int) ($labor['second_technician_from_indoor_units'] ?? 3);
+        if ($indoorCount >= $secondTechFrom) {
+            $secondTech = (float) ($labor['second_technician_hours'] ?? 4.0);
+            $lines[] = ['key' => 'second_technician', 'hours' => $secondTech, 'reason' => "Tweede technieker aangenomen vanaf {$secondTechFrom} binnenunits."];
+            $warnings[] = [
+                'code'    => 'second_technician_assumed',
+                'message' => 'Een tweede technieker is aangenomen op basis van het aantal binnenunits. Controleer de planning.',
+            ];
+        }
+
         if ($anyRoofRoom) {
             $surcharge = (float) ($labor['roof_access_surcharge_hours'] ?? 2.0);
             $lines[] = ['key' => 'roof_access', 'hours' => $surcharge, 'reason' => 'Toeslag zolder-/daksituatie (aanname — controleer bereikbaarheid).'];

@@ -97,15 +97,17 @@ class HvacRecommendationTest extends TestCase
         $this->assertSame(1, $items->where('item_type', 'labor')->count());
         $this->assertSame(1, $items->where('item_type', 'travel')->count());
 
-        // Equipment 1500 + materials 240 + labor 7.5h × 65 = 487.50 + travel 35
+        // Equipment 1500 + materials 240 (priced) + labor 9.0h × 65 = 585
+        // (base 6 + drilling 0.5 + pump 1 + electrical 1.5) + travel 35.
+        // The optional refrigerant flag line carries no price.
         $this->assertEquals(1500.0, $rec->equipment_total_excl_vat);
         $this->assertEquals(240.0, $rec->materials_total_excl_vat);
-        $this->assertEquals(487.5, $rec->labor_total_excl_vat);
+        $this->assertEquals(585.0, $rec->labor_total_excl_vat);
         $this->assertEquals(35.0, $rec->travel_total_excl_vat);
-        $this->assertEquals(2262.5, $rec->subtotal_excl_vat);
+        $this->assertEquals(2360.0, $rec->subtotal_excl_vat);
         $this->assertEquals(21.0, $rec->vat_rate);
-        $this->assertEquals(475.13, $rec->vat_amount);
-        $this->assertEquals(2737.63, $rec->total_incl_vat);
+        $this->assertEquals(495.6, $rec->vat_amount);
+        $this->assertEquals(2855.6, $rec->total_incl_vat);
 
         // Margin: sale (1500 + 240) − purchase (1000 + 120) = 620
         $this->assertEquals(620.0, $rec->margin_amount);
@@ -206,7 +208,7 @@ class HvacRecommendationTest extends TestCase
         $this->assertSame('admin@test.com', $override->overridden_by);
 
         // Totals recomputed: subtotal drops by 100.
-        $this->assertEquals(2162.5, $rec->fresh()->subtotal_excl_vat);
+        $this->assertEquals(2260.0, $rec->fresh()->subtotal_excl_vat);
         $this->assertNotNull($rec->calculation->fresh()->manually_overridden_at);
     }
 
@@ -220,7 +222,7 @@ class HvacRecommendationTest extends TestCase
 
         $fresh = $rec->fresh();
         $this->assertEquals(6.0, $fresh->vat_rate);
-        $this->assertEquals(round(2262.5 * 1.06, 2), $fresh->total_incl_vat);
+        $this->assertEquals(round(2360.0 * 1.06, 2), $fresh->total_incl_vat);
     }
 
     public function test_change_item_product_uses_catalog_data_only(): void
@@ -247,6 +249,6 @@ class HvacRecommendationTest extends TestCase
         $this->assertSame('TB-ALT', $fresh->sku);
         $this->assertEquals(1800.0, $fresh->sale_unit_price);
         $this->assertTrue($fresh->metadata['manually_selected']);
-        $this->assertEquals(1800.0 + 240.0 + 487.5 + 35.0, $rec->fresh()->subtotal_excl_vat);
+        $this->assertEquals(1800.0 + 240.0 + 585.0 + 35.0, $rec->fresh()->subtotal_excl_vat);
     }
 }

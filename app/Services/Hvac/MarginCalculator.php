@@ -24,6 +24,17 @@ class MarginCalculator
             if (! in_array($item['item_type'], ['equipment', 'material'], true)) {
                 continue;
             }
+
+            // Optional flag lines without any price (e.g. "extra refrigerant
+            // to be determined") don't affect margin completeness — they
+            // carry no money either way.
+            $isUnpricedOptional = ($item['mandatory'] ?? true) === false
+                && $item['purchase_unit_price'] === null
+                && ($item['sale_unit_price'] ?? null) === null;
+            if ($isUnpricedOptional) {
+                continue;
+            }
+
             $saleTotal += (float) $item['line_total'];
             if ($item['purchase_unit_price'] === null) {
                 $complete = false;

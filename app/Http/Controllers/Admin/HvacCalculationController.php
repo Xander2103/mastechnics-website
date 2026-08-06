@@ -7,6 +7,7 @@ use App\Models\CustomerRequest;
 use App\Models\HvacProduct;
 use App\Models\HvacRecommendation;
 use App\Models\HvacRecommendationItem;
+use App\Services\Hvac\Explanation\HvacExplanationService;
 use App\Services\Hvac\HvacCalculationService;
 use App\Services\Hvac\HvacManualOverrideService;
 use App\Services\Hvac\HvacQuoteConversionService;
@@ -43,6 +44,13 @@ class HvacCalculationController extends Controller
                 $warnings['selection'] = $result['selection_warnings'];
                 $warnings['invalid_candidates'] = count($result['invalid_candidates']);
                 $calculation->update(['warnings' => $warnings]);
+
+                // Optional AI explanation. Null provider → no-op; failures
+                // are logged inside the service and never break the flow.
+                $explanationService = app(HvacExplanationService::class);
+                foreach ($result['recommendations'] as $recommendation) {
+                    $explanationService->generateFor($recommendation);
+                }
             }
         } finally {
             $lock->release();
@@ -192,6 +200,83 @@ class HvacCalculationController extends Controller
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['product_id' => $e->getMessage()]);
         }
+
+        return back()->with('success', 'hvac_override_applied');
+    }
+
+    public function addDiscount(
+        Request $request,
+        CustomerRequest $customerRequest,
+        HvacRecommendation $recommendation,
+        HvacManualOverrideService $overrideService
+    ): RedirectResponse {
+        $this->guardScope($customerRequest, $recommendation);
+
+        $data = $request->validate([
+            'amount'      => ['required', 'numeric', 'min:0.01', 'max:100000'],
+            'description' => ['nullable', 'string', 'max:200'],
+            'reason'      => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        if (! in_array($recommendation->status, ['draft', 'manual_review'], true)) {
+            return back()->with('success', 'hvac_not_editable');
+        }
+
+        try {
+            $overrideService->addDiscount(
+                $recommendation,
+                (float) $data['amount'],
+                $data['description'] ?? null,
+                $data['reason'],
+                (string) session('admin_user_email')
+            );
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['amount' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'hvac_override_applied');
+    }
+
+    /**
+     * Override a room's calculated cooling load. The originals stay in the
+     * snapshot; recommendations are rebuilt so product selection follows
+     * the overridden capacity class.
+     */
+    public function overrideRoomLoad(
+        Request $request,
+        CustomerRequest $customerRequest,
+        HvacManualOverrideService $overrideService,
+        HvacRecommendationBuilder $builder
+    ): RedirectResponse {
+        abort_unless($customerRequest->service_category === 'airco_offerte', 404);
+
+        $data = $request->validate([
+            'room_index' => ['required', 'integer', 'min:0', 'max:20'],
+            'watts'      => ['required', 'numeric', 'min:100', 'max:20000'],
+            'reason'     => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        $calculation = $customerRequest->hvacCalculations()
+            ->where('status', 'calculated')
+            ->first();
+
+        if ($calculation === null) {
+            return back()->withErrors(['room_index' => 'Er is geen actieve berekening om aan te passen.']);
+        }
+
+        try {
+            $calculation = $overrideService->overrideRoomLoad(
+                $calculation,
+                (int) $data['room_index'],
+                (float) $data['watts'],
+                $data['reason'],
+                (string) session('admin_user_email')
+            );
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['watts' => $e->getMessage()]);
+        }
+
+        $builder->buildForCalculation($calculation);
 
         return back()->with('success', 'hvac_override_applied');
     }

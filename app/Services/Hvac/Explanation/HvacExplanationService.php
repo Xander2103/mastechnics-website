@@ -33,6 +33,17 @@ class HvacExplanationService
         $payload = $this->buildPayload($recommendation, $locale);
         $inputHash = hash('sha256', json_encode($payload));
 
+        // Duplicate-call prevention: identical input that already produced a
+        // valid explanation is reused instead of calling the provider again.
+        $existing = HvacAiLog::where('hvac_recommendation_id', $recommendation->id)
+            ->where('input_hash', $inputHash)
+            ->where('validation_status', 'valid')
+            ->latest('id')
+            ->first();
+        if ($existing !== null) {
+            return $existing->output;
+        }
+
         try {
             $output = $this->generator->generate($payload);
         } catch (\Throwable $e) {

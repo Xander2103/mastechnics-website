@@ -28,10 +28,13 @@ class AccessorySelector
         $indoorCount = count($rooms);
         $outdoorCount = 1;
         $totalPipeM = 0.0;
+        $totalEquivalentM = 0.0;
         foreach ($rooms as $room) {
             $totalPipeM += (float) $room['pipe']['actual_length_m'];
+            $totalEquivalentM += (float) $room['pipe']['equivalent_length_m'];
         }
         $totalPipeM = round($totalPipeM, 1);
+        $totalEquivalentM = round($totalEquivalentM, 1);
 
         $lines = [
             [
@@ -92,6 +95,41 @@ class AccessorySelector
             ],
         ];
 
+        // Extra refrigerant: only flagged when the equivalent length exceeds
+        // the configured threshold. Quantity is indicative; the actual charge
+        // depends on the manufacturer's included pipe length.
+        $refrigerantThreshold = (float) ($accessoryRules['refrigerant_above_equivalent_m'] ?? 10);
+        if ($totalEquivalentM > $refrigerantThreshold) {
+            $lines[] = [
+                'key'       => 'refrigerant',
+                'type'      => 'refrigerant',
+                'quantity'  => 1,
+                'unit'      => 'stuk',
+                'reason'    => "Extra koelmiddel mogelijk vereist (equivalente leidinglengte {$totalEquivalentM} m > {$refrigerantThreshold} m). Hoeveelheid te bepalen door de installateur op basis van fabrikantdata.",
+                'mandatory' => false,
+            ];
+            $warnings[] = [
+                'code'    => 'refrigerant_possible',
+                'message' => 'Mogelijk extra koelmiddel nodig — controleer de meegeleverde vulling van het gekozen product.',
+            ];
+        }
+
+        // Wi-Fi module: only when the selected equipment explicitly has no
+        // built-in Wi-Fi (unknown → nothing added, nothing guessed).
+        $anyWithoutWifi = collect($candidate['products'] ?? [])
+            ->contains(fn ($p) => ($p['wifi_included'] ?? null) === false
+                && in_array($p['product_type'] ?? '', ['indoor_unit', 'single_split_set'], true));
+        if ($anyWithoutWifi) {
+            $lines[] = [
+                'key'       => 'wifi_module',
+                'type'      => 'wifi_module',
+                'quantity'  => $indoorCount,
+                'unit'      => 'stuk',
+                'reason'    => 'Het gekozen toestel heeft geen ingebouwde Wi-Fi — optionele Wi-Fi-module.',
+                'mandatory' => false,
+            ];
+        }
+
         foreach ($lines as $line) {
             $product = $this->cheapestCatalogProduct($line['type']);
 
@@ -147,6 +185,8 @@ class AccessorySelector
             'cable'            => 'Kabel (per meter)',
             'drain_hose'       => 'Condensafvoerslang (per meter)',
             'condensate_pump'  => 'Condensaatpomp',
+            'refrigerant'      => 'Extra koelmiddel (te bepalen)',
+            'wifi_module'      => 'Wi-Fi-module',
         ][$key] ?? $key;
     }
 }

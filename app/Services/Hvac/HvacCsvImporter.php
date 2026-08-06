@@ -73,6 +73,7 @@ class HvacCsvImporter
         }
 
         $rows = [];
+        $seenKeys = [];
         foreach (array_slice($lines, 1) as $i => $line) {
             $lineNumber = $i + 2;
             $values = str_getcsv($line, $delimiter);
@@ -81,7 +82,18 @@ class HvacCsvImporter
                 $raw[$name] = trim((string) ($values[$col] ?? ''));
             }
 
-            $rows[] = $this->validateRow($raw, $lineNumber);
+            $row = $this->validateRow($raw, $lineNumber);
+
+            // The same supplier+SKU twice in one file would silently
+            // last-win — flag it as a row error instead.
+            $key = strtolower(($row['data']['supplier'] ?? '') . '|' . ($row['data']['sku'] ?? ''));
+            if ($key !== '|' && isset($seenKeys[$key])) {
+                $row['errors'][] = "Dubbele rij: leverancier + SKU kwamen al voor op lijn {$seenKeys[$key]}.";
+            } else {
+                $seenKeys[$key] = $lineNumber;
+            }
+
+            $rows[] = $row;
         }
 
         return ['rows' => $rows, 'global_errors' => $globalErrors];

@@ -173,6 +173,9 @@ return [
                 'trunking_m_factor_of_pipe'          => 1.0,
                 'cable_m_factor_of_pipe'             => 1.2,
                 'wall_drills_per_room'               => 1,
+                // Extra refrigerant is flagged (optional, installer decides)
+                // when the total equivalent pipe length exceeds this value.
+                'refrigerant_above_equivalent_m'     => 10,
             ],
 
             // ── Labor (PLACEHOLDERS — Martin must validate every value) ─────
@@ -183,6 +186,13 @@ return [
                 'condensate_pump_hours'     => 1.0,
                 'drilling_hours_per_room'   => 0.5,
                 'roof_access_surcharge_hours' => 2.0,
+                // Estimated electrical work (dedicated circuit, connection) —
+                // always included, always flagged for verification.
+                'electrical_work_hours'     => 1.5,
+                // A second technician is assumed from this number of indoor
+                // units (multi-split handling, lifting) — flagged assumption.
+                'second_technician_from_indoor_units' => 3,
+                'second_technician_hours'   => 4.0,
                 'hourly_rate_excl_vat'      => 65.0,
                 'travel_flat_excl_vat'      => 35.0,
             ],

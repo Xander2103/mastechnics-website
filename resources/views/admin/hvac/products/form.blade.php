@@ -93,6 +93,7 @@
                             <label><span>Max. aansluitbare capaciteit (kW)</span><input type="number" step="0.01" min="0" name="maximum_capacity_kw" value="{{ old('maximum_capacity_kw', $product->maximum_capacity_kw) }}"></label>
                             <label><span>Max. aantal binnenunits</span><input type="number" min="1" max="20" name="maximum_connected_indoor_units" value="{{ old('maximum_connected_indoor_units', $product->maximum_connected_indoor_units) }}"></label>
                             <label><span>Geluidsniveau (dB)</span><input type="number" step="0.1" min="0" name="sound_level_db" value="{{ old('sound_level_db', $product->sound_level_db) }}"></label>
+                            <label><span>Nominaal opgenomen vermogen (W)</span><input type="number" min="0" name="nominal_input_power_w" value="{{ old('nominal_input_power_w', $product->nominal_input_power_w) }}"></label>
                         </div>
                     </div>
 

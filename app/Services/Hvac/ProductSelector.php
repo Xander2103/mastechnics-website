@@ -41,13 +41,30 @@ class ProductSelector
             : $this->selectSingleSplit($result, $rules);
     }
 
+    /**
+     * Admin overrides (final_watts_override / capacity_class_kw_override /
+     * system_with_overrides) take precedence over the automatic values; the
+     * originals remain untouched in the snapshot.
+     */
+    private function effectiveLoadKw(array $room): float
+    {
+        return (float) ($room['load']['final_kw_override'] ?? $room['load']['final_kw']);
+    }
+
+    private function effectiveClassKw(array $room): ?float
+    {
+        $class = $room['capacity_class_kw_override'] ?? $room['capacity_class_kw'];
+
+        return $class !== null ? (float) $class : null;
+    }
+
     // ── Single split ──────────────────────────────────────────────────────────
 
     private function selectSingleSplit(array $result, array $rules): array
     {
         $room = $result['rooms'][0];
-        $loadKw = (float) $room['load']['final_kw'];
-        $classKw = $room['capacity_class_kw'];
+        $loadKw = $this->effectiveLoadKw($room);
+        $classKw = $this->effectiveClassKw($room);
         $pipe = $room['pipe'];
         $warnings = [];
 
@@ -131,21 +148,21 @@ class ProductSelector
     private function selectMultiSplit(array $result, array $rules): array
     {
         $rooms = $result['rooms'];
-        $system = $result['system'];
+        $system = $result['system_with_overrides'] ?? $result['system'];
         $warnings = [];
 
         // One indoor unit per room; the best candidate per room by
         // stock/lead-time/price. All rooms must be servable.
         $indoorPerRoom = [];
         foreach ($rooms as $room) {
-            $classKw = $room['capacity_class_kw'];
+            $classKw = $this->effectiveClassKw($room);
             if ($classKw === null) {
                 return ['candidates' => [], 'warnings' => [[
                     'code'    => 'manual_review_required',
                     'message' => "{$room['load']['room_name']}: koellast buiten de klassen — handmatige keuze vereist.",
                 ]]];
             }
-            $loadKw = (float) $room['load']['final_kw'];
+            $loadKw = $this->effectiveLoadKw($room);
             $maxKw = (float) $classKw * (float) ($rules['capacity_match']['max_oversize_factor'] ?? 1.30);
 
             $units = HvacProduct::active()

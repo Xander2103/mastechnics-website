@@ -28,9 +28,22 @@
             $hvacCalculation->warnings['selection'] ?? [],
         );
     }
+    // One query for the product-change dropdowns instead of one per item row.
+    $hvacAltProducts = $hvacCalculation
+        ? \App\Models\HvacProduct::active()
+            ->whereIn('product_type', ['single_split_set', 'indoor_unit', 'outdoor_unit', 'multi_split_outdoor'])
+            ->orderBy('model')
+            ->get(['id', 'model', 'sku', 'product_type'])
+            ->groupBy('product_type')
+        : collect();
+
     $hvacRooms = $hvacCalculation?->normalized_input['rooms'] ?? [];
     $hvacRoomResults = $hvacCalculation?->result['rooms'] ?? [];
-    $hvacSystem = $hvacCalculation?->result['system'] ?? null;
+    // Admin load-overrides produce a parallel system block; the original stays intact.
+    $hvacSystem = $hvacCalculation?->result['system_with_overrides']
+        ?? $hvacCalculation?->result['system']
+        ?? null;
+    $hvacSystemIsOverridden = isset($hvacCalculation?->result['system_with_overrides']);
 @endphp
 
 <style>
@@ -151,6 +164,13 @@
             @endforeach
         </div>
 
+        @php $hvacPhotosCount = (int) ($hvacCalculation->normalized_input['photos_count'] ?? 0); @endphp
+        @if ($hvacPhotosCount > 0)
+            <p class="hvac-muted" style="margin-top:0.5rem;">
+                {{ $hvacPhotosCount }} foto('s) van de klant beschikbaar in de kaart "Bijlagen" hieronder.
+            </p>
+        @endif
+
         {{-- B. Berekening --}}
         <h3>Berekening</h3>
         <div class="admin-table-wrapper">
@@ -159,12 +179,16 @@
                     <tr>
                         <th>Kamer</th><th>W/m²</th><th>Hoogtefactor</th><th>Ligging</th><th>Ramen</th><th>Dak</th>
                         <th>Basis (W)</th><th>Personen (W)</th><th>Toestellen (W)</th><th>Totaal (W)</th><th>kW</th><th>Doelklasse</th>
-                        <th>Zekering</th><th>Kabel</th>
+                        <th>Zekering</th><th>Kabel</th><th>Aanpassen</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($hvacRoomResults as $roomResult)
-                        @php $load = $roomResult['load']; @endphp
+                    @foreach ($hvacRoomResults as $ri => $roomResult)
+                        @php
+                            $load = $roomResult['load'];
+                            $wattsOverride = $load['final_watts_override'] ?? null;
+                            $classShown = $roomResult['capacity_class_kw_override'] ?? $roomResult['capacity_class_kw'];
+                        @endphp
                         <tr>
                             <td>{{ $load['room_name'] }}</td>
                             <td>{{ $load['insulation_w_per_m2'] }}</td>
@@ -175,26 +199,63 @@
                             <td>{{ number_format($load['base_watts'], 0, ',', '.') }}</td>
                             <td>{{ $load['occupancy_heat_w'] }}</td>
                             <td>{{ $load['equipment_heat_w'] }}</td>
-                            <td><strong>{{ number_format($load['final_watts'], 0, ',', '.') }}</strong></td>
-                            <td><strong>{{ number_format($load['final_kw'], 2, ',', '.') }}</strong></td>
                             <td>
-                                @if ($roomResult['capacity_class_kw'] !== null)
-                                    {{ number_format($roomResult['capacity_class_kw'], 1, ',', '.') }} kW
+                                @if ($wattsOverride !== null)
+                                    <strong>{{ number_format($wattsOverride, 0, ',', '.') }}</strong>
+                                    <br><span class="hvac-assumed">handmatig — origineel {{ number_format($load['final_watts'], 0, ',', '.') }} W</span>
+                                @else
+                                    <strong>{{ number_format($load['final_watts'], 0, ',', '.') }}</strong>
+                                @endif
+                            </td>
+                            <td><strong>{{ number_format(($load['final_kw_override'] ?? $load['final_kw']), 2, ',', '.') }}</strong></td>
+                            <td>
+                                @if ($classShown !== null)
+                                    {{ number_format($classShown, 1, ',', '.') }} kW
+                                    @if (isset($roomResult['capacity_class_kw_override']))
+                                        <span class="hvac-assumed">(handmatig)</span>
+                                    @endif
                                 @else
                                     <span class="hvac-assumed">handmatig</span>
                                 @endif
                             </td>
                             <td>{{ $roomResult['electrical']['breaker_a'] !== null ? $roomResult['electrical']['breaker_a'] . ' A' : '—' }}</td>
                             <td>{{ $roomResult['electrical']['cable'] ?? '—' }}</td>
+                            <td>
+                                <details>
+                                    <summary style="cursor:pointer;font-size:0.78rem;">Vermogen aanpassen</summary>
+                                    <form class="hvac-inline-form" method="POST"
+                                          action="{{ route('admin.requests.hvac.rooms.override-load', $customerRequest) }}">
+                                        @csrf
+                                        <input type="hidden" name="room_index" value="{{ $ri }}">
+                                        <label style="display:flex;flex-direction:column;font-size:0.72rem;gap:0.1rem;">
+                                            Watt
+                                            <input type="number" step="1" min="100" max="20000" name="watts"
+                                                   value="{{ $wattsOverride ?? $load['final_watts'] }}" style="width:6rem;">
+                                        </label>
+                                        <input type="text" name="reason" placeholder="Reden (verplicht)" required minlength="5" style="width:10rem;">
+                                        <button type="submit" class="button button-secondary" style="font-size:0.78rem;padding:0.3rem 0.7rem;">Opslaan</button>
+                                    </form>
+                                    <p class="hvac-assumed" style="margin:0.2rem 0 0;">Opties worden herrekend met de nieuwe doelklasse.</p>
+                                </details>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
+        @error('watts')
+            <p class="field-error-text">{{ $message }}</p>
+        @enderror
+        @error('room_index')
+            <p class="field-error-text">{{ $message }}</p>
+        @enderror
 
         @if ($hvacSystem)
             <p style="font-size: 0.88rem; margin-top: 0.6rem;">
                 <strong>Systeem:</strong>
+                @if ($hvacSystemIsOverridden)
+                    <span class="hvac-assumed">(met handmatige aanpassingen)</span>
+                @endif
                 {{ $hvacSystem['split_type'] === 'multi_split' ? 'Multi split' : 'Single split' }}
                 — totale koellast {{ number_format($hvacSystem['total_load_kw'], 2, ',', '.') }} kW
                 @if ($hvacSystem['diversity_factor'] !== null)
@@ -230,6 +291,21 @@
                     $recWarnings = $recommendation->metadata['warnings'] ?? [];
                     $laborDetail = $recommendation->metadata['labor'] ?? null;
                     $candidate   = $recommendation->metadata['candidate'] ?? null;
+                    $requestLocale = in_array($customerRequest->locale, ['nl', 'fr', 'en'], true) ? $customerRequest->locale : 'nl';
+                    $aiExplanation = $recommendation->{'explanation_' . $requestLocale}
+                        ?? $recommendation->explanation_nl;
+                    // Internal cost view (admin-only): purchase totals + labor at cost.
+                    $purchaseTotal = $recommendation->items
+                        ->whereIn('item_type', ['equipment', 'material'])
+                        ->filter(fn ($i) => $i->purchase_unit_price !== null)
+                        ->sum(fn ($i) => (float) $i->purchase_unit_price * (float) $i->quantity);
+                    $purchaseComplete = $recommendation->items
+                        ->whereIn('item_type', ['equipment', 'material'])
+                        ->every(fn ($i) => $i->purchase_unit_price !== null
+                            || (($i->metadata['mandatory'] ?? true) === false && (float) $i->sale_unit_price === 0.0));
+                    $internalCost = $purchaseTotal
+                        + (float) $recommendation->labor_total_excl_vat
+                        + (float) $recommendation->travel_total_excl_vat;
                 @endphp
                 <div class="hvac-option">
                     <div class="hvac-option-header">
@@ -259,7 +335,7 @@
                             <tbody>
                                 @foreach ($recommendation->items as $item)
                                     <tr class="hvac-item-row">
-                                        <td>{{ ['equipment' => 'Toestel', 'material' => 'Materiaal', 'labor' => 'Arbeid', 'travel' => 'Verplaatsing'][$item->item_type] ?? $item->item_type }}</td>
+                                        <td>{{ ['equipment' => 'Toestel', 'material' => 'Materiaal', 'labor' => 'Arbeid', 'travel' => 'Verplaatsing', 'discount' => 'Korting'][$item->item_type] ?? $item->item_type }}</td>
                                         <td>
                                             {{ $item->description }}
                                             @if ($item->product && $item->item_type === 'equipment')
@@ -302,7 +378,7 @@
                                                             @csrf
                                                             <select name="product_id" required>
                                                                 <option value="">Ander product…</option>
-                                                                @foreach (\App\Models\HvacProduct::active()->where('product_type', $item->product?->product_type ?? 'single_split_set')->orderBy('model')->get(['id','model','sku']) as $alt)
+                                                                @foreach ($hvacAltProducts[$item->product?->product_type ?? 'single_split_set'] ?? [] as $alt)
                                                                     <option value="{{ $alt->id }}">{{ $alt->model }} ({{ $alt->sku }})</option>
                                                                 @endforeach
                                                             </select>
@@ -330,7 +406,21 @@
                         </details>
                     @endif
 
+                    @if ($aiExplanation)
+                        <div class="hvac-disclaimer" style="background:#eef6ff;border-color:#bfdbfe;color:#1e3a8a;">
+                            <strong>Gevalideerde AI-uitleg ({{ strtoupper($requestLocale) }}):</strong> {{ $aiExplanation }}
+                        </div>
+                    @endif
+
                     <div class="hvac-price-summary">
+                        <span class="hvac-muted">Aankoopkost toestellen + materiaal</span>
+                        <span class="hvac-muted">
+                            € {{ number_format($purchaseTotal, 2, ',', '.') }}{{ $purchaseComplete ? '' : ' (onvolledig)' }}
+                        </span>
+                        <span class="hvac-muted">Totale interne kost (incl. arbeid & verplaatsing)</span>
+                        <span class="hvac-muted">
+                            € {{ number_format($internalCost, 2, ',', '.') }}{{ $purchaseComplete ? '' : ' (onvolledig)' }}
+                        </span>
                         <span>Toestellen excl. btw</span><span>€ {{ number_format($recommendation->equipment_total_excl_vat, 2, ',', '.') }}</span>
                         <span>Materialen excl. btw</span><span>€ {{ number_format($recommendation->materials_total_excl_vat, 2, ',', '.') }}</span>
                         <span>Arbeid excl. btw</span><span>€ {{ number_format($recommendation->labor_total_excl_vat, 2, ',', '.') }}</span>
@@ -399,6 +489,14 @@
                         @endif
 
                         @if (in_array($recommendation->status, ['draft', 'manual_review'], true))
+                            <form class="hvac-inline-form" method="POST"
+                                  action="{{ route('admin.requests.hvac.discount', [$customerRequest, $recommendation]) }}">
+                                @csrf
+                                <input type="number" step="0.01" min="0.01" name="amount" placeholder="Korting €" required style="width:6.5rem;">
+                                <input type="text" name="reason" placeholder="Reden (verplicht)" required minlength="5" style="width:12rem;">
+                                <button type="submit" class="button button-secondary">Korting toevoegen</button>
+                            </form>
+
                             <form class="hvac-inline-form" method="POST"
                                   action="{{ route('admin.requests.hvac.vat', [$customerRequest, $recommendation]) }}">
                                 @csrf

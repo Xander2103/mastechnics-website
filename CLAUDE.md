@@ -131,6 +131,17 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   `docs/hvac/architecture.md` and `docs/hvac/rules-to-validate.md`.
   Committed locally, **not pushed**.
 
+- **Sprint 14 (HVAC v2 + import) ✅** — Excel reference calculator fully
+  reverse-engineered (`docs/hvac/excel-calculator-audit.md`); new DRAFT rule
+  set "Belgische residentiële koellast" v2 (`hvac:seed-v2-rule-set`,
+  `load_method: engineering_v2` in `CoolingLoadCalculator`, workbook
+  regression test 2572.229 W) — v1 untouched, activation only after Martin's
+  validation. Import upload limit configurable via `HVAC_IMPORT_MAX_MB`
+  (default 25 MB, `docs/hvac/import-deployment.md`). Guided mapping import
+  wizard for arbitrary supplier CSV/XLSX (native safe XLSX reader, header
+  detection, alias suggestions, `hvac_mapping_profiles`); classic template
+  imports also accept .xlsx. Committed locally, **not pushed**.
+
 ## HVAC Architecture
 
 - Deterministic services live in `app/Services/Hvac/`; rules only via

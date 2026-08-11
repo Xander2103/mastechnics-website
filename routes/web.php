@@ -198,12 +198,24 @@ Route::middleware('admin')
         Route::post('/hvac/import/guided/{token}/header', [HvacGuidedImportController::class, 'chooseHeader'])
             ->where('token', '[A-Za-z0-9]{40}')
             ->name('hvac.import.guided.header');
-        Route::post('/hvac/import/guided/{token}/mapping', [HvacGuidedImportController::class, 'saveMapping'])
+        Route::post('/hvac/import/guided/{token}/delimiter', [HvacGuidedImportController::class, 'chooseDelimiter'])
             ->where('token', '[A-Za-z0-9]{40}')
-            ->name('hvac.import.guided.mapping');
+            ->name('hvac.import.guided.delimiter');
+        Route::post('/hvac/import/guided/{token}/categories', [HvacGuidedImportController::class, 'chooseCategories'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.categories');
+        Route::post('/hvac/import/guided/{token}/review', [HvacGuidedImportController::class, 'saveReview'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.review');
         Route::post('/hvac/import/guided/{token}/confirm', [HvacGuidedImportController::class, 'confirm'])
             ->where('token', '[A-Za-z0-9]{40}')
             ->name('hvac.import.guided.confirm');
+        Route::get('/hvac/import/guided/{token}/result', [HvacGuidedImportController::class, 'result'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.result');
+        Route::post('/hvac/import/guided/{token}/profile', [HvacGuidedImportController::class, 'saveProfile'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.profile');
         Route::post('/hvac/import/guided/{token}/back', [HvacGuidedImportController::class, 'backTo'])
             ->where('token', '[A-Za-z0-9]{40}')
             ->name('hvac.import.guided.back');

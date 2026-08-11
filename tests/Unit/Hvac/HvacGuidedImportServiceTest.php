@@ -93,7 +93,9 @@ class HvacGuidedImportServiceTest extends TestCase
         $result = $this->normalize(['price_meaning' => 'net_purchase']);
 
         $this->assertSame('403,5', $result[0]['raw']['purchase_price_excl_vat']);
-        $this->assertFalse($result[0]['provenance']['needs_review']);
+        // (the row is still review-flagged, but only because its capacity was
+        // derived from the name — a known price never flags review by itself)
+        $this->assertSame('column:BrutPrice', $result[0]['provenance']['fields']['purchase_price_excl_vat']);
     }
 
     public function test_unknown_price_meaning_flags_review_but_does_not_block(): void
@@ -137,6 +139,20 @@ class HvacGuidedImportServiceTest extends TestCase
 
         // Inferred rows keep their inferred type, not the fallback.
         $this->assertSame('indoor_unit', $result[0]['raw']['product_type']);
+    }
+
+    public function test_cooling_capacity_is_derived_from_name_for_units_and_flagged(): void
+    {
+        $result = $this->normalize(['price_meaning' => 'net_purchase']);
+
+        $indoor = $result[0]; // "TB airco binnenunit wandmodel 2,5 kW"
+        $this->assertSame('2.5', $indoor['raw']['cooling_capacity_kw']);
+        $this->assertSame('derived:naam', $indoor['provenance']['fields']['cooling_capacity_kw']);
+        $this->assertTrue($indoor['provenance']['needs_review'], 'derived capacity must be checked by the admin');
+
+        // Non-unit rows never get a derived capacity.
+        $pump = $result[3];
+        $this->assertArrayNotHasKey('cooling_capacity_kw', $pump['raw']);
     }
 
     public function test_ean_is_recorded_as_provenance_not_as_raw_field(): void

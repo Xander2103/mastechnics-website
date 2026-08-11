@@ -110,10 +110,15 @@ class HvacGuidedImportService
     {
         $needsReview = false;
 
-        // Supplier: a business fact the admin provides once for the file.
+        // Supplier/brand: business facts the admin provides once for the file
+        // when no column carries them.
         if (($raw['supplier'] ?? '') === '' && trim((string) ($options['supplier'] ?? '')) !== '') {
             $raw['supplier'] = trim((string) $options['supplier']);
             $fields['supplier'] = 'manual';
+        }
+        if (($raw['brand'] ?? '') === '' && trim((string) ($options['brand'] ?? '')) !== '') {
+            $raw['brand'] = trim((string) $options['brand']);
+            $fields['brand'] = 'manual';
         }
 
         // Name: prefer the primary label, fall back to the secondary (e.g. FR).
@@ -167,6 +172,19 @@ class HvacGuidedImportService
                 $raw['product_type'] = '';
                 $needsReview = true;
             }
+        }
+
+        // Cooling capacity from the product name ("... 2,5 kW"): units without
+        // a capacity are rejected by the importer, and wholesaler catalogs
+        // rarely have a structured capacity column. Explicit derivation,
+        // always flagged for review — the engine may only rely on it after
+        // Martin checked it.
+        if (($raw['cooling_capacity_kw'] ?? '') === ''
+            && in_array($raw['product_type'] ?? '', ['indoor_unit', 'outdoor_unit', 'single_split_set', 'multi_split_outdoor'], true)
+            && preg_match('/(\d+(?:[.,]\d+)?)\s*kw\b/i', (string) ($raw['name'] ?? ''), $m) === 1) {
+            $raw['cooling_capacity_kw'] = str_replace(',', '.', $m[1]);
+            $fields['cooling_capacity_kw'] = 'derived:naam';
+            $needsReview = true;
         }
 
         return [

@@ -53,6 +53,12 @@ class HvacGuidedImportController extends Controller
 
     public const PRICE_MEANINGS = ['gross', 'net_purchase', 'sale', 'unknown'];
 
+    /**
+     * Label for rows whose category cell is empty — they must stay selectable,
+     * products are never excluded silently.
+     */
+    public const EMPTY_CATEGORY = '(zonder groep)';
+
     public function __construct(
         private readonly TabularFileReader $files,
         private readonly HeaderRowDetector $headerDetector,
@@ -1151,8 +1157,10 @@ class HvacGuidedImportController extends Controller
         $headerRow = (int) $state['header_row'];
         $this->readRows($state, $path, 1, function (array $cells, int $index) use (&$counts, $headerRow, $column): bool {
             if ($index > $headerRow) {
-                $value = trim((string) ($cells[$column] ?? ''));
-                if ($value !== '') {
+                $hasAnyValue = array_filter($cells, fn ($c) => trim((string) ($c ?? '')) !== '') !== [];
+                if ($hasAnyValue) {
+                    $value = trim((string) ($cells[$column] ?? ''));
+                    $value = $value === '' ? self::EMPTY_CATEGORY : $value;
                     $counts[$value] = ($counts[$value] ?? 0) + 1;
                 }
             }
@@ -1178,13 +1186,19 @@ class HvacGuidedImportController extends Controller
         if (! ($state['category']['skipped'] ?? true) && ($state['category']['selected'] ?? null) !== null) {
             $column = (int) $state['category']['column'];
             $selected = (array) $state['category']['selected'];
-            $category = ['column' => $column, 'selected' => $selected];
+            // The service compares raw cell values — translate the visible
+            // "(zonder groep)" bucket back to the empty cell it represents.
+            $category = ['column' => $column, 'selected' => array_map(
+                fn (string $v) => $v === self::EMPTY_CATEGORY ? '' : $v,
+                $selected
+            )];
             $rowFilter = function (array $cells, int $index) use ($headerRow, $column, $selected): bool {
                 if ($index <= $headerRow) {
                     return true;
                 }
+                $value = trim((string) ($cells[$column] ?? ''));
 
-                return in_array(trim((string) ($cells[$column] ?? '')), $selected, true);
+                return in_array($value === '' ? self::EMPTY_CATEGORY : $value, $selected, true);
             };
         }
 

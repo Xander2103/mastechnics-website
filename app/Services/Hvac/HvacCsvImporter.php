@@ -134,6 +134,30 @@ class HvacCsvImporter
         return $rows;
     }
 
+    /** @var array<string, array<string, true>|null> memo: supplier name → set of existing SKUs */
+    private array $existingSkusBySupplier = [];
+
+    /**
+     * Existing-product check with one query per supplier instead of one per
+     * row, so 50k-row catalogs validate without hammering the database.
+     */
+    private function productExists(string $supplierName, string $sku): bool
+    {
+        $key = strtolower($supplierName);
+
+        if (! array_key_exists($key, $this->existingSkusBySupplier)) {
+            $supplier = HvacSupplier::whereRaw('LOWER(name) = ?', [$key])->first();
+            $this->existingSkusBySupplier[$key] = $supplier === null
+                ? null
+                : array_fill_keys(
+                    HvacProduct::where('hvac_supplier_id', $supplier->id)->pluck('sku')->all(),
+                    true
+                );
+        }
+
+        return isset($this->existingSkusBySupplier[$key][$sku]);
+    }
+
     private function validateRow(array $raw, int $lineNumber): array
     {
         $errors = [];
@@ -234,11 +258,9 @@ class HvacCsvImporter
         ];
 
         $action = 'create';
-        if ($errors === [] && $data['supplier'] !== '' && $data['sku'] !== '') {
-            $supplier = HvacSupplier::whereRaw('LOWER(name) = ?', [strtolower($data['supplier'])])->first();
-            if ($supplier !== null && HvacProduct::where('hvac_supplier_id', $supplier->id)->where('sku', $data['sku'])->exists()) {
-                $action = 'update';
-            }
+        if ($errors === [] && $data['supplier'] !== '' && $data['sku'] !== ''
+            && $this->productExists($data['supplier'], $data['sku'])) {
+            $action = 'update';
         }
 
         return [
@@ -259,7 +281,8 @@ class HvacCsvImporter
      *  HvacGuidedImportService::normalizeRows()]]. Existing metadata keys
      * (e.g. notes) are preserved on update.
      *
-     * @return array{created: int, updated: int, skipped: int}
+     * @return array{created: int, updated: int, skipped: int, product_ids: array<int, int>}
+     *         product_ids: source line number => written product id
      */
     public function import(array $rows, string $mode, array $context = []): array
     {
@@ -267,6 +290,7 @@ class HvacCsvImporter
             $created = 0;
             $updated = 0;
             $skipped = 0;
+            $productIds = [];
 
             foreach ($rows as $row) {
                 if ($row['errors'] !== []) {
@@ -357,18 +381,20 @@ class HvacCsvImporter
 
                 if ($existing !== null) {
                     $existing->update($attributes);
+                    $productIds[$row['line']] = $existing->id;
                     $updated++;
                 } else {
-                    HvacProduct::create($attributes + [
+                    $product = HvacProduct::create($attributes + [
                         'hvac_supplier_id' => $supplier->id,
                         'sku'              => $data['sku'],
                         'is_active'        => $data['active'] ?? true,
                     ]);
+                    $productIds[$row['line']] = $product->id;
                     $created++;
                 }
             }
 
-            return ['created' => $created, 'updated' => $updated, 'skipped' => $skipped];
+            return ['created' => $created, 'updated' => $updated, 'skipped' => $skipped, 'product_ids' => $productIds];
         });
     }
 

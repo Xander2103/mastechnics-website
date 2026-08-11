@@ -131,6 +131,22 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   `docs/hvac/architecture.md` and `docs/hvac/rules-to-validate.md`.
   Committed locally, **not pushed**.
 
+- **Sprint 15 (import wizard UX + productlijsten) ✅** — Guided import rebuilt
+  as a 5-step Dutch wizard (Bestand → Producten → Controle → Importeren →
+  Resultaat): robust delimiter detection (`CsvDelimiterDetector`: ; , tab |,
+  quote-aware, asks only when ambiguous — root cause of the CatalogFR.csv
+  one-column bug), streaming CSV reader (50k+ rows, cp1252, BOM, quoted
+  newlines), generic category detection + filtering (`CategoryDetector`),
+  auto-mapping with ask-first price semantics (gross/unknown prices never
+  land in price columns), explicit derivations (supplier/brand from wizard,
+  NL→FR name fallback, model←SKU, conservative type inference, review-flagged
+  capacity-from-name), per-product provenance in `metadata.import`, profiles
+  auto-recognized by header signature. New catalog hierarchy: `HvacImportCatalog`
+  (Productlijsten, default product view) + pivot with source facts +
+  `HvacImportRun` history; archive is status-only, missing products are never
+  auto-deleted (explicit deactivate checkbox, only when not in another active
+  list). Fixture `tests/Support/CatalogFrFixture.php` mirrors the real file.
+  Committed locally, **not pushed**.
 - **Sprint 14 (HVAC v2 + import) ✅** — Excel reference calculator fully
   reverse-engineered (`docs/hvac/excel-calculator-audit.md`); new DRAFT rule
   set "Belgische residentiële koellast" v2 (`hvac:seed-v2-rule-set`,

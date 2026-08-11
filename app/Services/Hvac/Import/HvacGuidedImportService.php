@@ -68,6 +68,12 @@ class HvacGuidedImportService
 
             foreach ($columnMap as $col => $field) {
                 $value = trim((string) ($cells[$col] ?? ''));
+                // Supplier placeholder for "no value" ("-", "--"): treat as
+                // empty so derivations (e.g. model ← SKU) can step in and the
+                // formula-injection guard has nothing to reject.
+                if (preg_match('/^-+$/', $value) === 1) {
+                    $value = '';
+                }
                 if ($value !== '') {
                     $hasValue = true;
                 }
@@ -174,17 +180,19 @@ class HvacGuidedImportService
             }
         }
 
-        // Cooling capacity from the product name ("... 2,5 kW"): units without
-        // a capacity are rejected by the importer, and wholesaler catalogs
-        // rarely have a structured capacity column. Explicit derivation,
-        // always flagged for review — the engine may only rely on it after
-        // Martin checked it.
+        // Cooling capacity from the product name ("... 2,5 kW" / "10500W"):
+        // units without a capacity are rejected by the importer, and
+        // wholesaler catalogs rarely have a structured capacity column.
+        // Explicit derivation, always flagged for review — the engine may
+        // only rely on it after Martin checked it.
         if (($raw['cooling_capacity_kw'] ?? '') === ''
-            && in_array($raw['product_type'] ?? '', ['indoor_unit', 'outdoor_unit', 'single_split_set', 'multi_split_outdoor'], true)
-            && preg_match('/(\d+(?:[.,]\d+)?)\s*kw\b/i', (string) ($raw['name'] ?? ''), $m) === 1) {
-            $raw['cooling_capacity_kw'] = str_replace(',', '.', $m[1]);
-            $fields['cooling_capacity_kw'] = 'derived:naam';
-            $needsReview = true;
+            && in_array($raw['product_type'] ?? '', ['indoor_unit', 'outdoor_unit', 'single_split_set', 'multi_split_outdoor'], true)) {
+            $capacity = $this->capacityFromName((string) ($raw['name'] ?? ''));
+            if ($capacity !== null) {
+                $raw['cooling_capacity_kw'] = $capacity;
+                $fields['cooling_capacity_kw'] = 'derived:naam';
+                $needsReview = true;
+            }
         }
 
         return [
@@ -193,6 +201,26 @@ class HvacGuidedImportService
             'ean'          => ($virtual['ean']['value'] ?? '') !== '' ? $virtual['ean']['value'] : null,
             'needs_review' => $needsReview,
         ];
+    }
+
+    /**
+     * "2,5 kW" → "2.5"; "10500W" → "10.5". Watts only in the plausible unit
+     * range (500–30000 W) so voltages and article numbers never match.
+     */
+    private function capacityFromName(string $name): ?string
+    {
+        if (preg_match('/(\d+(?:[.,]\d+)?)\s*kw\b/i', $name, $m) === 1) {
+            return str_replace(',', '.', $m[1]);
+        }
+
+        if (preg_match('/(?<![\dkK.,])(\d{3,5})\s*[wW]\b/', $name, $m) === 1) {
+            $watts = (int) $m[1];
+            if ($watts >= 500 && $watts <= 30000) {
+                return (string) round($watts / 1000, 2);
+            }
+        }
+
+        return null;
     }
 
     private function inferProductType(string $name): ?string
@@ -256,86 +284,6 @@ class HvacGuidedImportService
         }
 
         return $best;
-    }
-
-    /**
-     * Checks whether a saved profile still fits the uploaded file.
-     *
-     * @param array<int, array{name: string, hidden: bool}> $sheets
-     * @param callable(string): array<int, array<int, string|null>> $rowsForSheet
-     * @return array{
-     *   ok: bool, problems: string[], sheet: string|null,
-     *   header_row: int, column_map: array<int, string>
-     * }
-     */
-    public function matchProfile(HvacMappingProfile $profile, array $sheets, callable $rowsForSheet): array
-    {
-        $problems = [];
-
-        $sheet = $this->pickSheet($profile, $sheets);
-        if ($sheet === null) {
-            return [
-                'ok'         => false,
-                'problems'   => ["Geen werkblad gevonden dat past bij het profielpatroon \"{$profile->worksheet_name_pattern}\"."],
-                'sheet'      => null,
-                'header_row' => max(0, $profile->header_row - 1),
-                'column_map' => [],
-            ];
-        }
-
-        $rows = $rowsForSheet($sheet);
-        $headerRow = max(0, $profile->header_row - 1);
-        $headerCells = $rows[$headerRow] ?? [];
-
-        $headerByName = [];
-        foreach ($headerCells as $col => $cell) {
-            $normalized = ColumnMappingSuggester::normalize((string) ($cell ?? ''));
-            if ($normalized !== '' && ! isset($headerByName[$normalized])) {
-                $headerByName[$normalized] = $col;
-            }
-        }
-
-        $columnMap = [];
-        foreach ((array) $profile->column_map as $sourceHeader => $field) {
-            $normalized = ColumnMappingSuggester::normalize((string) $sourceHeader);
-            if (! isset($headerByName[$normalized])) {
-                $problems[] = "Kolom \"{$sourceHeader}\" uit het profiel is niet gevonden op rij {$profile->header_row} van werkblad \"{$sheet}\".";
-                continue;
-            }
-            $columnMap[$headerByName[$normalized]] = (string) $field;
-        }
-
-        if ($headerCells === [] || array_filter($headerCells, fn ($c) => trim((string) ($c ?? '')) !== '') === []) {
-            $problems[] = "Rij {$profile->header_row} van werkblad \"{$sheet}\" is leeg — de kolomkoppen staan vermoedelijk ergens anders.";
-        }
-
-        return [
-            'ok'         => $problems === [],
-            'problems'   => $problems,
-            'sheet'      => $sheet,
-            'header_row' => $headerRow,
-            'column_map' => $columnMap,
-        ];
-    }
-
-    /** @param array<int, array{name: string, hidden: bool}> $sheets */
-    private function pickSheet(HvacMappingProfile $profile, array $sheets): ?string
-    {
-        $visible = array_values(array_filter($sheets, fn (array $s) => ! $s['hidden']));
-        $candidates = $visible !== [] ? $visible : $sheets;
-
-        $pattern = trim((string) $profile->worksheet_name_pattern);
-        if ($pattern === '') {
-            return $candidates[0]['name'] ?? null;
-        }
-
-        foreach ($candidates as $sheet) {
-            if (mb_stripos($sheet['name'], $pattern) !== false) {
-                return $sheet['name'];
-            }
-        }
-
-        return null;
     }
 
     private function normalizeDecimal(string $value, string $format): string

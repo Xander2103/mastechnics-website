@@ -12,9 +12,9 @@ use Tests\TestCase;
 use ZipArchive;
 
 /**
- * End-to-end tests for the guided mapping import wizard: arbitrary supplier
- * layouts (title rows, shuffled columns, Dutch headers), explicit
- * confirmation, reusable profiles and profile-mismatch safety.
+ * Wizard v2 tests with supplier-style XLSX files (title rows, Dutch headers):
+ * automatic header/mapping detection, business-question validation, explicit
+ * confirmation, profile memory and safety guards.
  */
 class HvacGuidedImportTest extends TestCase
 {
@@ -44,7 +44,7 @@ class HvacGuidedImportTest extends TestCase
 
     /**
      * Supplier-style workbook: a title row, an empty row, Dutch headers on
-     * row 3, shuffled column order.
+     * row 3, data below.
      */
     private function supplierXlsx(array $overrides = []): UploadedFile
     {
@@ -107,239 +107,148 @@ class HvacGuidedImportTest extends TestCase
         return new UploadedFile($path, 'prijslijst-testbrand.xlsx', null, null, true);
     }
 
-    private function mappingPayload(): array
-    {
-        return [
-            // Column order in the fixture: Omschrijving, Artikelnummer,
-            // Netto prijs, Koelvermogen kW, Modelcode.
-            'mapping' => [
-                0 => 'name',
-                1 => 'sku',
-                2 => 'purchase_price_excl_vat',
-                3 => 'cooling_capacity_kw',
-                4 => 'model',
-            ],
-            'decimal_format' => 'auto',
-        ];
-    }
-
-    private function startWizard(array $extra = []): string
+    private function startWizard(array $extra = [], ?UploadedFile $file = null): string
     {
         $response = $this->withSession($this->adminSession())
             ->post(route('admin.hvac.import.guided.upload'), array_merge([
-                'file' => $this->supplierXlsx(),
-                'mode' => 'create_and_update',
+                'file' => $file ?? $this->supplierXlsx(),
             ], $extra));
 
         $response->assertRedirect();
-        $location = $response->headers->get('Location');
-        $this->assertMatchesRegularExpression('/guided\/[A-Za-z0-9]{40}$/', (string) $location);
+        $location = (string) $response->headers->get('Location');
+        $this->assertMatchesRegularExpression('/guided\/[A-Za-z0-9]{40}$/', $location);
 
-        return basename((string) $location);
+        return basename($location);
     }
 
-    /**
-     * The supplier's product_type is not in the file — the wizard requires
-     * mapping every REQUIRED field, so this fixture maps supplier/brand/
-     * product_type via... it cannot. Instead the required-field guard is the
-     * subject of its own test; the happy path uses a file that carries them.
-     */
-    private function fullSupplierXlsx(): UploadedFile
+    private function stepUrl(string $token): string
     {
-        return $this->supplierXlsx(['rows' => [
-            ['Prijslijst TestBrand 2026'],
-            [],
-            ['Leverancier', 'Merk', 'Omschrijving', 'Artikelnummer', 'Netto prijs', 'Koelvermogen kW', 'Modelcode', 'Producttype'],
-            ['TEST Leverancier', 'TESTMERK', 'TEST single split 2.5', 'TB-25', '780,00', '2.5', 'TB 25', 'single_split_set'],
-            ['TEST Leverancier', 'TESTMERK', 'TEST single split 3.5', 'TB-35', '890,00', '3.5', 'TB 35', 'single_split_set'],
-        ]]);
+        return route('admin.hvac.import.guided.step', $token);
     }
 
-    private function fullMappingPayload(): array
+    public function test_title_rows_and_dutch_headers_are_handled_automatically(): void
     {
-        return [
-            'mapping' => [
-                0 => 'supplier',
-                1 => 'brand',
-                2 => 'name',
-                3 => 'sku',
-                4 => 'purchase_price_excl_vat',
-                5 => 'cooling_capacity_kw',
-                6 => 'model',
-                7 => 'product_type',
-            ],
-            'decimal_format' => 'auto',
-        ];
+        $token = $this->startWizard(['supplier_name' => 'TEST Leverancier']);
+
+        // Header on row 3 was detected confidently, Dutch headers were mapped
+        // by alias — the wizard lands directly on the review step.
+        $response = $this->withSession($this->adminSession())->get($this->stepUrl($token));
+
+        $response->assertOk()
+            ->assertViewIs('admin.hvac.imports.guided.review')
+            ->assertSee('Gegevens controleren')
+            ->assertSee('Artikelnummer')
+            ->assertViewHas('totalRows', 2);
     }
 
-    public function test_wizard_detects_header_row_and_imports_after_confirmation(): void
+    public function test_review_asks_for_missing_brand_and_blocks_until_answered(): void
     {
+        $token = $this->startWizard(['supplier_name' => 'TEST Leverancier']);
+
+        // The 5-column price list has no brand column → one open question.
+        $this->withSession($this->adminSession())->get($this->stepUrl($token))
+            ->assertSee('Merk van deze producten');
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.hvac.import.guided.review', $token), [])
+            ->assertSessionHasErrors('review');
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.hvac.import.guided.review', $token), ['brand_name' => 'TESTMERK'])
+            ->assertRedirect($this->stepUrl($token))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_duplicate_field_mapping_is_rejected(): void
+    {
+        $token = $this->startWizard(['supplier_name' => 'TEST Leverancier']);
+
         $response = $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.upload'), [
-                'file' => $this->fullSupplierXlsx(),
-                'mode' => 'create_and_update',
+            ->post(route('admin.hvac.import.guided.review', $token), [
+                'brand_name' => 'TESTMERK',
+                'mapping'    => [0 => 'sku', 1 => 'sku'],
             ]);
-        $response->assertRedirect();
-        $token = basename((string) $response->headers->get('Location'));
 
-        // Single visible sheet → wizard starts at the header step, with row 3
-        // detected as the header.
-        $step = $this->withSession($this->adminSession())
-            ->get(route('admin.hvac.import.guided.step', $token));
-        $step->assertOk();
-        $step->assertSee('Waar staan de kolomkoppen?');
-        $step->assertSee('Rij <strong>3</strong>', false);
+        $response->assertSessionHasErrors('mapping');
+        $this->assertStringContainsString('één kolom', session('errors')->first('mapping'));
+    }
+
+    public function test_full_import_flow_with_explicit_confirmation(): void
+    {
+        $token = $this->startWizard(['supplier_name' => 'TEST Leverancier']);
 
         $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.header', $token), ['header_row' => 3])
-            ->assertRedirect(route('admin.hvac.import.guided.step', $token));
+            ->post(route('admin.hvac.import.guided.review', $token), ['brand_name' => 'TESTMERK']);
 
-        // Mapping step suggests our fields for the Dutch headers.
-        $mapping = $this->withSession($this->adminSession())
-            ->get(route('admin.hvac.import.guided.step', $token));
-        $mapping->assertOk();
-        $mapping->assertSee('Koppel de kolommen');
-        $mapping->assertSee('Artikelnummer');
-
-        $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.mapping', $token), $this->fullMappingPayload())
-            ->assertRedirect(route('admin.hvac.import.guided.step', $token));
-
-        // Preview shows normalized rows; nothing is written yet.
-        $preview = $this->withSession($this->adminSession())
-            ->get(route('admin.hvac.import.guided.step', $token));
-        $preview->assertOk();
-        $preview->assertSee('Controleer en bevestig');
-        $preview->assertSee('TB-25');
+        // Confirm screen shows counts; still nothing written.
+        $this->withSession($this->adminSession())->get($this->stepUrl($token))
+            ->assertOk()
+            ->assertSee('Klaar om te importeren')
+            ->assertViewHas('createCount', 2);
         $this->assertSame(0, HvacProduct::count());
 
-        // Explicit confirmation performs the import.
         $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.confirm', $token))
-            ->assertRedirect(route('admin.hvac.import.index'));
+            ->post(route('admin.hvac.import.guided.confirm', $token), [
+                'mode'           => 'create_and_update',
+                'catalog_choice' => 'new',
+                'catalog_name'   => 'TestBrand prijslijst 2026',
+            ])
+            ->assertRedirect(route('admin.hvac.import.guided.result', $token));
 
         $this->assertSame(2, HvacProduct::count());
         $product = HvacProduct::where('sku', 'TB-25')->first();
-        $this->assertNotNull($product);
         $this->assertSame('TEST single split 2.5', $product->name);
         $this->assertEquals(2.5, (float) $product->cooling_capacity_kw);
         $this->assertEquals(780.0, (float) $product->purchase_price_excl_vat);
+        $this->assertSame('single_split_set', $product->product_type, 'type inferred from "single split" in the name');
         $this->assertSame('TEST Leverancier', HvacSupplier::first()->name);
 
         // The temp file is gone after confirmation.
         $this->assertSame([], Storage::disk('local')->files('hvac-imports'));
     }
 
-    public function test_missing_required_mapping_is_rejected(): void
+    public function test_profile_saved_from_result_is_applied_on_next_upload(): void
     {
-        $token = $this->startWizard();
-
+        $token = $this->startWizard(['supplier_name' => 'TEST Leverancier']);
         $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.header', $token), ['header_row' => 3]);
-
-        // The 5-column fixture cannot map supplier/brand/product_type.
-        $response = $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.mapping', $token), $this->mappingPayload());
-
-        $response->assertSessionHasErrors('mapping');
-        $this->assertStringContainsString('supplier', session('errors')->first('mapping'));
-    }
-
-    public function test_duplicate_field_mapping_is_rejected(): void
-    {
-        $token = $this->startWizard();
-
+            ->post(route('admin.hvac.import.guided.review', $token), ['brand_name' => 'TESTMERK']);
         $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.header', $token), ['header_row' => 3]);
-
-        $payload = $this->mappingPayload();
-        $payload['mapping'][2] = 'sku'; // two columns → sku
-
-        $response = $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.mapping', $token), $payload);
-
-        $response->assertSessionHasErrors('mapping');
-        $this->assertStringContainsString('één kolom', session('errors')->first('mapping'));
-    }
-
-    public function test_mapping_can_be_saved_as_profile_and_reused(): void
-    {
-        // First import: map manually and save the profile.
-        $response = $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.upload'), [
-                'file' => $this->fullSupplierXlsx(),
-                'mode' => 'create_and_update',
-            ]);
-        $token = basename((string) $response->headers->get('Location'));
-
-        $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.header', $token), ['header_row' => 3]);
-
-        $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.mapping', $token), $this->fullMappingPayload() + [
-                'save_profile'     => 1,
-                'profile_name'     => 'TestBrand prijslijst',
-                'profile_supplier' => 'TEST Leverancier',
-                'profile_sheet_pattern' => 'prijslijst',
+            ->post(route('admin.hvac.import.guided.confirm', $token), [
+                'mode' => 'create_and_update', 'catalog_choice' => 'new', 'catalog_name' => 'Lijst 1',
             ]);
 
-        $profile = HvacMappingProfile::where('name', 'TestBrand prijslijst')->first();
-        $this->assertNotNull($profile);
-        $this->assertSame(3, $profile->header_row);
+        $this->withSession($this->adminSession())
+            ->post(route('admin.hvac.import.guided.profile', $token))
+            ->assertRedirect(route('admin.hvac.import.index'));
+
+        $profile = HvacMappingProfile::firstOrFail();
+        $this->assertSame('TEST Leverancier — automatisch', $profile->name);
         $this->assertSame('sku', $profile->column_map['Artikelnummer']);
-        $this->assertTrue($profile->is_active);
+        $this->assertNotEmpty($profile->source_headers);
 
-        $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.confirm', $token));
-        $this->assertSame(2, HvacProduct::count());
-
-        // Second import with the profile: jumps straight to the preview.
-        $response = $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.upload'), [
-                'file'       => $this->fullSupplierXlsx(),
-                'mode'       => 'create_and_update',
-                'profile_id' => $profile->id,
-            ]);
-        $token2 = basename((string) $response->headers->get('Location'));
-
-        $preview = $this->withSession($this->adminSession())
-            ->get(route('admin.hvac.import.guided.step', $token2));
-        $preview->assertOk();
-        $preview->assertSee('Controleer en bevestig');
-        $preview->assertSee('TestBrand prijslijst');
-
-        // Still requires explicit confirmation.
-        $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.confirm', $token2));
-        $this->assertSame(2, HvacProduct::count()); // updated, not duplicated
+        // Next upload of the same layout: recognized automatically.
+        $token2 = $this->startWizard();
+        $this->withSession($this->adminSession())->get($this->stepUrl($token2))
+            ->assertOk()
+            ->assertViewIs('admin.hvac.imports.guided.review')
+            ->assertSee('We herkennen dit bestand');
     }
 
-    public function test_profile_mismatch_warns_and_falls_back_to_manual_mapping(): void
+    public function test_profile_for_a_different_layout_is_not_applied(): void
     {
-        $profile = HvacMappingProfile::create([
-            'name'          => 'Oud profiel',
-            'supplier_name' => 'TEST Leverancier',
-            'header_row'    => 3,
-            'column_map'    => ['Bestaat niet meer' => 'sku', 'Ook weg' => 'name'],
-            'decimal_format' => 'auto',
-            'is_active'     => true,
+        HvacMappingProfile::create([
+            'name' => 'Ander formaat', 'supplier_name' => 'Andere leverancier',
+            'header_row' => 1, 'column_map' => ['Bestaat niet' => 'sku'],
+            'decimal_format' => 'auto', 'source_headers' => ['Bestaat niet', 'Ook weg'],
+            'is_active' => true,
         ]);
 
-        $response = $this->withSession($this->adminSession())
-            ->post(route('admin.hvac.import.guided.upload'), [
-                'file'       => $this->fullSupplierXlsx(),
-                'mode'       => 'create_and_update',
-                'profile_id' => $profile->id,
-            ]);
-        $token = basename((string) $response->headers->get('Location'));
+        $token = $this->startWizard(['supplier_name' => 'TEST Leverancier']);
 
-        $step = $this->withSession($this->adminSession())
-            ->get(route('admin.hvac.import.guided.step', $token));
-
-        // Not the preview: back at the manual header step, with a warning.
-        $step->assertOk();
-        $step->assertSee('komt niet meer overeen met profiel');
-        $step->assertSee('Waar staan de kolomkoppen?');
+        // No recognition banner, wizard proceeds with its own analysis.
+        $this->withSession($this->adminSession())->get($this->stepUrl($token))
+            ->assertOk()
+            ->assertDontSee('We herkennen dit bestand');
         $this->assertSame(0, HvacProduct::count());
     }
 
@@ -355,20 +264,27 @@ class HvacGuidedImportTest extends TestCase
         $this->assertSame([], Storage::disk('local')->files('hvac-imports'));
     }
 
+    public function test_expired_token_is_rejected_gracefully(): void
+    {
+        $token = str_repeat('a', 40);
+
+        $this->withSession($this->adminSession())
+            ->get($this->stepUrl($token))
+            ->assertRedirect(route('admin.hvac.import.index'))
+            ->assertSessionHasErrors('guided_file');
+    }
+
     public function test_wizard_requires_admin(): void
     {
         $this->post(route('admin.hvac.import.guided.upload'), [
             'file' => $this->supplierXlsx(),
-            'mode' => 'create_and_update',
-        ])->assertRedirect(); // to admin login, not into the wizard
+        ])->assertRedirect(route('admin.login'));
 
         $this->assertSame([], Storage::disk('local')->files('hvac-imports'));
     }
 
     public function test_classic_template_import_accepts_xlsx(): void
     {
-        // Template-shaped workbook (headers on row 1) through the CLASSIC
-        // import flow.
         $file = $this->supplierXlsx(['rows' => [
             ['supplier', 'brand', 'sku', 'model', 'name', 'product_type'],
             ['TEST Leverancier', 'TESTMERK', 'TB-99', 'TB 99', 'TEST accessoire', 'wall_bracket'],

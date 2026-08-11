@@ -123,7 +123,12 @@ class TabularFileReader
         $truncated = false;
         $sourceIndex = 0;
 
-        while (($cells = fgetcsv($stream, 0, $delimiter, '"', '\\')) !== false) {
+        // Tab/pipe exports do not use CSV quoting; treating " literally keeps
+        // rows with inch marks (24") from being merged into their neighbours.
+        // Comma/semicolon files keep standard quote handling.
+        $enclosure = in_array($delimiter, ["\t", '|'], true) ? "\x00" : '"';
+
+        while (($cells = fgetcsv($stream, 0, $delimiter, $enclosure, '\\')) !== false) {
             $index = $sourceIndex++;
 
             $cells = array_map(

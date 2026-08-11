@@ -155,6 +155,42 @@ class HvacGuidedImportServiceTest extends TestCase
         $this->assertArrayNotHasKey('cooling_capacity_kw', $pump['raw']);
     }
 
+    public function test_watt_capacities_are_converted_to_kilowatts(): void
+    {
+        $rows = [
+            0 => ['ProductID', 'LabelNL'],
+            1 => ['984062', 'Nagano buitenunit 5 posten 10500W R32'],
+            2 => ['984063', 'Nagano buitenunit 220V zonder vermogen'],
+        ];
+        $map = [0 => 'sku', 1 => 'name'];
+
+        $result = $this->service->normalizeRows($rows, 0, $map, 'auto', [
+            'supplier' => 'X', 'brand' => 'Y', 'header_cells' => $rows[0],
+        ]);
+
+        $this->assertSame('10.5', $result[0]['raw']['cooling_capacity_kw']);
+        // "220V" must never be read as a capacity.
+        $this->assertArrayNotHasKey('cooling_capacity_kw', $result[1]['raw']);
+    }
+
+    public function test_dash_placeholder_cells_are_treated_as_empty(): void
+    {
+        $rows = [
+            0 => ['ProductID', 'LabelNL', 'ProducerID'],
+            1 => ['128774', 'Set console vloermodel R32', '-'],
+        ];
+        $map = [0 => 'sku', 1 => 'name', 2 => 'model'];
+
+        $result = $this->service->normalizeRows($rows, 0, $map, 'auto', [
+            'supplier' => 'X', 'brand' => 'Y', 'header_cells' => $rows[0],
+        ]);
+
+        // "-" is a supplier placeholder, not a model (and not a "formula"):
+        // the model falls back to the SKU.
+        $this->assertSame('128774', $result[0]['raw']['model']);
+        $this->assertSame('derived:sku', $result[0]['provenance']['fields']['model']);
+    }
+
     public function test_ean_is_recorded_as_provenance_not_as_raw_field(): void
     {
         $rows = $this->rows();

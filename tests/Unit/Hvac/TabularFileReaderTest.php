@@ -93,6 +93,21 @@ class TabularFileReaderTest extends TestCase
         $this->assertSame('C', $result['rows'][3][0]);
     }
 
+    public function test_inch_marks_in_tab_files_never_swallow_rows(): void
+    {
+        // Real wholesaler catalogs contain unbalanced quotes (24" pipes).
+        // Tab-separated exports do not use quoting — a lone " at the start of
+        // a cell must stay literal instead of merging the following rows.
+        $path = $this->tempCsv("sku\tname\nA-1\t\"Barre 24\nA-2\tGewone barre\nA-3\tNog een\n");
+
+        $result = (new TabularFileReader())->rows($path, 'csv', null, 100, 64, "\t");
+
+        $this->assertCount(4, $result['rows']);
+        $this->assertSame('"Barre 24', $result['rows'][1][1]);
+        $this->assertSame('A-2', $result['rows'][2][0]);
+        $this->assertSame('A-3', $result['rows'][3][0]);
+    }
+
     public function test_max_rows_counts_kept_rows_and_reports_truncation(): void
     {
         $lines = ["sku;name"];

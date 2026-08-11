@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BlockedEmailController as AdminBlockedEmailController;
 use App\Http\Controllers\Admin\HvacBrandController;
 use App\Http\Controllers\Admin\HvacCalculationController;
+use App\Http\Controllers\Admin\HvacCatalogController;
 use App\Http\Controllers\Admin\HvacCompatibilityController;
 use App\Http\Controllers\Admin\HvacGuidedImportController;
 use App\Http\Controllers\Admin\HvacImportController;
@@ -122,6 +123,12 @@ Route::middleware('admin')
         // ── HVAC product catalog ─────────────────────────────────────────────
         Route::get('/hvac/products', [HvacProductController::class, 'index'])
             ->name('hvac.products.index');
+        Route::get('/hvac/catalogs/{catalog}', [HvacCatalogController::class, 'show'])
+            ->name('hvac.catalogs.show');
+        Route::patch('/hvac/catalogs/{catalog}/rename', [HvacCatalogController::class, 'rename'])
+            ->name('hvac.catalogs.rename');
+        Route::patch('/hvac/catalogs/{catalog}/archive', [HvacCatalogController::class, 'archive'])
+            ->name('hvac.catalogs.archive');
         Route::get('/hvac/products/create', [HvacProductController::class, 'create'])
             ->name('hvac.products.create');
         Route::post('/hvac/products', [HvacProductController::class, 'store'])

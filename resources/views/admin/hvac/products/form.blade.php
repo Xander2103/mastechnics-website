@@ -255,6 +255,52 @@
                     </form>
                 </div>
             @endif
+
+            @if ($product->exists && ($product->relationLoaded('importCatalogs') && $product->importCatalogs->isNotEmpty() || ($product->metadata['import'] ?? null) !== null))
+                @php $importMeta = $product->metadata['import'] ?? []; @endphp
+                <div class="admin-detail-card" style="margin-top: 1.5rem;">
+                    <h2>Bron</h2>
+                    <div style="display:flex;flex-direction:column;gap:0.3rem;font-size:0.9rem;margin-top:0.6rem;">
+                        @foreach ($product->importCatalogs as $catalog)
+                            <div>
+                                <strong>Productlijst:</strong>
+                                <a class="admin-link" href="{{ route('admin.hvac.catalogs.show', $catalog) }}">{{ $catalog->name }}</a>
+                                @if ($catalog->pivot->source_row) · rij {{ $catalog->pivot->source_row }} @endif
+                                @if ($catalog->pivot->imported_at) · {{ \Illuminate\Support\Carbon::parse($catalog->pivot->imported_at)->format('d/m/Y') }} @endif
+                            </div>
+                        @endforeach
+                        @if (($importMeta['file'] ?? null) !== null)
+                            <div><strong>Bestand:</strong> {{ $importMeta['file'] }}</div>
+                        @endif
+                        @if (($importMeta['at'] ?? null) !== null)
+                            <div><strong>Laatste import:</strong> {{ \Illuminate\Support\Carbon::parse($importMeta['at'])->format('d/m/Y H:i') }}</div>
+                        @endif
+                        @if (($importMeta['price']['meaning'] ?? null) !== null)
+                            <div><strong>Prijs in bronbestand:</strong> {{ $importMeta['price']['raw'] ?? '' }}
+                                ({{ match ($importMeta['price']['meaning']) {
+                                    'gross' => 'brutoprijs — niet gebruikt voor offertes',
+                                    'net_purchase' => 'netto aankoopprijs',
+                                    'sale' => 'verkoopprijs',
+                                    default => 'betekenis onbekend — niet gebruikt voor offertes',
+                                } }})
+                            </div>
+                        @endif
+                        @if (($importMeta['needs_review'] ?? false) === true)
+                            <div style="color:#9a6700;"><strong>Te controleren:</strong> een of meer gegevens zijn afgeleid en nog niet nagekeken.</div>
+                        @endif
+                        @if (($importMeta['fields'] ?? []) !== [])
+                            <details style="margin-top:0.3rem;">
+                                <summary style="cursor:pointer;">Herkomst per veld</summary>
+                                <ul style="margin:0.4rem 0 0 1.2rem;">
+                                    @foreach ($importMeta['fields'] as $field => $source)
+                                        <li>{{ $field }}: {{ str_replace(['column:', 'derived:', 'manual'], ['kolom ', 'afgeleid van ', 'handmatig ingevuld'], $source) }}</li>
+                                    @endforeach
+                                </ul>
+                            </details>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
     </section>
 @endsection

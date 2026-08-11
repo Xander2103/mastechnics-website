@@ -46,6 +46,15 @@ class HvacProductController extends Controller
 
     public function index(Request $request): View
     {
+        // Default view is the per-list overview ("Productlijsten") as soon as
+        // lists exist; the flat table stays available under "Alle producten"
+        // and behind every existing deep link with filters.
+        $view = $request->string('view')->toString();
+        $hasFilters = $request->hasAny(['quality', 'type', 'brand', 'active', 'q', 'page']);
+        if ($view === 'lists' || ($view === '' && ! $hasFilters && \App\Models\HvacImportCatalog::query()->exists())) {
+            return $this->catalogOverview();
+        }
+
         $scopes = $this->qualityScopes();
 
         $activeBase = fn () => HvacProduct::query()->where('is_active', true);
@@ -95,6 +104,21 @@ class HvacProductController extends Controller
         ]);
     }
 
+    private function catalogOverview(): View
+    {
+        $catalogs = \App\Models\HvacImportCatalog::query()
+            ->with('supplier')
+            ->withCount([
+                'products as active_products_count' => fn ($q) => $q->where('is_active', true),
+                'products as review_products_count' => fn ($q) => $q->where('metadata->import->needs_review', true),
+            ])
+            ->orderByRaw("CASE WHEN status = 'archived' THEN 1 ELSE 0 END")
+            ->orderByDesc('imported_at')
+            ->get();
+
+        return view('admin.hvac.catalogs.index', ['catalogs' => $catalogs]);
+    }
+
     public function create(): View
     {
         return view('admin.hvac.products.form', [
@@ -116,7 +140,7 @@ class HvacProductController extends Controller
 
     public function edit(HvacProduct $product): View
     {
-        $product->load(['brand', 'supplier', 'compatibilities.compatible.brand', 'reverseCompatibilities.parent.brand']);
+        $product->load(['brand', 'supplier', 'importCatalogs', 'compatibilities.compatible.brand', 'reverseCompatibilities.parent.brand']);
 
         return view('admin.hvac.products.form', [
             'product'   => $product,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\HvacMappingProfile;
 use App\Services\Hvac\HvacCompatibilityCsvImporter;
 use App\Services\Hvac\HvacCsvImporter;
 use App\Services\Hvac\Import\TabularFileReader;
@@ -75,7 +76,11 @@ class HvacImportController extends Controller
 
     public function index(): View
     {
-        return view('admin.hvac.imports.index');
+        return view('admin.hvac.imports.index', [
+            'mappingProfiles' => HvacMappingProfile::orderBy('supplier_name')
+                ->orderBy('name')
+                ->get(),
+        ]);
     }
 
     public function preview(Request $request, HvacCsvImporter $importer): View|RedirectResponse

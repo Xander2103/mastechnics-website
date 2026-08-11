@@ -84,9 +84,6 @@
                 </form>
             </div>
 
-            @php
-                $mappingProfiles = \App\Models\HvacMappingProfile::orderBy('supplier_name')->orderBy('name')->get();
-            @endphp
             <div class="admin-detail-card" style="margin-top: 1.5rem;">
                 <h2>Begeleide import (CSV of Excel, vrije indeling)</h2>
                 <p class="hvac-muted" style="margin-bottom:1rem;">

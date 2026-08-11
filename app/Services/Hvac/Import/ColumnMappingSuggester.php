@@ -14,19 +14,45 @@ use App\Services\Hvac\HvacCsvImporter;
  */
 class ColumnMappingSuggester
 {
+    /**
+     * Mapping targets that are not real product columns: they route through
+     * derivation/provenance instead of straight into the importer.
+     * - price: a price whose meaning (bruto/netto/verkoop) must be asked first
+     * - name_fallback: secondary product name (e.g. French label) used when
+     *   the primary name is empty
+     * - ean: kept as provenance metadata, not a catalog column
+     */
+    public const VIRTUAL_FIELDS = ['price', 'name_fallback', 'ean'];
+
     /** @var array<string, string[]> internal field => normalized aliases */
     private const ALIASES = [
         'supplier' => ['leverancier', 'fournisseur', 'verdeler', 'supplier name'],
-        'brand'    => ['merk', 'marque', 'fabrikant', 'manufacturer'],
+        'brand'    => [
+            'merk', 'marque', 'fabrikant', 'manufacturer', 'merknaam',
+            'providername', 'provider name', 'producent',
+        ],
         'sku'      => [
             'artikelnummer', 'artikelnr', 'art nr', 'artnr', 'artikelcode', 'artikel',
             'item number', 'item no', 'reference', 'referentie', 'ref',
-            'code article', 'productcode', 'product code',
+            'code article', 'productcode', 'product code', 'productid', 'product id',
         ],
-        'model' => ['modelcode', 'model code', 'modelnummer', 'modele', 'type model'],
+        'model' => [
+            'modelcode', 'model code', 'modelnummer', 'modele', 'type model',
+            'producerid', 'producer id', 'reference fabricant', 'fabrikantreferentie',
+        ],
         'name'  => [
             'naam', 'omschrijving', 'beschrijving', 'description', 'designation',
-            'product name', 'productnaam', 'libelle', 'benaming',
+            'product name', 'productnaam', 'libelle', 'benaming', 'labelnl', 'label nl',
+        ],
+        'name_fallback' => [
+            'labelfr', 'label fr', 'libelle fr', 'libellefr', 'description fr',
+            'omschrijving fr', 'benaming fr',
+        ],
+        'ean' => ['ean', 'ean code', 'eancode', 'barcode', 'gtin'],
+        'price' => [
+            'brutprice', 'brut price', 'bruto prijs', 'brutoprijs', 'bruto',
+            'prix brut', 'catalogusprijs', 'prix catalogue', 'list price',
+            'tarif', 'prijs', 'price', 'prix',
         ],
         'product_type'        => ['producttype', 'type product', 'categorie', 'category', 'productcategorie'],
         'cooling_capacity_kw' => [
@@ -44,12 +70,17 @@ class ColumnMappingSuggester
             'purchase price', 'prix net', 'prix achat', 'net price', 'netto excl btw',
             'inkoop', 'aankoop',
         ],
+        // NB: bruto/catalogus prices deliberately do NOT map here — a gross
+        // catalog price is not our sale price. They land on the virtual
+        // 'price' field and the wizard asks what the price means.
         'sale_price_excl_vat' => [
-            'verkoopprijs', 'bruto prijs', 'brutoprijs', 'adviesprijs', 'catalogusprijs',
-            'sale price', 'list price', 'prix vente', 'prix catalogue', 'bruto',
+            'verkoopprijs', 'adviesprijs', 'sale price', 'prix vente',
         ],
         'stock_quantity' => ['voorraad', 'stock', 'stock quantity', 'qty', 'quantite', 'aantal', 'aantal stuks'],
-        'lead_time_days' => ['levertijd', 'levertermijn', 'lead time', 'delai', 'levertijd dagen'],
+        'lead_time_days' => [
+            'levertijd', 'levertermijn', 'lead time', 'delai', 'levertijd dagen',
+            'deliverydelay', 'delivery delay', 'delai livraison',
+        ],
         'voltage'        => ['spanning', 'tension', 'voltage'],
         'phase'          => ['fase', 'phase', 'fasen'],
         'breaker_a'      => ['zekering', 'automaat', 'breaker', 'disjoncteur', 'zekering a'],
@@ -95,11 +126,13 @@ class ColumnMappingSuggester
             $suggestions[$i] = $this->suggestOne((string) ($header ?? ''));
         }
 
-        // Two columns pointing at the same internal field can never be
-        // auto-accepted — downgrade both to fuzzy so the admin must decide.
+        // Two columns with an EXACT claim on the same internal field can never
+        // be auto-accepted — downgrade them so the admin must decide. A mere
+        // fuzzy duplicate never poisons an exact match (fuzzy is never
+        // auto-applied anyway).
         $byField = [];
         foreach ($suggestions as $i => $s) {
-            if ($s['field'] !== null) {
+            if ($s['field'] !== null && $s['confidence'] === 'exact') {
                 $byField[$s['field']][] = $i;
             }
         }
@@ -112,6 +145,16 @@ class ColumnMappingSuggester
         }
 
         return $suggestions;
+    }
+
+    /**
+     * All valid mapping targets: real importer columns plus virtual fields.
+     *
+     * @return string[]
+     */
+    public static function targets(): array
+    {
+        return [...HvacCsvImporter::COLUMNS, ...self::VIRTUAL_FIELDS];
     }
 
     /** @return array{field: string|null, confidence: 'exact'|'fuzzy'|'none'} */

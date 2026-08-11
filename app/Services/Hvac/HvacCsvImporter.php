@@ -253,11 +253,17 @@ class HvacCsvImporter
      * Imports the VALID rows in one transaction. Rows with errors are never
      * written; the caller reports them.
      *
+     * Optional $context adds provenance to each product's metadata['import']:
+     * ['source_file' => string, 'profile_id' => ?int, 'catalog_id' => ?int,
+     *  'provenance_by_line' => [line => provenance from
+     *  HvacGuidedImportService::normalizeRows()]]. Existing metadata keys
+     * (e.g. notes) are preserved on update.
+     *
      * @return array{created: int, updated: int, skipped: int}
      */
-    public function import(array $rows, string $mode): array
+    public function import(array $rows, string $mode, array $context = []): array
     {
-        return DB::transaction(function () use ($rows, $mode) {
+        return DB::transaction(function () use ($rows, $mode, $context) {
             $created = 0;
             $updated = 0;
             $skipped = 0;
@@ -324,8 +330,29 @@ class HvacCsvImporter
                 if ($data['active'] !== null) {
                     $attributes['is_active'] = $data['active'];
                 }
+
+                // Metadata: merge instead of overwrite so notes and earlier
+                // provenance never get clobbered.
+                $metadata = $existing?->metadata ?? [];
                 if ($data['notes'] !== null) {
-                    $attributes['metadata'] = ['notes' => $data['notes']];
+                    $metadata['notes'] = $data['notes'];
+                }
+                if ($context !== []) {
+                    $provenance = $context['provenance_by_line'][$row['line']] ?? [];
+                    $metadata['import'] = array_filter([
+                        'file'         => $context['source_file'] ?? null,
+                        'at'           => now()->toIso8601String(),
+                        'profile_id'   => $context['profile_id'] ?? null,
+                        'catalog_id'   => $context['catalog_id'] ?? null,
+                        'price'        => $provenance['price'] ?? null,
+                        'fields'       => $provenance['fields'] ?? null,
+                        'ean'          => $provenance['ean'] ?? null,
+                        'source_row'   => $provenance['source_row'] ?? null,
+                        'needs_review' => ($provenance['needs_review'] ?? false) ? true : null,
+                    ], fn ($v) => $v !== null);
+                }
+                if ($metadata !== []) {
+                    $attributes['metadata'] = $metadata;
                 }
 
                 if ($existing !== null) {

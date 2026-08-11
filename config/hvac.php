@@ -13,18 +13,8 @@
 // through App\Services\Hvac\HvacRuleSetResolver so versioning keeps working.
 // ─────────────────────────────────────────────────────────────────────────────
 
-return [
-
-    // Which explanation generator to use: 'null' (default, no AI) or a
-    // container binding for a real provider. The system is fully functional
-    // with the null provider.
-    'explanation_provider' => env('HVAC_EXPLANATION_PROVIDER', 'null'),
-
-    'default_rule_set' => [
-        'name'    => 'Standaard voorcalculatie',
-        'version' => 1,
-
-        'configuration' => [
+// ── Rule set v1 configuration ────────────────────────────────────────────────
+$v1Configuration = [
 
             // ── Cooling load ────────────────────────────────────────────────
             // Base load per m² by insulation level. other/unknown fall back to
@@ -209,6 +199,134 @@ return [
                 // is older than 10 years and the customer is residential.
                 'reduced_vat_requires_confirmation' => true,
             ],
+];
+
+// ── Rule set v2 configuration — "Belgische residentiële koellast" ───────────
+//
+// Engineering-style load model reverse-engineered from the reference workbook
+// "Belgian Deterministic Air-Conditioning Calculator"
+// (docs/hvac/excel-calculator-audit.md). Everything that is not part of the
+// cooling-load method (capacity classes, pipes, electrical, accessories,
+// labor, pricing, diversity) is copied from v1 so both versions stay in sync.
+//
+// All v2 values are workbook constants — engineering rules of thumb that
+// Martin must validate before activation (docs/hvac/rules-to-validate.md).
+$v2Configuration = array_merge(
+    array_diff_key($v1Configuration, array_flip([
+        // v1 simple-method parameters that do not exist in the v2 model:
+        'insulation_w_per_m2',
+        'ceiling_reference_height_m',
+        'orientation_factors',
+        'orientation_fallback_values',
+        'window_type_factors',
+        'window_fallback_values',
+        'window_ratio_factors',
+        // v2 has no separate roof factor: the ceiling is part of the envelope.
+        // roof_warning_values stays so attic/flat-roof rooms keep their warning.
+        'roof_type_factors',
+        'occupancy',
+    ])),
+    [
+        'load_method' => 'engineering_v2',
+
+        // Equivalent U-value of the whole envelope per insulation level
+        // (workbook: New 0.35 / Recent insulated 0.6 / Older insulated 0.9 /
+        // Old uninsulated 1.4 W/m²K). other/unknown fall back to 'average'
+        // and raise a warning via insulation_fallback_values.
+        'u_equivalent_by_insulation' => [
+            'excellent' => 0.35,
+            'good'      => 0.60,
+            'average'   => 0.90,
+            'poor'      => 1.40,
+            'other'     => 0.90,
+            'unknown'   => 0.90,
         ],
+
+        // Fixed summer design temperature difference (workbook: hardcoded 8 K).
+        'design_delta_t_k' => 8.0,
+
+        // Solar irradiance through glass per orientation. The workbook's IF
+        // chain falls back to the West value (300) for anything that is not
+        // N/E/S — other/unknown deliberately mirror that behaviour.
+        'solar_gain_w_per_m2_by_orientation' => [
+            'north'   => 120,
+            'east'    => 230,
+            'south'   => 280,
+            'west'    => 300,
+            'other'   => 300,
+            'unknown' => 300,
+        ],
+
+        // Shading factor Fs. The form does not ask shading: assumed_shading is
+        // applied to every room, always flagged as an assumption. 'none' is
+        // the conservative default (highest load).
+        'shading_factors' => [
+            'none'            => 1.00,
+            'internal_blinds' => 0.75,
+            'external_screen' => 0.35,
+        ],
+        'assumed_shading' => 'none',
+
+        // The form asks a window TYPE, not an area. Window area is derived as
+        // floor area × this ratio (always flagged). A real window_area_m2
+        // takes precedence whenever it is known.
+        'window_area_ratio_by_window_type' => [
+            'large'    => 0.25,
+            'mixed'    => 0.15,
+            'small'    => 0.10,
+            'few_none' => 0.03,
+            'other'    => 0.10,
+            'unknown'  => 0.10,
+        ],
+
+        // Internal gains per person (workbook: 75 W sensible + 55 W latent;
+        // every occupant counts — no "included person" offset like v1).
+        'people_sensible_w_per_person' => 75.0,
+        'people_latent_w_per_person'   => 55.0,
+
+        // Occupants are still assumed per room type (form does not ask).
+        'occupancy' => [
+            'default_occupants_by_room_type' => [
+                'slaapkamer'  => 2,
+                'woonkamer'   => 3,
+                'bureau'      => 1,
+                'keuken'      => 2,
+                'zolderkamer' => 2,
+                'andere'      => 2,
+            ],
+        ],
+
+        // Ventilation / infiltration. Coefficients are the literal workbook
+        // constants: 2.67 ≈ 0.334 Wh/(m³·K) × ΔT 8 K (sensible), 1.3 W per
+        // m³·ACH (latent, implicit indoor/outdoor humidity difference).
+        'ventilation_ach_default'          => 0.5,
+        'ventilation_sensible_w_per_m3_ach' => 2.67,
+        'ventilation_latent_w_per_m3_ach'   => 1.3,
+
+        // Applied to the combined sensible + latent total.
+        'safety_factor' => 1.1,
+    ]
+);
+
+return [
+
+    // Which explanation generator to use: 'null' (default, no AI) or a
+    // container binding for a real provider. The system is fully functional
+    // with the null provider.
+    'explanation_provider' => env('HVAC_EXPLANATION_PROVIDER', 'null'),
+
+    'default_rule_set' => [
+        'name'          => 'Standaard voorcalculatie',
+        'version'       => 1,
+        'configuration' => $v1Configuration,
+    ],
+
+    // Seeded as a DRAFT by `php artisan hvac:seed-v2-rule-set` — never
+    // auto-activated. Martin validates the values and activates the set
+    // through the admin rules screen; v1 and its snapshots stay untouched.
+    'cooling_load_v2_rule_set' => [
+        'name'          => 'Belgische residentiële koellast',
+        'version'       => 2,
+        'configuration' => $v2Configuration,
     ],
 ];

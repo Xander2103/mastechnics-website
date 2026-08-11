@@ -59,6 +59,10 @@
 .hvac-room-card dt { color: #6b7280; }
 .hvac-room-card dd { margin: 0; }
 .hvac-assumed { color: #b45309; font-size: 0.78rem; }
+.hvac-room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.9rem; font-size: 0.82rem; }
+.hvac-mini-dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0.15rem 0.6rem; }
+.hvac-mini-dl dt { color: #6b7280; }
+.hvac-mini-dl dd { margin: 0; }
 .hvac-option { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
 .hvac-option-header { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; justify-content: space-between; }
 .hvac-option-status { font-size: 0.8rem; padding: 0.2rem 0.7rem; border-radius: 999px; background: #eef2f7; }
@@ -177,6 +181,147 @@
 
         {{-- B. Berekening --}}
         <h3>Berekening</h3>
+        @php
+            $hvacUsesV2 = collect($hvacRoomResults)->contains(
+                fn ($r) => ($r['load']['method'] ?? 'simple_v1') === 'engineering_v2'
+            );
+        @endphp
+        @if ($hvacUsesV2)
+        {{-- Engineering-model v2: leesbare uitsplitsing per kamer --}}
+        <div class="admin-table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Kamer</th><th>Ontwerpbelasting</th><th>kW</th><th>Doelklasse</th>
+                        <th>Zekering</th><th>Kabel</th><th>Aanpassen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($hvacRoomResults as $ri => $roomResult)
+                        @php
+                            $load = $roomResult['load'];
+                            $wattsOverride = $load['final_watts_override'] ?? null;
+                            $classShown = $roomResult['capacity_class_kw_override'] ?? $roomResult['capacity_class_kw'];
+                        @endphp
+                        <tr>
+                            <td>{{ $load['room_name'] }}</td>
+                            <td>
+                                @if ($wattsOverride !== null)
+                                    <strong>{{ number_format($wattsOverride, 0, ',', '.') }} W</strong>
+                                    <br><span class="hvac-assumed">handmatig — origineel {{ number_format($load['final_watts'], 0, ',', '.') }} W</span>
+                                @else
+                                    <strong>{{ number_format($load['final_watts'], 0, ',', '.') }} W</strong>
+                                @endif
+                            </td>
+                            <td><strong>{{ number_format(($load['final_kw_override'] ?? $load['final_kw']), 2, ',', '.') }}</strong></td>
+                            <td>
+                                @if ($classShown !== null)
+                                    {{ number_format($classShown, 1, ',', '.') }} kW
+                                    @if (isset($roomResult['capacity_class_kw_override']))
+                                        <span class="hvac-assumed">(handmatig)</span>
+                                    @endif
+                                @else
+                                    <span class="hvac-assumed">handmatig</span>
+                                @endif
+                            </td>
+                            <td>{{ $roomResult['electrical']['breaker_a'] !== null ? $roomResult['electrical']['breaker_a'] . ' A' : '—' }}</td>
+                            <td>{{ $roomResult['electrical']['cable'] ?? '—' }}</td>
+                            <td>
+                                <details>
+                                    <summary style="cursor:pointer;font-size:0.78rem;">Vermogen aanpassen</summary>
+                                    <form class="hvac-inline-form" method="POST"
+                                          action="{{ route('admin.requests.hvac.rooms.override-load', $customerRequest) }}">
+                                        @csrf
+                                        <input type="hidden" name="room_index" value="{{ $ri }}">
+                                        <label style="display:flex;flex-direction:column;font-size:0.72rem;gap:0.1rem;">
+                                            Watt
+                                            <input type="number" step="1" min="100" max="20000" name="watts"
+                                                   value="{{ $wattsOverride ?? $load['final_watts'] }}" style="width:6rem;">
+                                        </label>
+                                        <input type="text" name="reason" placeholder="Reden (verplicht)" required minlength="5" style="width:10rem;">
+                                        <button type="submit" class="button button-secondary" style="font-size:0.78rem;padding:0.3rem 0.7rem;">Opslaan</button>
+                                    </form>
+                                    <p class="hvac-assumed" style="margin:0.2rem 0 0;">Opties worden herrekend met de nieuwe doelklasse.</p>
+                                </details>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="7" style="padding:0.4rem 0.8rem 0.9rem;">
+                                <details>
+                                    <summary style="cursor:pointer;font-size:0.8rem;">Volledige uitsplitsing — {{ $load['room_name'] }}</summary>
+                                    <div class="hvac-room-grid" style="margin-top:0.6rem;">
+                                        <div>
+                                            <h4 style="margin:0 0 0.3rem;font-size:0.8rem;">Kamergeometrie</h4>
+                                            <dl class="hvac-mini-dl">
+                                                <dt>Oppervlakte</dt><dd>{{ number_format($load['area_m2'], 1, ',', '.') }} m²</dd>
+                                                <dt>Volume</dt><dd>{{ number_format($load['volume_m3'], 1, ',', '.') }} m³</dd>
+                                                <dt>Schiloppervlak</dt><dd>{{ number_format($load['envelope_area_m2'], 1, ',', '.') }} m²</dd>
+                                            </dl>
+                                        </div>
+                                        <div>
+                                            <h4 style="margin:0 0 0.3rem;font-size:0.8rem;">Transmissie</h4>
+                                            <dl class="hvac-mini-dl">
+                                                <dt>Equivalente U-waarde</dt><dd>{{ number_format($load['u_equivalent'], 2, ',', '.') }} W/m²K</dd>
+                                                <dt>Ontwerp-ΔT</dt><dd>{{ number_format($load['design_delta_t_k'], 0, ',', '.') }} K</dd>
+                                                <dt>Transmissielast</dt><dd>{{ number_format($load['q_transmission_w'], 0, ',', '.') }} W</dd>
+                                            </dl>
+                                        </div>
+                                        <div>
+                                            <h4 style="margin:0 0 0.3rem;font-size:0.8rem;">Zonnewinst</h4>
+                                            <dl class="hvac-mini-dl">
+                                                <dt>Raamoppervlakte</dt>
+                                                <dd>{{ number_format($load['window_area_m2'], 1, ',', '.') }} m²
+                                                    @if ($load['window_area_assumed'])<span class="hvac-assumed">(afgeleid uit raamtype)</span>@endif
+                                                </dd>
+                                                <dt>Ligging</dt><dd>{{ $load['orientation'] }}</dd>
+                                                <dt>Zoninstraling</dt><dd>{{ number_format($load['solar_gain_w_per_m2'], 0, ',', '.') }} W/m²</dd>
+                                                <dt>Zonwering</dt>
+                                                <dd>{{ $load['shading'] }} <span class="hvac-assumed">(aanname)</span></dd>
+                                                <dt>Zonweringsfactor</dt><dd>{{ number_format($load['shading_factor'], 2, ',', '.') }}</dd>
+                                                <dt>Zonnewinstlast</dt><dd>{{ number_format($load['q_solar_w'], 0, ',', '.') }} W</dd>
+                                            </dl>
+                                        </div>
+                                        <div>
+                                            <h4 style="margin:0 0 0.3rem;font-size:0.8rem;">Interne winsten</h4>
+                                            <dl class="hvac-mini-dl">
+                                                <dt>Personen voelbaar</dt>
+                                                <dd>{{ number_format($load['people_sensible_w'], 0, ',', '.') }} W
+                                                    ({{ $load['occupants'] }} pers.@if ($load['occupants_assumed']) <span class="hvac-assumed">aanname</span>@endif)
+                                                </dd>
+                                                <dt>Personen latent</dt><dd>{{ number_format($load['people_latent_w'], 0, ',', '.') }} W</dd>
+                                                <dt>Toestellen</dt>
+                                                <dd>{{ number_format($load['equipment_heat_w'], 0, ',', '.') }} W
+                                                    @if ($load['equipment_assumed'])<span class="hvac-assumed">(aanname)</span>@endif
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                        <div>
+                                            <h4 style="margin:0 0 0.3rem;font-size:0.8rem;">Ventilatie</h4>
+                                            <dl class="hvac-mini-dl">
+                                                <dt>ACH</dt><dd>{{ number_format($load['ach'], 2, ',', '.') }} <span class="hvac-assumed">(aanname)</span></dd>
+                                                <dt>Ventilatie voelbaar</dt><dd>{{ number_format($load['q_vent_sensible_w'], 0, ',', '.') }} W</dd>
+                                                <dt>Ventilatie latent</dt><dd>{{ number_format($load['q_vent_latent_w'], 0, ',', '.') }} W</dd>
+                                            </dl>
+                                        </div>
+                                        <div>
+                                            <h4 style="margin:0 0 0.3rem;font-size:0.8rem;">Totalen</h4>
+                                            <dl class="hvac-mini-dl">
+                                                <dt>Voelbaar totaal</dt><dd>{{ number_format($load['q_sensible_total_w'], 0, ',', '.') }} W</dd>
+                                                <dt>Latent totaal</dt><dd>{{ number_format($load['q_latent_total_w'], 0, ',', '.') }} W</dd>
+                                                <dt>Gecombineerde last</dt><dd>{{ number_format($load['q_total_w'], 0, ',', '.') }} W</dd>
+                                                <dt>Veiligheidsfactor</dt><dd>× {{ number_format($load['safety_factor'], 2, ',', '.') }}</dd>
+                                                <dt>Ontwerpbelasting</dt><dd><strong>{{ number_format($load['design_load_w'], 0, ',', '.') }} W</strong></dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </details>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
         <div class="admin-table-wrapper">
             <table class="admin-table">
                 <thead>
@@ -247,6 +392,7 @@
                 </tbody>
             </table>
         </div>
+        @endif
         @error('watts')
             <p class="field-error-text">{{ $message }}</p>
         @enderror

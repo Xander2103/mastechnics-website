@@ -3,6 +3,7 @@
 namespace App\Services\Hvac;
 
 use App\Models\HvacRecommendation;
+use App\Models\HvacRuleSet;
 use App\Models\HvacRuleValidation;
 
 /**
@@ -74,7 +75,16 @@ class HvacRecommendationReadiness
             ->pluck('rule_key')
             ->all();
 
-        return array_diff(HvacRuleCatalog::criticalKeys(), $validated) === [];
+        // Only critical rules that actually exist in this rule set's
+        // configuration apply: v1 sets must not be blocked by v2-only rules
+        // and vice versa.
+        $configuration = HvacRuleSet::find($ruleSetId)?->configuration ?? [];
+        $applicable = array_filter(
+            HvacRuleCatalog::criticalKeys(),
+            fn (string $key) => HvacRuleCatalog::value($configuration, $key) !== null
+        );
+
+        return array_diff($applicable, $validated) === [];
     }
 
     private function stateLabel(string $status, bool $technicalOk, bool $priceOk, bool $ready, bool $demo): string

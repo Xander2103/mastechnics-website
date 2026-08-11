@@ -29,6 +29,32 @@ berekeningen ongewijzigd blijven.
 | Toestelwarmte tv / pc / open keuken | 100 / 150 / 300 W | ☐ te valideren |
 | Aangenomen toestellen per kamertype | woonkamer tv, bureau pc, keuken open keuken, slaapkamer tv | ☐ te valideren |
 
+## Koellastberekening v2 — "Belgische residentiële koellast" (concept)
+
+Regelset v2 (aan te maken met `php artisan hvac:seed-v2-rule-set`, daarna
+activeren via Admin → HVAC → Berekeningsregels) rekent met het engineering-model
+uit het referentiewerkboek (`docs/hvac/excel-calculator-audit.md`). De waarden
+hieronder zijn werkboekconstanten — vuistregels zonder bronvermelding — plus
+enkele afleidingsaannames van ons; **v2 mag pas geactiveerd worden nadat deze
+tabel gevalideerd is**. v1 en historische berekeningen blijven onaangeroerd.
+
+| Regel | Huidige standaardwaarde | Status |
+|---|---|---|
+| Ueq uitstekend / goed / gemiddeld / beperkt | 0,35 / 0,60 / 0,90 / 1,40 W/m²K | ☐ te valideren |
+| Isolatie "andere"/"onbekend" | Ueq 0,90 + waarschuwing | ☐ te valideren |
+| Ontwerp-ΔT (transmissie) | 8 K (vast) | ☐ te valideren |
+| Zoninstraling noord / oost / zuid / west | 120 / 230 / 280 / 300 W/m² raam | ☐ te valideren |
+| Ligging "andere"/"onbekend" | 300 W/m² (werkboek-terugval op west) + waarschuwing | ☐ te valideren |
+| Zonweringsfactor geen / binnen / buiten | 1,00 / 0,75 / 0,35 | ☐ te valideren |
+| **Aangenomen zonwering** (formulier vraagt dit niet) | **"geen" (conservatief)** | ☐ **keuze bevestigen** |
+| **Raamratio groot / gemengd / klein / weinig** (raamoppervlakte = vloeroppervlak × ratio) | **25 % / 15 % / 10 % / 3 % (verzonnen — geen werkboekwaarde)** | ☐ **waarde bepalen** |
+| Personenwarmte voelbaar / latent | 75 / 55 W per persoon (iedereen telt) | ☐ te valideren |
+| Luchtverversingsvoud (ACH) | 0,5 /h | ☐ te valideren |
+| Ventilatiecoëfficiënt voelbaar / latent | 2,67 / 1,3 W per m³·ACH | ☐ te valideren |
+| Veiligheidsfactor | × 1,1 op voelbaar + latent | ☐ te valideren |
+| Dak-/zoldercorrectie | niet aanwezig in het werkboekmodel; zolder/plat dak geeft wél een waarschuwing | ☐ bewuste keuze bevestigen |
+| Aanbevolen klasse | via bestaande capaciteitsklassen (de Excel-IFS-banden 2,5/3,5/5/6,8/8/10 worden NIET overgenomen — defecte cel, zie audit §5) | ☐ bevestigen |
+
 ## Capaciteit & multi-split
 
 | Regel | Waarde | Status |

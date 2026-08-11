@@ -59,9 +59,16 @@ class HvacCalculationService
             $totalLoadKw = 0.0;
             $anyManualReview = false;
             $extraWarnings = [];
+            $anyV2 = false;
+            $anyV2WindowDerived = false;
 
             foreach ($input->rooms as $room) {
                 $load = $this->loadCalculator->calculateRoom($room, $rules);
+
+                if (($load['method'] ?? 'simple_v1') === 'engineering_v2') {
+                    $anyV2 = true;
+                    $anyV2WindowDerived = $anyV2WindowDerived || ($load['window_area_assumed'] ?? false);
+                }
                 $class = $this->classSelector->select($load['final_kw'], $rules);
                 $pipe = $this->pipeEstimator->estimate($room, $rules);
                 $electrical = $this->electricalEstimator->forClass($class['class_kw'], $rules);
@@ -90,6 +97,29 @@ class HvacCalculationService
                 ];
 
                 $totalLoadKw += $load['final_kw'];
+            }
+
+            if ($anyV2) {
+                if ($anyV2WindowDerived) {
+                    $extraWarnings[] = [
+                        'code'    => 'v2_window_area_derived',
+                        'message' => 'De raamoppervlakte is afgeleid uit het raamtype (percentage van de vloeroppervlakte) — geen echte meting. Controleer dit bij grote glaspartijen.',
+                    ];
+                }
+                $extraWarnings[] = [
+                    'code'    => 'v2_shading_assumed',
+                    'message' => sprintf(
+                        'Zonwering wordt niet bevraagd in het formulier; er is gerekend met de regelset-aanname "%s".',
+                        (string) ($rules['assumed_shading'] ?? 'none')
+                    ),
+                ];
+                $extraWarnings[] = [
+                    'code'    => 'v2_ach_assumed',
+                    'message' => sprintf(
+                        'Het luchtverversingsvoud (ACH %s) is een regelset-standaard, geen meting.',
+                        (string) ($rules['ventilation_ach_default'] ?? 0.5)
+                    ),
+                ];
             }
 
             $system = $this->systemResult($input->splitType, $roomResults, $rules, round($totalLoadKw, 2));

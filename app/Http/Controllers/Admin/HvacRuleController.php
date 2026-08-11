@@ -19,15 +19,20 @@ class HvacRuleController extends Controller
         $active = $resolver->active();
         $validations = $active->validations()->get()->keyBy('rule_key');
 
-        $entries = collect(HvacRuleCatalog::entries())->map(function (array $entry) use ($active, $validations) {
-            $validation = $validations->get($entry['key']);
+        // Only rules that exist in the active configuration apply: a v1 set
+        // hides v2-only rules and vice versa.
+        $entries = collect(HvacRuleCatalog::entries())
+            ->filter(fn (array $entry) => HvacRuleCatalog::value($active->configuration, $entry['key']) !== null)
+            ->values()
+            ->map(function (array $entry) use ($active, $validations) {
+                $validation = $validations->get($entry['key']);
 
-            return $entry + [
-                'value'      => HvacRuleCatalog::formatValue(HvacRuleCatalog::value($active->configuration, $entry['key'])),
-                'validation' => $validation,
-                'status'     => $validation !== null ? 'validated' : $entry['default_status'],
-            ];
-        });
+                return $entry + [
+                    'value'      => HvacRuleCatalog::formatValue(HvacRuleCatalog::value($active->configuration, $entry['key'])),
+                    'validation' => $validation,
+                    'status'     => $validation !== null ? 'validated' : $entry['default_status'],
+                ];
+            });
 
         return $this->view($active, $entries);
     }
@@ -37,7 +42,7 @@ class HvacRuleController extends Controller
         return view('admin.hvac.rules.index', [
             'ruleSet'        => $active,
             'entriesByCat'   => $entries->groupBy('category'),
-            'criticalTotal'  => count(HvacRuleCatalog::criticalKeys()),
+            'criticalTotal'  => $entries->filter(fn ($e) => $e['critical'])->count(),
             'criticalDone'   => $entries->filter(fn ($e) => $e['critical'] && $e['status'] === 'validated')->count(),
             'drafts'         => HvacRuleSet::where('status', 'draft')->orderByDesc('version')->get(),
         ]);

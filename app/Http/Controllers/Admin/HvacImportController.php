@@ -16,6 +16,28 @@ class HvacImportController extends Controller
 {
     private const CACHE_TTL = 3600;
 
+    /**
+     * Application-level upload limit in kilobytes, from
+     * config('hvac.import.max_upload_mb') (HVAC_IMPORT_MAX_MB). The effective
+     * limit is the LOWEST of this value, PHP's upload_max_filesize /
+     * post_max_size and the web server's body limit — see
+     * docs/hvac/import-deployment.md.
+     */
+    public static function maxUploadKb(): int
+    {
+        return max(1, (int) config('hvac.import.max_upload_mb', 25)) * 1024;
+    }
+
+    /** @return array<string, string> */
+    private static function uploadMessages(): array
+    {
+        $maxMb = max(1, (int) config('hvac.import.max_upload_mb', 25));
+
+        return [
+            'file.max' => "Het bestand is groter dan de maximale bestandsgrootte van {$maxMb} MB.",
+        ];
+    }
+
     public function index(): View
     {
         return view('admin.hvac.imports.index');
@@ -24,9 +46,9 @@ class HvacImportController extends Controller
     public function preview(Request $request, HvacCsvImporter $importer): View|RedirectResponse
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:4096'],
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:' . self::maxUploadKb()],
             'mode' => ['required', 'in:create_and_update,create_only,update_only'],
-        ]);
+        ], self::uploadMessages());
 
         $parsed = $importer->parse((string) file_get_contents($request->file('file')->getRealPath()));
 
@@ -105,8 +127,8 @@ class HvacImportController extends Controller
     public function compatPreview(Request $request, HvacCompatibilityCsvImporter $importer): View|RedirectResponse
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:4096'],
-        ]);
+            'file' => ['required', 'file', 'mimes:csv,txt', 'max:' . self::maxUploadKb()],
+        ], self::uploadMessages());
 
         $parsed = $importer->parse((string) file_get_contents($request->file('file')->getRealPath()));
 

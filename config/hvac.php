@@ -315,6 +315,14 @@ return [
     // with the null provider.
     'explanation_provider' => env('HVAC_EXPLANATION_PROVIDER', 'null'),
 
+    // Supplier import (products + compatibility). The application-level
+    // upload limit; the EFFECTIVE limit is the lowest of this value, PHP's
+    // upload_max_filesize / post_max_size and the web server's body limit —
+    // see docs/hvac/import-deployment.md for the recommended server values.
+    'import' => [
+        'max_upload_mb' => (int) env('HVAC_IMPORT_MAX_MB', 25),
+    ],
+
     'default_rule_set' => [
         'name'          => 'Standaard voorcalculatie',
         'version'       => 1,

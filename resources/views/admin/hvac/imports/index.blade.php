@@ -40,11 +40,26 @@
                 </div>
             @endif
 
+            @if (request()->boolean('upload_too_large'))
+                <div class="form-error-list">
+                    <ul>
+                        <li>
+                            Het bestand is groter dan wat de server aanvaardt en werd geweigerd
+                            vóór de verwerking kon starten. Verklein het bestand (bv. splits het
+                            in delen) of vraag de beheerder om de serverlimiet te verhogen.
+                        </li>
+                    </ul>
+                </div>
+            @endif
+
+            @php $hvacMaxUploadMb = (int) config('hvac.import.max_upload_mb', 25); @endphp
+
             <div class="admin-detail-card">
                 <h2>Stap 1 — Bestand uploaden</h2>
                 <p class="hvac-muted" style="margin-bottom:1rem;">
                     Gebruik het <a class="admin-link" href="{{ route('admin.hvac.import.template') }}">CSV-sjabloon</a>
                     (UTF-8, puntkomma of komma als scheidingsteken). Decimalen mogen met komma of punt.
+                    Maximale bestandsgrootte: {{ $hvacMaxUploadMb }} MB.
                 </p>
 
                 <form method="POST" action="{{ route('admin.hvac.import.preview') }}" enctype="multipart/form-data">
@@ -84,6 +99,7 @@
                     Koppel fabrikantcompatibiliteit via SKU's. Beide producten moeten al in de catalogus
                     bestaan — importeer dus eerst de producten. Gebruik het
                     <a class="admin-link" href="{{ route('admin.hvac.import.compat.template') }}">compatibiliteitssjabloon</a>.
+                    Maximale bestandsgrootte: {{ $hvacMaxUploadMb }} MB.
                 </p>
 
                 <form method="POST" action="{{ route('admin.hvac.import.compat.preview') }}" enctype="multipart/form-data">

@@ -96,14 +96,14 @@ class HvacImportLimitTest extends TestCase
         $this->withSession($this->adminSession())
             ->get(route('admin.hvac.import.index'))
             ->assertOk()
-            ->assertSee('Maximale bestandsgrootte: 25 MB');
+            ->assertSee('max. 25 MB');
 
         config(['hvac.import.max_upload_mb' => 10]);
 
         $this->withSession($this->adminSession())
             ->get(route('admin.hvac.import.index'))
             ->assertOk()
-            ->assertSee('Maximale bestandsgrootte: 10 MB');
+            ->assertSee('max. 10 MB');
     }
 
     public function test_server_side_post_limit_shows_a_friendly_message(): void

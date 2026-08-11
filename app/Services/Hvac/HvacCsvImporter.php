@@ -47,6 +47,17 @@ class HvacCsvImporter
     ];
 
     /**
+     * Fields parsed as numbers (used by the guided import to apply the
+     * profile's decimal format before validation).
+     *
+     * @return string[]
+     */
+    public static function numericFields(): array
+    {
+        return [...self::NUMERIC_FIELDS, ...self::INTEGER_FIELDS];
+    }
+
+    /**
      * @return array{rows: array, global_errors: array}
      */
     public function parse(string $contents): array
@@ -78,17 +89,32 @@ class HvacCsvImporter
             return ['rows' => [], 'global_errors' => ['Verplichte kolommen ontbreken: ' . implode(', ', $missing) . '.']];
         }
 
-        $rows = [];
-        $seenKeys = [];
+        $rawRows = [];
         foreach (array_slice($lines, 1) as $i => $line) {
-            $lineNumber = $i + 2;
             $values = str_getcsv($line, $delimiter);
             $raw = [];
             foreach ($header as $col => $name) {
                 $raw[$name] = trim((string) ($values[$col] ?? ''));
             }
+            $rawRows[] = ['line' => $i + 2, 'raw' => $raw];
+        }
 
-            $row = $this->validateRow($raw, $lineNumber);
+        return ['rows' => $this->validateRows($rawRows), 'global_errors' => $globalErrors];
+    }
+
+    /**
+     * Validates pre-parsed rows (used by both the CSV parser and the guided
+     * mapping import). Each entry: ['line' => int, 'raw' => field => value].
+     *
+     * @param array<int, array{line: int, raw: array<string, string>}> $rawRows
+     */
+    public function validateRows(array $rawRows): array
+    {
+        $rows = [];
+        $seenKeys = [];
+        foreach ($rawRows as $entry) {
+            $lineNumber = (int) $entry['line'];
+            $row = $this->validateRow($entry['raw'], $lineNumber);
 
             // The same supplier+SKU twice in one file would silently
             // last-win — flag it as a row error instead.
@@ -104,7 +130,7 @@ class HvacCsvImporter
             $rows[] = $row;
         }
 
-        return ['rows' => $rows, 'global_errors' => $globalErrors];
+        return $rows;
     }
 
     private function validateRow(array $raw, int $lineNumber): array

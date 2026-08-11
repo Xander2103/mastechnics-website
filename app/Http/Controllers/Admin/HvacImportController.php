@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\Hvac\HvacCompatibilityCsvImporter;
 use App\Services\Hvac\HvacCsvImporter;
+use App\Services\Hvac\Import\TabularFileReader;
+use App\Services\Hvac\Import\XlsxReadException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -34,8 +36,41 @@ class HvacImportController extends Controller
         $maxMb = max(1, (int) config('hvac.import.max_upload_mb', 25));
 
         return [
-            'file.max' => "Het bestand is groter dan de maximale bestandsgrootte van {$maxMb} MB.",
+            'file.max'        => "Het bestand is groter dan de maximale bestandsgrootte van {$maxMb} MB.",
+            'file.extensions' => 'Alleen .csv, .txt of .xlsx-bestanden worden aanvaard.',
         ];
+    }
+
+    /**
+     * File contents as CSV text. XLSX files (template layout: headers on the
+     * first filled row of the first visible sheet) are converted through the
+     * safe workbook reader — formulas are never evaluated, macro files are
+     * rejected. Files with a genuinely different layout belong in the guided
+     * mapping import instead.
+     *
+     * @throws XlsxReadException
+     */
+    private function contentsAsCsv(Request $request): string
+    {
+        $file = $request->file('file');
+
+        if (strtolower($file->getClientOriginalExtension()) !== 'xlsx') {
+            return (string) file_get_contents($file->getRealPath());
+        }
+
+        $data = (new TabularFileReader())->rows($file->getRealPath(), 'xlsx');
+
+        $stream = fopen('php://temp', 'r+');
+        foreach ($data['rows'] as $cells) {
+            $values = array_map(fn ($c) => (string) ($c ?? ''), $cells);
+            if (array_filter($values, fn ($v) => trim($v) !== '') === []) {
+                continue; // skip fully empty spacer rows
+            }
+            fputcsv($stream, $values, ';', '"', '\\');
+        }
+        rewind($stream);
+
+        return (string) stream_get_contents($stream);
     }
 
     public function index(): View
@@ -46,11 +81,17 @@ class HvacImportController extends Controller
     public function preview(Request $request, HvacCsvImporter $importer): View|RedirectResponse
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:' . self::maxUploadKb()],
+            'file' => ['required', 'file', 'extensions:csv,txt,xlsx', 'max:' . self::maxUploadKb()],
             'mode' => ['required', 'in:create_and_update,create_only,update_only'],
         ], self::uploadMessages());
 
-        $parsed = $importer->parse((string) file_get_contents($request->file('file')->getRealPath()));
+        try {
+            $contents = $this->contentsAsCsv($request);
+        } catch (XlsxReadException $e) {
+            return back()->withErrors(['file' => $e->getMessage()]);
+        }
+
+        $parsed = $importer->parse($contents);
 
         if ($parsed['rows'] === []) {
             return back()->withErrors(['file' => implode(' ', $parsed['global_errors']) ?: 'Het bestand kon niet gelezen worden.']);
@@ -127,10 +168,16 @@ class HvacImportController extends Controller
     public function compatPreview(Request $request, HvacCompatibilityCsvImporter $importer): View|RedirectResponse
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:' . self::maxUploadKb()],
+            'file' => ['required', 'file', 'extensions:csv,txt,xlsx', 'max:' . self::maxUploadKb()],
         ], self::uploadMessages());
 
-        $parsed = $importer->parse((string) file_get_contents($request->file('file')->getRealPath()));
+        try {
+            $contents = $this->contentsAsCsv($request);
+        } catch (XlsxReadException $e) {
+            return back()->withErrors(['compat_file' => $e->getMessage()]);
+        }
+
+        $parsed = $importer->parse($contents);
 
         if ($parsed['rows'] === []) {
             return back()->withErrors(['compat_file' => implode(' ', $parsed['global_errors']) ?: 'Het bestand kon niet gelezen worden.']);

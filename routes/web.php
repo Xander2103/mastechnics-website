@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BlockedEmailController as AdminBlockedEmailContro
 use App\Http\Controllers\Admin\HvacBrandController;
 use App\Http\Controllers\Admin\HvacCalculationController;
 use App\Http\Controllers\Admin\HvacCompatibilityController;
+use App\Http\Controllers\Admin\HvacGuidedImportController;
 use App\Http\Controllers\Admin\HvacImportController;
 use App\Http\Controllers\Admin\HvacProductController;
 use App\Http\Controllers\Admin\HvacRuleController;
@@ -184,6 +185,33 @@ Route::middleware('admin')
             ->name('hvac.import.compat.confirm');
         Route::get('/hvac/import/compat/template', [HvacImportController::class, 'compatTemplate'])
             ->name('hvac.import.compat.template');
+
+        // ── Guided mapping import (CSV/XLSX with arbitrary layouts) ──────────
+        Route::post('/hvac/import/guided', [HvacGuidedImportController::class, 'upload'])
+            ->name('hvac.import.guided.upload');
+        Route::get('/hvac/import/guided/{token}', [HvacGuidedImportController::class, 'step'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.step');
+        Route::post('/hvac/import/guided/{token}/sheet', [HvacGuidedImportController::class, 'chooseSheet'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.sheet');
+        Route::post('/hvac/import/guided/{token}/header', [HvacGuidedImportController::class, 'chooseHeader'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.header');
+        Route::post('/hvac/import/guided/{token}/mapping', [HvacGuidedImportController::class, 'saveMapping'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.mapping');
+        Route::post('/hvac/import/guided/{token}/confirm', [HvacGuidedImportController::class, 'confirm'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.confirm');
+        Route::post('/hvac/import/guided/{token}/back', [HvacGuidedImportController::class, 'backTo'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.back');
+        Route::post('/hvac/import/guided/{token}/cancel', [HvacGuidedImportController::class, 'cancel'])
+            ->where('token', '[A-Za-z0-9]{40}')
+            ->name('hvac.import.guided.cancel');
+        Route::patch('/hvac/import/profiles/{profile}/toggle', [HvacGuidedImportController::class, 'toggleProfile'])
+            ->name('hvac.import.profiles.toggle');
 
         Route::get('/blocked-emails', [AdminBlockedEmailController::class, 'index'])
             ->name('blocked-emails.index');

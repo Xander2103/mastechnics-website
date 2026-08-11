@@ -6,8 +6,11 @@
 --}}
 @php
     $hvacCalculation = $customerRequest->hvacCalculations()
-        ->with(['ruleSet', 'overrides', 'recommendations' => fn ($q) => $q->whereNotIn('status', ['superseded'])->with('items.product')])
+        ->with(['ruleSet', 'overrides', 'recommendations' => fn ($q) => $q->whereNotIn('status', ['superseded'])->with(['items.product', 'calculation'])])
         ->first();
+    // One readiness instance for the whole panel so the per-rule-set
+    // validation lookup is memoized across the options.
+    $hvacReadiness = app(\App\Services\Hvac\HvacRecommendationReadiness::class);
 
     $hvacStatusLabels = [
         'draft'         => 'Concept — klaar voor beoordeling',
@@ -72,6 +75,7 @@
 .hvac-price-summary { display: grid; grid-template-columns: auto auto; gap: 0.15rem 1.5rem; width: fit-content; font-size: 0.88rem; margin-top: 0.6rem; }
 .hvac-price-summary .is-total { font-weight: 700; }
 .hvac-margin { color: #166534; font-size: 0.82rem; }
+.hvac-margin.is-negative { color: #b91c1c; font-weight: 700; }
 .hvac-inline-form { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.4rem; }
 .hvac-inline-form input, .hvac-inline-form select { padding: 0.3rem 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.82rem; }
 .hvac-item-row td { font-size: 0.84rem; }
@@ -456,7 +460,7 @@
                     $internalCost = $purchaseTotal
                         + (float) $recommendation->labor_total_excl_vat
                         + (float) $recommendation->travel_total_excl_vat;
-                    $readinessEval = app(\App\Services\Hvac\HvacRecommendationReadiness::class)->evaluate($recommendation);
+                    $readinessEval = $hvacReadiness->evaluate($recommendation);
                 @endphp
                 <div class="hvac-option">
                     <div class="hvac-option-header">
@@ -573,7 +577,7 @@
 
                     @if ($aiExplanation)
                         <div class="hvac-disclaimer" style="background:#eef6ff;border-color:#bfdbfe;color:#1e3a8a;">
-                            <strong>Gevalideerde AI-uitleg ({{ strtoupper($requestLocale) }}):</strong> {{ $aiExplanation }}
+                            <strong>AI-uitleg ({{ strtoupper($requestLocale) }}) — technisch gecontroleerd, inhoud zelf nalezen:</strong> {{ $aiExplanation }}
                         </div>
                     @endif
 
@@ -594,8 +598,12 @@
                         <span>Btw ({{ number_format($recommendation->vat_rate, 0) }}%)</span><span>€ {{ number_format($recommendation->vat_amount, 2, ',', '.') }}</span>
                         <span class="is-total">Totaal incl. btw</span><span class="is-total">€ {{ number_format($recommendation->total_incl_vat, 2, ',', '.') }}</span>
                         @if ($recommendation->margin_amount !== null)
-                            <span class="hvac-margin">Marge</span>
-                            <span class="hvac-margin">€ {{ number_format($recommendation->margin_amount, 2, ',', '.') }} ({{ $recommendation->margin_percentage }}%)</span>
+                            @php $marginNegative = $recommendation->margin_amount < 0; @endphp
+                            <span class="hvac-margin {{ $marginNegative ? 'is-negative' : '' }}">Marge</span>
+                            <span class="hvac-margin {{ $marginNegative ? 'is-negative' : '' }}">
+                                € {{ number_format($recommendation->margin_amount, 2, ',', '.') }} ({{ $recommendation->margin_percentage }}%)
+                                @if ($marginNegative) — NEGATIEF: verkoopprijs dekt de kosten niet @endif
+                            </span>
                         @else
                             <span class="hvac-margin">Marge</span><span class="hvac-margin">onvolledig — aankoopprijzen ontbreken</span>
                         @endif

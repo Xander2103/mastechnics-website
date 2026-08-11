@@ -300,10 +300,11 @@ class HvacCsvImporter
 
                 $data = $row['data'];
 
-                $supplier = HvacSupplier::firstOrCreate(
-                    ['name' => $data['supplier']],
-                    ['is_active' => true]
-                );
+                // Case-insensitive supplier identity — "Airco NV" and
+                // "AIRCO NV" must never become two suppliers (which would let
+                // the same SKU exist twice as separate products).
+                $supplier = HvacSupplier::whereRaw('LOWER(name) = ?', [strtolower($data['supplier'])])->first()
+                    ?? HvacSupplier::create(['name' => $data['supplier'], 'is_active' => true]);
                 $brand = HvacBrand::firstOrCreate(
                     ['slug' => Str::slug($data['brand'])],
                     ['name' => $data['brand'], 'is_active' => true]

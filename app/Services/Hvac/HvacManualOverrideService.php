@@ -34,6 +34,12 @@ class HvacManualOverrideService
             if ($saleUnitPrice !== null && $saleUnitPrice !== $item->sale_unit_price) {
                 $this->log($recommendation, "item:{$item->id}:sale_unit_price", (string) $item->sale_unit_price, (string) $saleUnitPrice, $reason, $adminEmail);
                 $item->sale_unit_price = $saleUnitPrice;
+
+                // A manually set price resolves a missing catalog price — the
+                // readiness gate must be able to clear (audited above).
+                if (($item->metadata['price_source'] ?? '') === 'missing' && $saleUnitPrice > 0) {
+                    $item->metadata = array_merge($item->metadata ?? [], ['price_source' => 'manual_override']);
+                }
             }
 
             $item->line_total = round($item->quantity * $item->sale_unit_price, 2);
@@ -74,6 +80,11 @@ class HvacManualOverrideService
     ): HvacRecommendationItem {
         if (! $product->is_active) {
             throw new \InvalidArgumentException('Alleen actieve catalogusproducten kunnen gekozen worden.');
+        }
+        if (! HvacProduct::selectable()->whereKey($product->id)->exists()) {
+            throw new \InvalidArgumentException(
+                'Dit product zit alleen nog in gearchiveerde productlijsten en kan niet gekozen worden voor nieuwe aanbevelingen.'
+            );
         }
 
         return DB::transaction(function () use ($item, $product, $reason, $adminEmail) {

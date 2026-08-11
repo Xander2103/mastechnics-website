@@ -72,9 +72,16 @@ class LaborEstimator
             ];
         }
 
-        $totalHours = round(array_sum(array_column($lines, 'hours')), 2);
-        $rate = (float) ($labor['hourly_rate_excl_vat'] ?? 65.0);
-        $travel = (float) ($labor['travel_flat_excl_vat'] ?? 35.0);
+        // Defensive floor: a mis-seeded rule set must never produce negative
+        // hours/costs that would silently reduce a quote.
+        $lines = array_map(function (array $line): array {
+            $line['hours'] = max(0.0, (float) $line['hours']);
+
+            return $line;
+        }, $lines);
+        $totalHours = max(0.0, round(array_sum(array_column($lines, 'hours')), 2));
+        $rate = max(0.0, (float) ($labor['hourly_rate_excl_vat'] ?? 65.0));
+        $travel = max(0.0, (float) ($labor['travel_flat_excl_vat'] ?? 35.0));
 
         $warnings[] = [
             'code'    => 'labor_rates_not_validated',

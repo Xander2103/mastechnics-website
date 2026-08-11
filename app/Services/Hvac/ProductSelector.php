@@ -80,7 +80,7 @@ class ProductSelector
         $candidates = [];
 
         // 1. Real single-split sets (compatibility guaranteed by the product).
-        $sets = HvacProduct::active()
+        $sets = HvacProduct::selectable()
             ->where('product_type', 'single_split_set')
             ->whereNotNull('cooling_capacity_kw')
             ->where('cooling_capacity_kw', '>=', $loadKw)
@@ -93,7 +93,7 @@ class ProductSelector
         }
 
         // 2. Indoor + outdoor pairs joined via explicit compatibility rows.
-        $indoors = HvacProduct::active()
+        $indoors = HvacProduct::selectable()
             ->where('product_type', 'indoor_unit')
             ->whereNotNull('cooling_capacity_kw')
             ->where('cooling_capacity_kw', '>=', $loadKw)
@@ -101,12 +101,16 @@ class ProductSelector
             ->with('brand')
             ->get();
 
+        // One query for all indoor units instead of one per unit.
+        $linksByIndoor = HvacProductCompatibility::whereIn('compatible_product_id', $indoors->pluck('id'))
+            ->where('compatibility_type', 'indoor_outdoor')
+            ->where('is_active', true)
+            ->with('parent.brand')
+            ->get()
+            ->groupBy('compatible_product_id');
+
         foreach ($indoors as $indoor) {
-            $links = HvacProductCompatibility::where('compatible_product_id', $indoor->id)
-                ->where('compatibility_type', 'indoor_outdoor')
-                ->where('is_active', true)
-                ->with('parent.brand')
-                ->get();
+            $links = $linksByIndoor->get($indoor->id, collect());
 
             if ($links->isEmpty()) {
                 $candidates[] = [
@@ -140,7 +144,32 @@ class ProductSelector
             ];
         }
 
+        $warnings = array_merge($warnings, $this->missingCapacityWarnings(['single_split_set', 'indoor_unit']));
+
         return ['candidates' => $this->rank($candidates), 'warnings' => $warnings];
+    }
+
+    /**
+     * Units without a cooling capacity are invisible to the selection queries;
+     * say so instead of silently pretending the catalog is smaller.
+     *
+     * @param string[] $types
+     */
+    private function missingCapacityWarnings(array $types): array
+    {
+        $count = HvacProduct::selectable()
+            ->whereIn('product_type', $types)
+            ->whereNull('cooling_capacity_kw')
+            ->count();
+
+        if ($count === 0) {
+            return [];
+        }
+
+        return [[
+            'code'    => 'products_without_capacity_skipped',
+            'message' => "{$count} actieve unit(s) in de catalogus hebben geen koelvermogen en konden niet meegenomen worden — vul het vermogen aan.",
+        ]];
     }
 
     // ── Multi split ───────────────────────────────────────────────────────────
@@ -165,7 +194,7 @@ class ProductSelector
             $loadKw = $this->effectiveLoadKw($room);
             $maxKw = (float) $classKw * (float) ($rules['capacity_match']['max_oversize_factor'] ?? 1.30);
 
-            $units = HvacProduct::active()
+            $units = HvacProduct::selectable()
                 ->where('product_type', 'indoor_unit')
                 ->whereNotNull('cooling_capacity_kw')
                 ->where('cooling_capacity_kw', '>=', $loadKw)
@@ -216,6 +245,8 @@ class ProductSelector
             ];
         }
 
+        $warnings = array_merge($warnings, $this->missingCapacityWarnings(['indoor_unit', 'multi_split_outdoor']));
+
         return ['candidates' => $this->rank($candidates), 'warnings' => $warnings];
     }
 
@@ -235,7 +266,7 @@ class ProductSelector
             $maxRise = max($maxRise, (float) $pipe['vertical_rise_m']);
         }
 
-        $outdoors = HvacProduct::active()
+        $outdoors = HvacProduct::selectable()
             ->where('product_type', 'multi_split_outdoor')
             ->where(function ($q) use ($indoorCount) {
                 $q->whereNull('maximum_connected_indoor_units')
@@ -269,14 +300,37 @@ class ProductSelector
                 continue;
             }
 
-            // Connected-capacity window (manufacturer connected-ratio rules).
-            if ($outdoor->minimum_capacity_kw !== null && $sumNominalKw < $outdoor->minimum_capacity_kw) {
+            // Per-indoor-model unit limit from the manufacturer compatibility
+            // row (e.g. "max 2× this cassette on this outdoor").
+            $linkByIndoor = $links->keyBy('compatible_product_id');
+            $modelCounts = array_count_values($indoorIds);
+            $unitLimitExceeded = false;
+            foreach ($modelCounts as $indoorId => $countOfModel) {
+                $link = $linkByIndoor[$indoorId] ?? null;
+                if ($link?->maximum_units !== null && $countOfModel > $link->maximum_units) {
+                    $unitLimitExceeded = true;
+                    break;
+                }
+            }
+            if ($unitLimitExceeded) {
                 continue;
             }
-            if ($outdoor->maximum_capacity_kw !== null && $sumNominalKw > $outdoor->maximum_capacity_kw) {
+
+            // Connected-capacity window: the manufacturer's connected-ratio
+            // rules live on the COMPATIBILITY rows (imported sheets); the
+            // outdoor's own min/max capacity columns are only a fallback.
+            $linkMins = $links->pluck('minimum_connected_capacity_kw')->filter();
+            $linkMaxs = $links->pluck('maximum_connected_capacity_kw')->filter();
+            $minConnectedKw = $linkMins->isNotEmpty() ? (float) $linkMins->max() : $outdoor->minimum_capacity_kw;
+            $maxConnectedKw = $linkMaxs->isNotEmpty() ? (float) $linkMaxs->min() : $outdoor->maximum_capacity_kw;
+
+            if ($minConnectedKw !== null && $sumNominalKw < (float) $minConnectedKw) {
                 continue;
             }
-            if ($outdoor->maximum_capacity_kw === null || $outdoor->minimum_capacity_kw === null) {
+            if ($maxConnectedKw !== null && $sumNominalKw > (float) $maxConnectedKw) {
+                continue;
+            }
+            if ($minConnectedKw === null || $maxConnectedKw === null) {
                 $valid = false;
                 $candidateWarnings[] = [
                     'code'    => 'connected_capacity_unknown',
@@ -322,7 +376,7 @@ class ProductSelector
                     'outdoor_capacity_kw'  => $outdoor->cooling_capacity_kw,
                 ],
                 'checks'            => $checks,
-                'warnings'          => array_merge($candidateWarnings, $priceInfo['warnings']),
+                'warnings'          => array_merge($candidateWarnings, $priceInfo['warnings'], $this->productReviewWarnings($products)),
             ];
         }
 
@@ -382,7 +436,7 @@ class ProductSelector
             'compatibility'    => $compatibility,
             'valid'            => $valid && ! $priceInfo['missing'],
             'checks'           => $checks,
-            'warnings'         => array_merge($warnings, $priceInfo['warnings']),
+            'warnings'         => array_merge($warnings, $priceInfo['warnings'], $this->productReviewWarnings($productData)),
         ];
     }
 
@@ -440,6 +494,8 @@ class ProductSelector
             'required_breaker_a'  => $product->required_breaker_a,
             'required_cable'      => $product->required_cable,
             'supported_voltage'   => $product->supported_voltage,
+            'supported_phase'     => $product->supported_phase,
+            'needs_review'        => $product->needsImportReview(),
             'for_room'            => $forRoom,
         ];
     }
@@ -450,12 +506,19 @@ class ProductSelector
         $missing = false;
         $warnings = [];
 
+        $estimated = false;
+
         foreach ($productData as $p) {
             if ($p['sale_price'] !== null) {
                 $total += (float) $p['sale_price'];
             } elseif ($p['purchase_price'] !== null) {
-                // Marked for the pricing service; not yet a price.
-                $missing = false;
+                // No sale price yet: count the purchase price so ranking and
+                // budget/premium tiers are not corrupted by a "free" unit; the
+                // pricing service computes the real sale price later. Never
+                // reset $missing here — another product in this candidate may
+                // already lack every price.
+                $total += (float) $p['purchase_price'];
+                $estimated = true;
             } else {
                 $missing = true;
                 $warnings[] = [
@@ -465,7 +528,46 @@ class ProductSelector
             }
         }
 
+        if ($estimated && ! $missing) {
+            $warnings[] = [
+                'code'    => 'price_partly_estimated',
+                'message' => 'Prijsvergelijking deels op aankoopprijs gebaseerd — definitieve verkoopprijs volgt uit de marge-instellingen.',
+            ];
+        }
+
         return ['total' => $missing ? null : round($total, 2), 'missing' => $missing, 'warnings' => $warnings];
+    }
+
+    /**
+     * Warnings the admin must see about the chosen products themselves:
+     * imported data that still needs review, and 400V/three-phase supply.
+     *
+     * @param array<int, array<string, mixed>> $productData
+     */
+    private function productReviewWarnings(array $productData): array
+    {
+        $warnings = [];
+
+        $review = array_values(array_filter($productData, fn ($p) => $p['needs_review'] ?? false));
+        if ($review !== []) {
+            $models = implode(', ', array_unique(array_column($review, 'model')));
+            $warnings[] = [
+                'code'    => 'imported_data_needs_review',
+                'message' => "Geïmporteerde gegevens nog te controleren voor: {$models} (afgeleid vermogen of onbekende prijssoort).",
+            ];
+        }
+
+        foreach ($productData as $p) {
+            $voltage = mb_strtolower((string) ($p['supported_voltage'] ?? ''));
+            if (str_contains($voltage, '400') || str_contains($voltage, 'tri') || str_contains($voltage, '3f')) {
+                $warnings[] = [
+                    'code'    => 'three_phase_supply_required',
+                    'message' => "{$p['model']} vereist {$p['supported_voltage']} — controleer de elektrische voeding van de woning.",
+                ];
+            }
+        }
+
+        return $warnings;
     }
 
     private function sortByPreference(Collection $products): Collection

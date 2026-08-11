@@ -297,7 +297,8 @@ class HvacRemediationTest extends TestCase
         $this->withSession($this->adminSession())
             ->get(route('admin.requests.show', $request))
             ->assertOk()
-            ->assertSee('Gevalideerde AI-uitleg')
+            ->assertSee('AI-uitleg')
+            ->assertSee('inhoud zelf nalezen')
             ->assertSee('Dit toestel past bij de berekende koellast van de slaapkamer.');
     }
 

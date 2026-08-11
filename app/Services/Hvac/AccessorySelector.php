@@ -165,7 +165,7 @@ class AccessorySelector
 
     private function cheapestCatalogProduct(string $type): ?HvacProduct
     {
-        return HvacProduct::active()
+        return HvacProduct::selectable()
             ->where('product_type', $type)
             ->where(function ($q) {
                 $q->whereNotNull('default_sale_price_excl_vat')

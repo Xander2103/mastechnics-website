@@ -142,6 +142,9 @@ class HvacCalculationController extends Controller
         HvacManualOverrideService $overrideService
     ): RedirectResponse {
         $this->guardScope($customerRequest, $recommendation);
+        if (! in_array($recommendation->status, ['draft', 'manual_review'], true)) {
+            return back()->with('success', 'hvac_not_editable');
+        }
 
         $data = $request->validate([
             'vat_rate' => ['required', 'numeric', 'in:6,21'],
@@ -165,6 +168,9 @@ class HvacCalculationController extends Controller
         HvacManualOverrideService $overrideService
     ): RedirectResponse {
         $this->guardItemScope($customerRequest, $item);
+        if (! in_array($item->recommendation->status, ['draft', 'manual_review'], true)) {
+            return back()->with('success', 'hvac_not_editable');
+        }
 
         $data = $request->validate([
             'quantity'        => ['nullable', 'numeric', 'min:0.01', 'max:9999'],
@@ -194,6 +200,9 @@ class HvacCalculationController extends Controller
         HvacManualOverrideService $overrideService
     ): RedirectResponse {
         $this->guardItemScope($customerRequest, $item);
+        if (! in_array($item->recommendation->status, ['draft', 'manual_review'], true)) {
+            return back()->with('success', 'hvac_not_editable');
+        }
 
         $data = $request->validate([
             'product_id' => ['required', 'integer', 'exists:hvac_products,id'],

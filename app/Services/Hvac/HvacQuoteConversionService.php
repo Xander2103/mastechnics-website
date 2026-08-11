@@ -26,6 +26,14 @@ class HvacQuoteConversionService
             throw new \DomainException('Alleen goedgekeurde opties kunnen omgezet worden naar een offerte.');
         }
 
+        // A recalculation supersedes the calculation this approval was based
+        // on — stale approvals must never become quotes.
+        if ($recommendation->calculation->status !== 'calculated') {
+            throw new \DomainException(
+                'Deze goedkeuring hoort bij een verouderde berekening. Voer de voorcalculatie opnieuw uit en keur opnieuw goed.'
+            );
+        }
+
         $customerRequest = $recommendation->calculation->customerRequest;
 
         if ($customerRequest->quote()->exists()) {

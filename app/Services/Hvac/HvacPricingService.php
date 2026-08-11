@@ -152,6 +152,12 @@ class HvacPricingService
                 'message' => 'Niet alle aankoopprijzen zijn gekend — de marge kan niet volledig berekend worden.',
             ];
         }
+        if (($margin['margin_amount'] ?? 0) < 0) {
+            $warnings[] = [
+                'code'    => 'negative_margin',
+                'message' => 'De marge is NEGATIEF: de verkoopprijs dekt de aankoopkosten niet. Controleer prijzen en kortingen vóór goedkeuring.',
+            ];
+        }
 
         return [
             'items'  => $items,

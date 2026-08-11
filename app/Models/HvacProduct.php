@@ -97,6 +97,25 @@ class HvacProduct extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Products the engine may pick for NEW recommendations: active, and not
+     * living exclusively in archived product lists. Manually created products
+     * (no list at all) stay selectable; historical references are unaffected.
+     */
+    public function scopeSelectable($query)
+    {
+        return $query->where('is_active', true)->where(function ($q) {
+            $q->whereDoesntHave('importCatalogs')
+                ->orWhereHas('importCatalogs', fn ($c) => $c->where('status', '!=', HvacImportCatalog::STATUS_ARCHIVED));
+        });
+    }
+
+    /** Import-time review flag (derived capacity, unknown price meaning, …). */
+    public function needsImportReview(): bool
+    {
+        return (bool) ($this->metadata['import']['needs_review'] ?? false);
+    }
+
     public function compatibilities(): HasMany
     {
         return $this->hasMany(HvacProductCompatibility::class, 'parent_product_id');

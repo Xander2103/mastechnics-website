@@ -5,9 +5,42 @@
     $logoDataUri = is_readable($logoPath)
         ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
         : null;
+
+    // The customer's language decides every label on the document.
+    $pdfLocale = in_array($customerRequest->locale, ['nl', 'fr', 'en'], true) ? $customerRequest->locale : 'nl';
+    $pdfStrings = [
+        'nl' => [
+            'quote' => 'Offerte', 'date' => 'Datum', 'from' => 'Van', 'to' => 'Aan',
+            'valid_until' => 'Geldig tot', 'items' => 'Offerteregels',
+            'description' => 'Omschrijving', 'quantity' => 'Aantal', 'price_excl' => 'Prijs excl.',
+            'vat_pct' => 'BTW%', 'total_excl' => 'Totaal excl.', 'total_incl' => 'Totaal incl.',
+            'subtotal_excl' => 'Subtotaal excl. BTW', 'vat' => 'BTW', 'grand_total' => 'Totaal incl. BTW',
+            'notes' => 'Opmerkingen', 'terms' => 'Voorwaarden',
+            'terms_text' => 'Deze offerte is geldig tot de vermelde datum. Prijzen zijn inclusief BTW waar aangegeven. Na akkoord plannen we samen een geschikt uitvoeringsmoment.',
+        ],
+        'fr' => [
+            'quote' => 'Devis', 'date' => 'Date', 'from' => 'De', 'to' => 'À',
+            'valid_until' => 'Valable jusqu\'au', 'items' => 'Lignes du devis',
+            'description' => 'Description', 'quantity' => 'Quantité', 'price_excl' => 'Prix HTVA',
+            'vat_pct' => 'TVA%', 'total_excl' => 'Total HTVA', 'total_incl' => 'Total TVAC',
+            'subtotal_excl' => 'Sous-total HTVA', 'vat' => 'TVA', 'grand_total' => 'Total TVAC',
+            'notes' => 'Remarques', 'terms' => 'Conditions',
+            'terms_text' => 'Ce devis est valable jusqu\'à la date indiquée. Les prix incluent la TVA lorsque cela est mentionné. Après accord, nous planifions ensemble un moment d\'exécution approprié.',
+        ],
+        'en' => [
+            'quote' => 'Quote', 'date' => 'Date', 'from' => 'From', 'to' => 'To',
+            'valid_until' => 'Valid until', 'items' => 'Quote lines',
+            'description' => 'Description', 'quantity' => 'Qty', 'price_excl' => 'Price excl.',
+            'vat_pct' => 'VAT%', 'total_excl' => 'Total excl.', 'total_incl' => 'Total incl.',
+            'subtotal_excl' => 'Subtotal excl. VAT', 'vat' => 'VAT', 'grand_total' => 'Total incl. VAT',
+            'notes' => 'Notes', 'terms' => 'Terms',
+            'terms_text' => 'This quote is valid until the date shown. Prices include VAT where indicated. After approval we will schedule a suitable installation moment together.',
+        ],
+    ];
+    $pdfT = $pdfStrings[$pdfLocale];
 @endphp
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="{{ $pdfLocale }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -393,10 +426,10 @@
                 </div>
             </div>
             <div class="header-doc-info">
-                <div class="header-doc-label">Offerte</div>
+                <div class="header-doc-label">{{ $pdfT['quote'] }}</div>
                 <div class="header-doc-number">{{ $quote->quote_number ?? '—' }}</div>
                 <div class="header-doc-date">
-                    Datum: {{ $quote->created_at->format('d/m/Y') }}
+                    {{ $pdfT['date'] }}: {{ $quote->created_at->format('d/m/Y') }}
                 </div>
             </div>
         </div>
@@ -407,7 +440,7 @@
         {{-- ── Company + Customer address row ─────────── --}}
         <div class="address-row">
             <div class="address-cell">
-                <div class="address-label">Van</div>
+                <div class="address-label">{{ $pdfT['from'] }}</div>
                 <div class="address-value">
                     <strong>MAS Technics</strong><br>
                     {{ config('site.contact.phone_display') }}<br>
@@ -415,7 +448,7 @@
                 </div>
             </div>
             <div class="address-cell" style="padding-left: 24px;">
-                <div class="address-label">Aan</div>
+                <div class="address-label">{{ $pdfT['to'] }}</div>
                 <div class="address-value">
                     <strong>{{ $customerRequest->customer_name }}</strong><br>
                     @if ($customerRequest->customer_email)
@@ -448,13 +481,13 @@
                     @if ($quote->title)
                         <div class="quote-title-text">{{ $quote->title }}</div>
                     @else
-                        <div class="quote-title-text">Offerte {{ $quote->quote_number }}</div>
+                        <div class="quote-title-text">{{ $pdfT['quote'] }} {{ $quote->quote_number }}</div>
                     @endif
                     @php
                         $serviceCatKey = $customerRequest->service_category;
                         $serviceCats = collect(config('request-flow.service_categories', []));
                         $catLabel = $serviceCats->firstWhere('value', $serviceCatKey);
-                        $catText  = $catLabel['labels']['nl'] ?? $serviceCatKey;
+                        $catText  = $catLabel['labels'][$pdfLocale] ?? $catLabel['labels']['nl'] ?? $serviceCatKey;
                     @endphp
                     @if ($catText)
                         <div style="font-size:10px; color:#475569; margin-top:3px;">{{ $catText }}</div>
@@ -462,7 +495,7 @@
                 </div>
                 @if ($quote->valid_until)
                     <div class="quote-validity-cell">
-                        <div class="quote-validity-text">Geldig tot</div>
+                        <div class="quote-validity-text">{{ $pdfT['valid_until'] }}</div>
                         <div class="quote-validity-date">{{ $quote->valid_until->format('d/m/Y') }}</div>
                     </div>
                 @endif
@@ -470,18 +503,18 @@
         @endif
 
         {{-- ── Items table ──────────────────────────────── --}}
-        <div class="items-section-label">Offerteregels</div>
+        <div class="items-section-label">{{ $pdfT['items'] }}</div>
 
         <table class="items-table">
             <thead>
                 <tr>
                     <th style="width: 30px;">#</th>
-                    <th>Omschrijving</th>
-                    <th class="right" style="width: 55px;">Aantal</th>
-                    <th class="right" style="width: 90px;">Prijs excl.</th>
-                    <th class="right" style="width: 50px;">BTW%</th>
-                    <th class="right" style="width: 90px;">Totaal excl.</th>
-                    <th class="right" style="width: 90px;">Totaal incl.</th>
+                    <th>{{ $pdfT['description'] }}</th>
+                    <th class="right" style="width: 55px;">{{ $pdfT['quantity'] }}</th>
+                    <th class="right" style="width: 90px;">{{ $pdfT['price_excl'] }}</th>
+                    <th class="right" style="width: 50px;">{{ $pdfT['vat_pct'] }}</th>
+                    <th class="right" style="width: 90px;">{{ $pdfT['total_excl'] }}</th>
+                    <th class="right" style="width: 90px;">{{ $pdfT['total_incl'] }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -505,15 +538,15 @@
             <div class="totals-box">
                 <table class="totals-table">
                     <tr>
-                        <td>Subtotaal excl. BTW</td>
+                        <td>{{ $pdfT['subtotal_excl'] }}</td>
                         <td>€ {{ number_format((float)$quote->amount_excl_vat, 2, ',', '.') }}</td>
                     </tr>
                     <tr>
-                        <td>BTW</td>
+                        <td>{{ $pdfT['vat'] }}</td>
                         <td>€ {{ number_format((float)$quote->amount_vat, 2, ',', '.') }}</td>
                     </tr>
                     <tr class="total-grand">
-                        <td>Totaal incl. BTW</td>
+                        <td>{{ $pdfT['grand_total'] }}</td>
                         <td>€ {{ number_format((float)$quote->amount_incl_vat, 2, ',', '.') }}</td>
                     </tr>
                 </table>
@@ -523,18 +556,15 @@
         {{-- ── Description / notes ─────────────────────── --}}
         @if ($quote->description)
             <div class="notes-section">
-                <div class="notes-label">Opmerkingen</div>
+                <div class="notes-label">{{ $pdfT['notes'] }}</div>
                 <div class="notes-text">{{ $quote->description }}</div>
             </div>
         @endif
 
         {{-- ── Terms ────────────────────────────────────── --}}
         <div class="terms-section">
-            <div class="terms-label">Voorwaarden</div>
-            <div class="terms-text">
-                Deze offerte is geldig tot de vermelde datum. Prijzen zijn inclusief BTW waar aangegeven.
-                Na akkoord plannen we samen een geschikt uitvoeringsmoment.
-            </div>
+            <div class="terms-label">{{ $pdfT['terms'] }}</div>
+            <div class="terms-text">{{ $pdfT['terms_text'] }}</div>
         </div>
 
             @if (!empty(config('site.contact.company_number')))

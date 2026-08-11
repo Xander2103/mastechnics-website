@@ -68,8 +68,15 @@ class HvacRecommendationReadiness
         ];
     }
 
+    /** @var array<int, bool> per-request memo — the panel calls this once per option */
+    private array $rulesValidatedMemo = [];
+
     public function criticalRulesValidated(int $ruleSetId): bool
     {
+        if (array_key_exists($ruleSetId, $this->rulesValidatedMemo)) {
+            return $this->rulesValidatedMemo[$ruleSetId];
+        }
+
         $validated = HvacRuleValidation::where('hvac_rule_set_id', $ruleSetId)
             ->where('status', 'validated')
             ->pluck('rule_key')
@@ -84,7 +91,7 @@ class HvacRecommendationReadiness
             fn (string $key) => HvacRuleCatalog::value($configuration, $key) !== null
         );
 
-        return array_diff($applicable, $validated) === [];
+        return $this->rulesValidatedMemo[$ruleSetId] = array_diff($applicable, $validated) === [];
     }
 
     private function stateLabel(string $status, bool $technicalOk, bool $priceOk, bool $ready, bool $demo): string

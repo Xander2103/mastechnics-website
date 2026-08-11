@@ -40,9 +40,9 @@ class QuoteController extends Controller
             'valid_until'                     => ['nullable', 'date'],
             'items'                           => ['required', 'array', 'min:1'],
             'items.*.description'             => ['required', 'string', 'max:500'],
-            'items.*.quantity'                => ['required', 'numeric', 'min:0'],
-            'items.*.unit_price_excl_vat'     => ['required', 'numeric', 'min:0'],
-            'items.*.vat_rate'                => ['required', 'numeric', 'min:0'],
+            'items.*.quantity'                => ['required', 'numeric', 'min:0', 'max:9999'],
+            'items.*.unit_price_excl_vat'     => ['required', 'numeric', 'min:0', 'max:1000000'],
+            'items.*.vat_rate'                => ['required', 'numeric', 'in:0,6,12,21'],
         ]);
 
         $existingQuote = $customerRequest->quote;

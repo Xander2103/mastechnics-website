@@ -81,7 +81,8 @@ class HvacCsvImporter
             return ['rows' => [], 'global_errors' => ['Het bestand bevat geen datarijen.']];
         }
 
-        $delimiter = substr_count($lines[0], ';') > substr_count($lines[0], ',') ? ';' : ',';
+        $detected = (new Import\CsvDelimiterDetector())->detect(implode("\n", array_slice($lines, 0, 25)));
+        $delimiter = $detected['delimiter'] ?? ';';
         $header = array_map(fn ($h) => strtolower(trim($h)), str_getcsv($lines[0], $delimiter));
 
         $missing = array_diff(self::REQUIRED_COLUMNS, $header);

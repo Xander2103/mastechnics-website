@@ -131,6 +131,19 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   `docs/hvac/architecture.md` and `docs/hvac/rules-to-validate.md`.
   Committed locally, **not pushed**.
 
+- **Sprint 16 (acceptance + hardening) ✅** — Productlijsten-audit (27 items,
+  5 gaps gedicht: template-import → catalogs, capaciteit/compat-filters,
+  confirm toont gewijzigd/ongewijzigd/ontbrekend, Bron toont profiel).
+  E2E-scenario's A–H als tests (`HvacE2eAcceptanceTest`). Hardening:
+  post-approval mutatie geblokkeerd, stale-approval conversie geblokkeerd,
+  ProductSelector prijsreset-bug, connected-capacity van compat-rijen
+  (+ maximum_units), archived-only producten niet meer selecteerbaar
+  (`scopeSelectable`), price_source override-deadlock, supplier
+  case-insensitive, negatieve marge rood + warning, needs_review/400V
+  zichtbaar in engine-warnings, quote-editor bounds (btw in 0/6/12/21),
+  PDF-chrome gelokaliseerd (nl/fr/en), labor clamp, perf (memoized
+  rule-validation, batched compat query). v2 blijft draft. Zie
+  `docs/hvac/e2e-acceptance-report.md`. Committed lokaal, **niet gepusht**.
 - **Sprint 15 (import wizard UX + productlijsten) ✅** — Guided import rebuilt
   as a 5-step Dutch wizard (Bestand → Producten → Controle → Importeren →
   Resultaat): robust delimiter detection (`CsvDelimiterDetector`: ; , tab |,

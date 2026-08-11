@@ -4,8 +4,9 @@ Doorloop deze stappen vóór het eerste echte gebruik en opnieuw bij elke
 nieuwe leverancierscatalogus. Dezelfde checklist staat in het beheer onder
 **HVAC-producten → Checklist**.
 
-1. ☐ Importeer de leverancierscatalogus (Admin → HVAC-producten → Import), producten eerst.
-2. ☐ Controleer het importrapport; los alle rijfouten op en importeer opnieuw indien nodig.
+1. ☐ Importeer de leverancierscatalogus (Admin → Productbestand importeren): upload het bestand, kies de productgroepen (bv. alleen "Climatiseurs"), beantwoord de prijsvraag (bruto/netto/verkoop) en geef de productlijst een naam.
+2. ☐ Controleer het importresultaat en de lijst onder HVAC-producten → Productlijsten; open producten met de markering "controleren" (afgeleid vermogen of onbekende prijssoort) en bevestig of corrigeer ze.
+2b. ☐ Bewaar de leveranciersinstellingen ("Ja, onthouden") zodat het volgende bestand automatisch herkend wordt.
 3. ☐ Importeer of registreer de fabrikantcompatibiliteit (compatibiliteits-CSV of per product).
 4. ☐ Valideer de HVAC-berekeningsregels (Admin → HVAC-producten → Berekeningsregels) — alle regels met de markering KRITIEK moeten gevalideerd zijn.
 5. ☐ Open een test-airco-aanvraag (Admin → Aanvragen).
@@ -17,7 +18,9 @@ nieuwe leverancierscatalogus. Dezelfde checklist staat in het beheer onder
 11. ☐ Controleer de toebehoren (reden, hoeveelheid, prijs).
 12. ☐ Controleer de arbeidsuren en het uurtarief.
 13. ☐ Controleer de aankoopprijzen (alleen zichtbaar in het beheer).
-14. ☐ Controleer verkoopprijzen, btw-tarief en marge.
+14. ☐ Controleer verkoopprijzen, btw-tarief en marge — een NEGATIEVE marge wordt in het rood getoond en mag nooit zonder reden goedgekeurd worden.
+14b. ☐ Let op: na goedkeuring zijn prijzen/btw/producten vergrendeld; na een herberekening moet u opnieuw goedkeuren.
+14c. ☐ Verouderde leverancierslijsten archiveert u onder Productlijsten — producten die alléén daar in zitten worden niet meer voorgesteld.
 15. ☐ Keur de gekozen optie goed ("Optie goedkeuren").
 16. ☐ Zet de goedgekeurde optie om naar een conceptofferte ("Omzetten naar offerte").
 17. ☐ Open en controleer de offerte-PDF volledig.

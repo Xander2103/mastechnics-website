@@ -221,6 +221,30 @@ van de regelset waarmee ze gemaakt is. Daardoor geldt:
 
 [SCREENSHOT 4 — Productcatalogus met datakwaliteitskaarten bovenaan]
 
+### Productlijsten (standaardweergave)
+
+**HVAC-producten** opent op **Productlijsten**: één kaart per geïmporteerde
+leverancierslijst (naam, leverancier, aantal producten, hoeveel actief en
+hoeveel "controleren", laatste import). Klik **Openen** om alleen de
+producten van die lijst te zien, met filters (type, merk, koelvermogen,
+status, zonder prijs, zonder compatibiliteit, te controleren) en de
+**importgeschiedenis** van die lijst. Via de tab **Alle producten** blijft
+het volledige overzicht beschikbaar; **Merken** en **Leveranciers** hebben
+hun eigen tabs.
+
+- **Hernoemen** geeft een lijst een vriendelijke naam ("Fujitsu 2026").
+- **Archiveren** verbergt een verouderde lijst. Alles blijft leesbaar en
+  historiek blijft intact, maar producten die *alleen* nog in gearchiveerde
+  lijsten zitten worden **niet meer voorgesteld** in nieuwe aanbevelingen.
+- **Bestaande lijst bijwerken**: importeer het nieuwe bestand en kies bij de
+  bevestiging "Bestaande productlijst bijwerken". U ziet vooraf hoeveel
+  producten nieuw, gewijzigd, ongewijzigd of niet meer in het bestand zijn.
+  Er wordt **nooit** iets automatisch verwijderd; ontbrekende producten
+  inactief zetten kan alleen via het aparte vinkje.
+- **Bron per product**: op de productpagina toont het blok "Bron" uit welke
+  lijst, welk bestand, welke rij en met welke leveranciersinstellingen het
+  product geïmporteerd werd, en wat de prijs in het bronbestand betekende.
+
 Elk product heeft: merk, leverancier, SKU (artikelcode), model, type
 (binnenunit, buitenunit, single-split-set, multi-split-buitenunit of een
 toebehorentype), koelvermogen, prijzen, voorraad, levertijd, geluidsniveau,
@@ -250,13 +274,43 @@ onvolledige producten te zien.
 
 ---
 
-## 8. Producten importeren via CSV
+## 8. Producten importeren
 
 [SCREENSHOT 5 — Importpagina met voorbeeldweergave]
 
-**Stappen:**
+### 8a. Leveranciersbestand importeren (aanbevolen)
 
-1. Ga naar **HVAC-producten → Import** en download het **CSV-sjabloon**.
+U hoeft het bestand van uw leverancier **niet** aan te passen — upload het
+gewoon (CSV of Excel, ook grote prijslijsten met tienduizenden rijen):
+
+1. **Bestand** — kies het bestand, vul eventueel de leverancier in en klik
+   **Bestand analyseren**. Het systeem herkent zelf het bestandstype, de
+   kolommen en de kopregel; alleen als iets echt onduidelijk is krijgt u een
+   korte vraag.
+2. **Producten kiezen** — staat er meer in het bestand dan klimatisatie
+   (sanitair, verwarming…), dan kiest u welke productgroepen u wilt
+   importeren. Groepen die op airco lijken staan al aangevinkt; niets wordt
+   stilzwijgend uitgesloten.
+3. **Controle** — het systeem toont wat het herkend heeft (✓) en vraagt
+   alleen wat het niet zeker weet, zoals **wat de prijs betekent**
+   (brutoprijs / netto aankoopprijs / verkoopprijs / weet ik niet). Een
+   brutoprijs of onbekende prijs wordt bewaard, maar **nooit** gebruikt voor
+   automatische offertes.
+4. **Importeren** — geef de productlijst een naam (of werk een bestaande
+   lijst bij) en bevestig. Vóór deze klik wordt er niets bewaard.
+5. **Resultaat** — u ziet wat toegevoegd, bijgewerkt of overgeslagen is.
+   Kies **"Ja, onthouden"** zodat het volgende bestand van deze leverancier
+   automatisch herkend wordt en de stappen overslaat.
+
+Producten met de markering **"controleren"** (bv. vermogen afgeleid uit de
+productnaam) controleert u vóór u er offertes mee maakt.
+
+### 8b. Importeren met MAS-sjabloon (geavanceerd)
+
+Voor bestanden die exact ons sjabloon volgen (onder **Geavanceerd** op de
+importpagina):
+
+1. Download het **CSV-sjabloon**.
 2. Open het in Excel of een ander rekenblad.
 3. Vul de kolommen in; **verander de kopregel niet**.
 4. Verwijder de twee TEST-voorbeeldrijen.

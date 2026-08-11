@@ -28,6 +28,14 @@ class HvacCatalogController extends Controller
             ->when($request->boolean('missing_price'), fn ($q) => $q
                 ->whereNull('default_sale_price_excl_vat')->whereNull('purchase_price_excl_vat'))
             ->when($request->boolean('needs_review'), fn ($q) => $q->where('metadata->import->needs_review', true))
+            ->when($request->filled('capacity_min'), fn ($q) => $q
+                ->where('cooling_capacity_kw', '>=', max(0, (float) $request->input('capacity_min'))))
+            ->when($request->filled('capacity_max'), fn ($q) => $q
+                ->where('cooling_capacity_kw', '<=', max(0, (float) $request->input('capacity_max'))))
+            ->when($request->boolean('missing_compat'), fn ($q) => $q
+                ->whereIn('product_type', ['indoor_unit', 'outdoor_unit', 'multi_split_outdoor'])
+                ->whereDoesntHave('compatibilities')
+                ->whereDoesntHave('reverseCompatibilities'))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%' . $request->string('q') . '%';
                 $q->where(fn ($sub) => $sub

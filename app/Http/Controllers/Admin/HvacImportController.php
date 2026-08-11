@@ -104,8 +104,9 @@ class HvacImportController extends Controller
 
         $token = Str::random(40);
         Cache::put("hvac-import:{$token}", [
-            'rows' => $parsed['rows'],
-            'mode' => $request->string('mode')->toString(),
+            'rows'     => $parsed['rows'],
+            'mode'     => $request->string('mode')->toString(),
+            'filename' => $request->file('file')->getClientOriginalName(),
         ], self::CACHE_TTL);
 
         $rows = collect($parsed['rows']);
@@ -133,7 +134,40 @@ class HvacImportController extends Controller
                 ->withErrors(['file' => 'De voorbereide import is verlopen. Upload het bestand opnieuw.']);
         }
 
-        $result = $importer->import($payload['rows'], $payload['mode']);
+        $filename = (string) ($payload['filename'] ?? 'sjabloonbestand.csv');
+
+        // Template imports belong in the Productlijsten overview too: link the
+        // written products to a per-file template catalog with run history.
+        $result = \Illuminate\Support\Facades\DB::transaction(function () use ($importer, $payload, $filename) {
+            $result = $importer->import($payload['rows'], $payload['mode'], ['source_file' => $filename]);
+
+            if ($result['product_ids'] !== []) {
+                $catalog = \App\Models\HvacImportCatalog::firstOrCreate(
+                    ['name' => 'MAS-sjabloon — ' . pathinfo($filename, PATHINFO_FILENAME)],
+                    ['source_type' => 'template', 'source_filename' => $filename]
+                );
+                $catalog->products()->syncWithoutDetaching(array_fill_keys(
+                    array_values($result['product_ids']),
+                    ['imported_at' => now()]
+                ));
+                \App\Models\HvacImportRun::create([
+                    'hvac_import_catalog_id' => $catalog->id,
+                    'created_count'          => $result['created'],
+                    'updated_count'          => $result['updated'],
+                    'skipped_count'          => $result['skipped'],
+                    'imported_by'            => (string) session('admin_user_email'),
+                    'source_filename'        => $filename,
+                ]);
+                $catalog->update([
+                    'product_count'   => $catalog->products()->count(),
+                    'imported_at'     => now(),
+                    'source_filename' => $filename,
+                    'imported_by'     => (string) session('admin_user_email'),
+                ]);
+            }
+
+            return $result;
+        });
 
         $errorRows = array_values(array_filter($payload['rows'], fn ($r) => $r['errors'] !== []));
         $reportToken = null;

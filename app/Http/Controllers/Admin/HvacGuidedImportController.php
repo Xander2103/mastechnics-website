@@ -910,18 +910,87 @@ class HvacGuidedImportController extends Controller
 
         $clean = $rows->filter(fn ($r) => $r['errors'] === []);
 
+        // Split "bijwerken" into genuinely changed vs unchanged, and show per
+        // existing list how many linked products are MISSING from this file —
+        // all before anything is written.
+        [$changedCount, $unchangedCount, $fileKeys] = $this->diffAgainstExisting($clean);
+        $catalogs = HvacImportCatalog::where('status', '!=', HvacImportCatalog::STATUS_ARCHIVED)
+            ->orderBy('name')->get()
+            ->each(function (HvacImportCatalog $catalog) use ($fileKeys): void {
+                $catalog->missing_count = $catalog->products()->with('supplier')->get(['hvac_products.id', 'sku', 'hvac_supplier_id'])
+                    ->filter(fn ($p) => ! isset($fileKeys[strtolower(($p->supplier?->name ?? '') . '|' . $p->sku)]))
+                    ->count();
+            });
+
         return view('admin.hvac.imports.guided.confirm', [
-            'token'        => $token,
-            'state'        => $state,
-            'totalRows'    => $rows->count(),
-            'createCount'  => $clean->where('action', 'create')->count(),
-            'updateCount'  => $clean->where('action', 'update')->count(),
-            'errorCount'   => $rows->count() - $clean->count(),
-            'reviewCount'  => $clean->filter(fn ($r) => $provenanceByLine[$r['line']]['needs_review'] ?? false)->count(),
-            'suggestedName' => $this->suggestCatalogName($state),
-            'catalogs'     => HvacImportCatalog::where('status', '!=', HvacImportCatalog::STATUS_ARCHIVED)
-                ->orderBy('name')->get(),
+            'token'          => $token,
+            'state'          => $state,
+            'totalRows'      => $rows->count(),
+            'createCount'    => $clean->where('action', 'create')->count(),
+            'updateCount'    => $clean->where('action', 'update')->count(),
+            'changedCount'   => $changedCount,
+            'unchangedCount' => $unchangedCount,
+            'errorCount'     => $rows->count() - $clean->count(),
+            'reviewCount'    => $clean->filter(fn ($r) => $provenanceByLine[$r['line']]['needs_review'] ?? false)->count(),
+            'suggestedName'  => $this->suggestCatalogName($state),
+            'catalogs'       => $catalogs,
         ]);
+    }
+
+    /**
+     * Compares update-action rows against the current products so the admin
+     * sees "gewijzigd" vs "ongewijzigd" before confirming.
+     *
+     * @return array{0: int, 1: int, 2: array<string, true>} changed, unchanged, file supplier|sku keys
+     */
+    private function diffAgainstExisting(\Illuminate\Support\Collection $clean): array
+    {
+        $fileKeys = [];
+        foreach ($clean as $row) {
+            $fileKeys[strtolower(($row['data']['supplier'] ?? '') . '|' . ($row['data']['sku'] ?? ''))] = true;
+        }
+
+        $updates = $clean->where('action', 'update');
+        if ($updates->isEmpty()) {
+            return [0, 0, $fileKeys];
+        }
+
+        $supplierNames = $updates->map(fn ($r) => strtolower($r['data']['supplier']))->unique()->values();
+        $existing = HvacProduct::whereHas('supplier', fn ($q) => $q->whereIn(DB::raw('LOWER(name)'), $supplierNames))
+            ->with('supplier')->get()
+            ->keyBy(fn ($p) => strtolower(($p->supplier?->name ?? '') . '|' . $p->sku));
+
+        $compare = [
+            'name' => 'name', 'model' => 'model', 'product_type' => 'product_type',
+            'cooling_capacity_kw' => 'cooling_capacity_kw',
+            'purchase_price_excl_vat' => 'purchase_price_excl_vat',
+            'sale_price_excl_vat' => 'default_sale_price_excl_vat',
+            'stock_quantity' => 'stock_quantity', 'lead_time_days' => 'lead_time_days',
+        ];
+
+        $changed = 0;
+        $unchanged = 0;
+        foreach ($updates as $row) {
+            $product = $existing[strtolower($row['data']['supplier'] . '|' . $row['data']['sku'])] ?? null;
+            if ($product === null) {
+                $changed++;
+                continue;
+            }
+            $isChanged = false;
+            foreach ($compare as $field => $attribute) {
+                $new = $row['data'][$field] ?? null;
+                $old = $product->{$attribute};
+                if (is_numeric($new) && is_numeric($old)
+                    ? abs((float) $new - (float) $old) > 0.001
+                    : (string) ($new ?? '') !== (string) ($old ?? '')) {
+                    $isChanged = true;
+                    break;
+                }
+            }
+            $isChanged ? $changed++ : $unchanged++;
+        }
+
+        return [$changed, $unchanged, $fileKeys];
     }
 
     private function suggestCatalogName(array $state): string

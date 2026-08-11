@@ -142,11 +142,16 @@ class HvacProductController extends Controller
     {
         $product->load(['brand', 'supplier', 'importCatalogs', 'compatibilities.compatible.brand', 'reverseCompatibilities.parent.brand']);
 
+        $profileId = $product->metadata['import']['profile_id'] ?? null;
+
         return view('admin.hvac.products.form', [
             'product'   => $product,
             'brands'    => HvacBrand::orderBy('name')->get(),
             'suppliers' => HvacSupplier::orderBy('name')->get(),
             'types'     => HvacProduct::PRODUCT_TYPES,
+            'importProfileName' => $profileId !== null
+                ? \App\Models\HvacMappingProfile::find($profileId)?->name
+                : null,
             'compatCandidates' => HvacProduct::active()
                 ->where('id', '!=', $product->id)
                 ->orderBy('model')

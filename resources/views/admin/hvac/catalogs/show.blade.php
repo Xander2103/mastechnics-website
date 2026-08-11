@@ -67,6 +67,7 @@
                 </div>
                 <p class="hvac-muted" style="margin-top:0.6rem;font-size:0.85rem;">
                     Archiveren verbergt de lijst uit het gewone overzicht. Producten en historiek blijven altijd bestaan.
+                    Laatst gewijzigd: {{ $catalog->updated_at?->format('d/m/Y H:i') ?? '—' }}.
                 </p>
             </details>
 
@@ -122,9 +123,21 @@
                             <option value="0" @selected(request('active') === '0')>Inactief</option>
                         </select>
                     </label>
+                    <label>
+                        <span>Koelvermogen van (kW)</span>
+                        <input type="number" step="0.1" min="0" name="capacity_min" value="{{ request('capacity_min') }}">
+                    </label>
+                    <label>
+                        <span>Koelvermogen tot (kW)</span>
+                        <input type="number" step="0.1" min="0" name="capacity_max" value="{{ request('capacity_max') }}">
+                    </label>
                     <label style="display:flex;align-items:center;gap:0.4rem;">
                         <input type="checkbox" name="missing_price" value="1" @checked(request()->boolean('missing_price'))>
                         <span>Zonder prijs</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:0.4rem;">
+                        <input type="checkbox" name="missing_compat" value="1" @checked(request()->boolean('missing_compat'))>
+                        <span>Zonder compatibiliteit</span>
                     </label>
                     <label style="display:flex;align-items:center;gap:0.4rem;">
                         <input type="checkbox" name="needs_review" value="1" @checked(request()->boolean('needs_review'))>

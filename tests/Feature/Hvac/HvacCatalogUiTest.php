@@ -194,6 +194,71 @@ class HvacCatalogUiTest extends TestCase
             ->assertSee('brutoprijs');
     }
 
+    public function test_catalog_detail_filters_by_capacity_and_missing_compatibility(): void
+    {
+        $catalog = $this->seedCatalog('Lijst A', 1); // accessory, no capacity
+        $supplier = HvacSupplier::first();
+        $brand = HvacBrand::first();
+        $unit = HvacProduct::create([
+            'hvac_supplier_id' => $supplier->id, 'hvac_brand_id' => $brand->id,
+            'sku' => 'UNIT-35', 'model' => 'U-35', 'name' => 'Binnenunit 3,5',
+            'product_type' => 'indoor_unit', 'cooling_capacity_kw' => 3.5, 'is_active' => true,
+        ]);
+        $catalog->products()->attach($unit->id);
+
+        // Capacity range keeps only the 3.5 kW unit.
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.catalogs.show', [$catalog, 'capacity_min' => 3, 'capacity_max' => 4]))
+            ->assertOk()->assertSee('UNIT-35')->assertDontSee('Lijst A-1');
+
+        // Missing-compatibility filter: the unit has no compat records.
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.catalogs.show', [$catalog, 'missing_compat' => 1]))
+            ->assertOk()->assertSee('UNIT-35')->assertDontSee('Lijst A-1');
+    }
+
+    public function test_template_import_links_products_to_a_template_catalog(): void
+    {
+        $csv = implode("\r\n", [
+            'supplier;brand;sku;model;name;product_type',
+            'TEST Leverancier;TESTMERK;TB-77;TB 77;TEST accessoire;wall_bracket',
+        ]) . "\r\n";
+        $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('sjabloon-2026.csv', $csv);
+
+        $preview = $this->withSession($this->adminSession())
+            ->post(route('admin.hvac.import.preview'), ['file' => $file, 'mode' => 'create_and_update']);
+        $preview->assertOk();
+        preg_match('/name="token" value="([A-Za-z0-9]{40})"/', $preview->getContent(), $m);
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.hvac.import.confirm'), ['token' => $m[1]])
+            ->assertRedirect(route('admin.hvac.import.index'));
+
+        $catalog = HvacImportCatalog::where('source_type', 'template')->firstOrFail();
+        $this->assertSame('MAS-sjabloon — sjabloon-2026', $catalog->name);
+        $this->assertSame(1, $catalog->products()->count());
+        $this->assertSame(1, $catalog->runs()->count());
+        $this->assertSame(1, $catalog->product_count);
+    }
+
+    public function test_source_block_shows_mapping_profile_name(): void
+    {
+        $profile = \App\Models\HvacMappingProfile::create([
+            'name' => 'TestSupplier — automatisch', 'supplier_name' => 'TestSupplier BV',
+            'header_row' => 1, 'column_map' => ['ProductID' => 'sku'], 'decimal_format' => 'auto',
+            'is_active' => true,
+        ]);
+        $catalog = $this->seedCatalog('Bronlijst', 1);
+        $product = $catalog->products()->first();
+        $product->update(['metadata' => ['import' => ['file' => 'x.csv', 'profile_id' => $profile->id]]]);
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.products.edit', $product))
+            ->assertOk()
+            ->assertSee('Leveranciersinstellingen')
+            ->assertSee('TestSupplier — automatisch');
+    }
+
     public function test_guests_are_blocked_everywhere(): void
     {
         $catalog = $this->seedCatalog('Lijst A', 1);

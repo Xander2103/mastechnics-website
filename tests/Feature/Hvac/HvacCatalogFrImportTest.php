@@ -299,6 +299,33 @@ class HvacCatalogFrImportTest extends TestCase
         $this->assertSame(7, HvacProduct::count());
     }
 
+    public function test_confirm_distinguishes_changed_unchanged_and_missing_before_import(): void
+    {
+        // First import: pumps + climate.
+        $token = $this->uploadFixture();
+        $this->withSession($this->adminSession())
+            ->post(route('admin.hvac.import.guided.categories', $token), [
+                'categories' => [CatalogFrFixture::GROUP_CLIMATE, CatalogFrFixture::GROUP_PUMPS],
+            ]);
+        $this->answerReview($token);
+        $this->confirmImport($token);
+
+        // Second run, same file, only Climatiseurs: every climate row is an
+        // unchanged update; the 2 pump products are missing from the selection.
+        $token2 = $this->uploadFixture();
+        $this->chooseClimatiseurs($token2);
+        $this->answerReview($token2);
+
+        $this->withSession($this->adminSession())
+            ->get($this->stepUrl($token2))
+            ->assertOk()
+            ->assertViewHas('changedCount', 0)
+            ->assertViewHas('unchangedCount', CatalogFrFixture::CLIMATE_COUNT)
+            ->assertViewHas('catalogs', fn ($catalogs) => $catalogs->first()->missing_count === 2)
+            ->assertSee('ongewijzigd')
+            ->assertSee('niet in dit bestand');
+    }
+
     public function test_guest_cannot_use_the_wizard(): void
     {
         $file = UploadedFile::fake()->createWithContent('CatalogFR.csv', CatalogFrFixture::contents());

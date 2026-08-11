@@ -275,6 +275,9 @@
                         @if (($importMeta['at'] ?? null) !== null)
                             <div><strong>Laatste import:</strong> {{ \Illuminate\Support\Carbon::parse($importMeta['at'])->format('d/m/Y H:i') }}</div>
                         @endif
+                        @if (($importProfileName ?? null) !== null)
+                            <div><strong>Leveranciersinstellingen:</strong> {{ $importProfileName }}</div>
+                        @endif
                         @if (($importMeta['price']['meaning'] ?? null) !== null)
                             <div><strong>Prijs in bronbestand:</strong> {{ $importMeta['price']['raw'] ?? '' }}
                                 ({{ match ($importMeta['price']['meaning']) {

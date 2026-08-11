@@ -21,7 +21,11 @@
                     <div><strong>Leverancier:</strong> {{ $state['supplier_name'] !== '' ? $state['supplier_name'] : '—' }}</div>
                     <div><strong>Producten:</strong> {{ number_format($totalRows, 0, ',', '.') }}</div>
                     <div><strong>Nieuwe producten:</strong> {{ number_format($createCount, 0, ',', '.') }}</div>
-                    <div><strong>Bijwerken:</strong> {{ number_format($updateCount, 0, ',', '.') }}</div>
+                    <div><strong>Bijwerken:</strong> {{ number_format($updateCount, 0, ',', '.') }}
+                        @if ($updateCount > 0)
+                            <span class="hvac-muted">({{ number_format($changedCount, 0, ',', '.') }} gewijzigd, {{ number_format($unchangedCount, 0, ',', '.') }} ongewijzigd)</span>
+                        @endif
+                    </div>
                     <div><strong>Overgeslagen (fouten):</strong> {{ number_format($errorCount, 0, ',', '.') }}</div>
                     <div><strong>Met waarschuwing:</strong> {{ number_format($reviewCount, 0, ',', '.') }}</div>
                 </div>
@@ -54,7 +58,9 @@
                         <label style="font-weight:600;">Welke lijst bijwerken?
                             <select name="catalog_id" style="width:100%;margin-top:0.3rem;">
                                 @foreach ($catalogs as $catalog)
-                                    <option value="{{ $catalog->id }}">{{ $catalog->name }} ({{ $catalog->product_count }} producten)</option>
+                                    <option value="{{ $catalog->id }}">
+                                        {{ $catalog->name }} ({{ $catalog->product_count }} producten@if (($catalog->missing_count ?? 0) > 0), {{ $catalog->missing_count }} niet in dit bestand@endif)
+                                    </option>
                                 @endforeach
                             </select>
                         </label>

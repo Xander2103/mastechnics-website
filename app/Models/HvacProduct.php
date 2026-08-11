@@ -90,6 +90,13 @@ class HvacProduct extends Model
         return $this->belongsTo(HvacSupplier::class, 'hvac_supplier_id');
     }
 
+    public function importCatalogs(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(HvacImportCatalog::class, 'hvac_import_catalog_product')
+            ->withPivot(['source_row', 'imported_at', 'source_price', 'source_stock', 'source_lead_time'])
+            ->withTimestamps();
+    }
+
     public function compatibilities(): HasMany
     {
         return $this->hasMany(HvacProductCompatibility::class, 'parent_product_id');

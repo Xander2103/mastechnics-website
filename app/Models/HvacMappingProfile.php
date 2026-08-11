@@ -18,6 +18,11 @@ class HvacMappingProfile extends Model
         'column_map',
         'decimal_format',
         'currency_format',
+        'delimiter',
+        'category_filter',
+        'price_semantics',
+        'source_headers',
+        'type_fallback',
         'is_active',
         'created_by',
     ];
@@ -25,9 +30,12 @@ class HvacMappingProfile extends Model
     protected function casts(): array
     {
         return [
-            'column_map' => 'array',
-            'header_row' => 'integer',
-            'is_active'  => 'boolean',
+            'column_map'      => 'array',
+            'category_filter' => 'array',
+            'price_semantics' => 'array',
+            'source_headers'  => 'array',
+            'header_row'      => 'integer',
+            'is_active'       => 'boolean',
         ];
     }
 }

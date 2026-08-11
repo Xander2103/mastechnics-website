@@ -196,6 +196,51 @@ class HvacGuidedImportService
     }
 
     /**
+     * Finds the saved profile that recognizes this file by its header
+     * signature: every header the profile was saved with must be present in
+     * the uploaded file. The best (most headers matched, most recently
+     * updated) active profile wins; none → null and the wizard runs manually.
+     *
+     * @param array<int, string|null> $headerCells
+     */
+    public function recognizeProfile(array $headerCells): ?HvacMappingProfile
+    {
+        $fileHeaders = [];
+        foreach ($headerCells as $cell) {
+            $normalized = ColumnMappingSuggester::normalize((string) ($cell ?? ''));
+            if ($normalized !== '') {
+                $fileHeaders[$normalized] = true;
+            }
+        }
+        if ($fileHeaders === []) {
+            return null;
+        }
+
+        $best = null;
+        $bestScore = 0;
+        foreach (HvacMappingProfile::where('is_active', true)->orderByDesc('updated_at')->get() as $profile) {
+            $signature = array_filter(array_map(
+                fn ($h) => ColumnMappingSuggester::normalize((string) $h),
+                (array) ($profile->source_headers ?? [])
+            ));
+            if ($signature === []) {
+                continue;
+            }
+            foreach ($signature as $header) {
+                if (! isset($fileHeaders[$header])) {
+                    continue 2;
+                }
+            }
+            if (count($signature) > $bestScore) {
+                $best = $profile;
+                $bestScore = count($signature);
+            }
+        }
+
+        return $best;
+    }
+
+    /**
      * Checks whether a saved profile still fits the uploaded file.
      *
      * @param array<int, array{name: string, hidden: bool}> $sheets

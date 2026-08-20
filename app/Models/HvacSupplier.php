@@ -15,4 +15,9 @@ class HvacSupplier extends Model
     {
         return $this->hasMany(HvacProduct::class);
     }
+
+    public function catalogs(): HasMany
+    {
+        return $this->hasMany(HvacImportCatalog::class);
+    }
 }

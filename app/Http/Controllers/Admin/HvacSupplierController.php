@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\HvacImportCatalog;
 use App\Models\HvacSupplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,15 @@ class HvacSupplierController extends Controller
     public function index(): View
     {
         return view('admin.hvac.suppliers.index', [
-            'suppliers' => HvacSupplier::withCount('products')->orderBy('name')->get(),
+            'suppliers' => HvacSupplier::query()
+                ->withCount([
+                    'products',
+                    'products as active_products_count' => fn ($q) => $q->where('is_active', true),
+                    'catalogs as active_catalogs_count' => fn ($q) => $q->where('status', '!=', HvacImportCatalog::STATUS_ARCHIVED),
+                ])
+                ->with(['catalogs' => fn ($q) => $q->orderByDesc('imported_at')])
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 

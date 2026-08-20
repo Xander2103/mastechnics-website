@@ -13,6 +13,7 @@
     <section class="section section-white">
         <div class="container">
             @include('admin.hvac.partials.nav')
+            @include('admin.hvac.partials.catalog-tabs', ['activeTab' => 'brands'])
 
             @if (session('success'))
                 <div class="form-success">Opgeslagen.</div>

@@ -13,6 +13,7 @@
     <section class="section section-white">
         <div class="container">
             @include('admin.hvac.partials.nav')
+            @include('admin.hvac.partials.catalog-tabs', ['activeTab' => 'suppliers'])
 
             @if (session('success'))
                 <div class="form-success">Opgeslagen.</div>
@@ -44,17 +45,23 @@
                     <div class="admin-table-wrapper">
                         <table class="admin-table">
                             <thead>
-                                <tr><th>Naam</th><th>Code</th><th>E-mail</th><th>Telefoon</th><th>Producten</th><th>Status</th><th></th></tr>
+                                <tr><th>Naam</th><th>Productlijsten</th><th>Producten</th><th>Laatste import</th><th>Status</th><th></th></tr>
                             </thead>
                             <tbody>
                                 @foreach ($suppliers as $supplier)
                                     <tr class="{{ $supplier->is_active ? '' : 'hvac-inactive-row' }}">
-                                        <td>{{ $supplier->name }}</td>
-                                        <td>{{ $supplier->code ?? '—' }}</td>
-                                        <td>{{ $supplier->email ?? '—' }}</td>
-                                        <td>{{ $supplier->phone ?? '—' }}</td>
-                                        <td>{{ $supplier->products_count }}</td>
-                                        <td>{{ $supplier->is_active ? 'Actief' : 'Inactief' }}</td>
+                                        <td data-label="Naam">
+                                            {{ $supplier->name }}
+                                            @if ($supplier->code || $supplier->email || $supplier->phone)
+                                                <div class="hvac-muted" style="font-size:0.8rem;">
+                                                    {{ collect([$supplier->code, $supplier->email, $supplier->phone])->filter()->implode(' · ') }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td data-label="Productlijsten">{{ $supplier->active_catalogs_count }}</td>
+                                        <td data-label="Producten">{{ $supplier->active_products_count }} actief ({{ $supplier->products_count }} totaal)</td>
+                                        <td data-label="Laatste import">{{ $supplier->catalogs->max('imported_at')?->format('d/m/Y') ?? '—' }}</td>
+                                        <td data-label="Status">{{ $supplier->is_active ? 'Actief' : 'Inactief' }}</td>
                                         <td>
                                             <form method="POST" action="{{ route('admin.hvac.suppliers.toggle', $supplier) }}">
                                                 @csrf
@@ -65,6 +72,24 @@
                                             </form>
                                         </td>
                                     </tr>
+                                    @if ($supplier->catalogs->isNotEmpty())
+                                        <tr>
+                                            <td colspan="6" style="padding:0.4rem 0.75rem 0.9rem;background:#f9fafb;">
+                                                <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:0.3rem;font-size:0.86rem;">
+                                                    @foreach ($supplier->catalogs as $catalog)
+                                                        <li>
+                                                            <a class="admin-link" href="{{ route('admin.hvac.catalogs.show', $catalog) }}">{{ $catalog->name }}</a>
+                                                            — {{ number_format($catalog->product_count, 0, ',', '.') }} producten
+                                                            · laatste import {{ $catalog->imported_at?->format('d/m/Y') ?? '—' }}
+                                                            @if ($catalog->isArchived())
+                                                                · <strong>gearchiveerd</strong>
+                                                            @endif
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                    @endif
                                 @endforeach
                             </tbody>
                         </table>

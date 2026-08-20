@@ -518,6 +518,82 @@ class HvacE2eAcceptanceTest extends TestCase
         $this->assertStringNotContainsString('purchase', mb_strtolower($html));
     }
 
+    public function test_unvalidated_critical_rules_block_non_demo_recommendation(): void
+    {
+        // Non-TestBrand-named equipment → the demo bypass must NOT apply and
+        // the unvalidated placeholder rules must block approval.
+        $acme = HvacBrand::firstOrCreate(['slug' => 'acme-fict'], ['name' => 'Acme Fictief', 'is_active' => true]);
+        $this->seedSingleSplitSet([
+            'hvac_brand_id' => $acme->id,
+            'sku' => 'AC-SET', 'model' => 'Acme Set 35', 'name' => 'Acme single split set',
+        ]);
+        foreach (['wall_bracket', 'vibration_damper', 'pipe', 'trunking', 'electrical_accessory', 'drain_hose', 'condensate_pump'] as $i => $type) {
+            $this->makeProduct([
+                'sku' => "AC-ACC-{$i}", 'model' => "Acme {$type}", 'name' => "Acme {$type}",
+                'product_type' => $type,
+                'default_sale_price_excl_vat' => 10, 'purchase_price_excl_vat' => 5,
+            ]);
+        }
+        $request = $this->makeAircoRequest();
+        $this->calculate($request);
+
+        $recommendation = HvacRecommendation::firstOrFail();
+        $readiness = app(\App\Services\Hvac\HvacRecommendationReadiness::class)->evaluate($recommendation);
+        $this->assertFalse($readiness['demo']);
+        $this->assertFalse($readiness['rules_ok']);
+        $this->assertFalse($readiness['ready']);
+
+        $response = $this->withSession($this->adminSession())
+            ->post(route('admin.requests.hvac.approve', [$request, $recommendation]));
+        $response->assertSessionHasErrors();
+        $this->assertNotSame('approved', $recommendation->fresh()->status);
+
+        // Validate every applicable critical rule → the gate clears.
+        $ruleSetId = (int) $recommendation->calculation->hvac_rule_set_id;
+        $configuration = \App\Models\HvacRuleSet::findOrFail($ruleSetId)->configuration;
+        foreach (\App\Services\Hvac\HvacRuleCatalog::criticalKeys() as $key) {
+            if (\App\Services\Hvac\HvacRuleCatalog::value($configuration, $key) === null) {
+                continue;
+            }
+            \App\Models\HvacRuleValidation::create([
+                'hvac_rule_set_id' => $ruleSetId, 'rule_key' => $key,
+                'status' => 'validated', 'validated_by' => 'test', 'validated_at' => now(),
+            ]);
+        }
+
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.hvac.approve', [$request, $recommendation->fresh()]))
+            ->assertSessionHas('success', 'hvac_recommendation_approved');
+    }
+
+    public function test_converted_quote_pdf_hides_purchase_price_and_margin(): void
+    {
+        $this->seedSingleSplitSet();
+        $this->seedAccessories();
+        $request = $this->makeAircoRequest();
+        $this->calculate($request);
+
+        $recommendation = HvacRecommendation::firstOrFail();
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.hvac.approve', [$request, $recommendation]));
+        $this->withSession($this->adminSession())
+            ->post(route('admin.requests.hvac.convert', [$request, $recommendation->fresh()]));
+
+        $quote = \App\Models\Quote::firstOrFail();
+        $html = view('admin.quotes.pdf', [
+            'quote' => $quote, 'customerRequest' => $request->fresh(),
+        ])->render();
+
+        // Customer document: sale prices only — never purchase price (1000)
+        // or internal margin wording.
+        $this->assertStringContainsString('1.500,00', $html);
+        $this->assertStringNotContainsString('1.000,00', $html);
+        $lower = mb_strtolower($html);
+        $this->assertStringNotContainsString('inkoopprijs', $lower);
+        $this->assertStringNotContainsString('purchase', $lower);
+        $this->assertStringNotContainsString('marge', $lower);
+    }
+
     public function test_supplier_identity_is_case_insensitive_on_import(): void
     {
         $importer = new \App\Services\Hvac\HvacCsvImporter();

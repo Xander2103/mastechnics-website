@@ -16,7 +16,6 @@
             'footer_request_text' => 'Start een slimme aanvraag en vul meteen de juiste technische informatie in.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'BTW',
-            'all_services' => 'Alle diensten',
         ],
         'fr' => [
             'services' => 'Services',
@@ -30,7 +29,6 @@
                 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'TVA',
-            'all_services' => 'Tous les services',
         ],
         'en' => [
             'services' => 'Services',
@@ -43,7 +41,6 @@
             'footer_request_text' => 'Start a smart request and add the right technical information immediately.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'VAT',
-            'all_services' => 'All services',
         ],
     ];
 
@@ -400,27 +397,6 @@
                         ]) }}">
                         {{ $nav['request'] }}
                     </a>
-                </div>
-
-                <div>
-                    <h3>{{ $seoService->pageLabel('services', $currentLocale) }}</h3>
-
-                    <ul class="footer-list">
-                        @foreach ($serviceNav as $footerService)
-                            <li>
-                                <a href="{{ route('pages.show', [
-                                    'locale' => $currentLocale,
-                                    'slug' => $footerService['slug'],
-                                ]) }}">{{ $footerService['title'] }}</a>
-                            </li>
-                        @endforeach
-
-                        <li>
-                            <a href="{{ $seoService->pageUrl('services', $currentLocale) }}">
-                                {{ $nav['all_services'] }}
-                            </a>
-                        </li>
-                    </ul>
                 </div>
             @endunless
         </div>

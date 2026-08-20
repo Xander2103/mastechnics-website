@@ -20,15 +20,37 @@
                 <div class="form-success">Opgeslagen.</div>
             @endif
 
-            <div style="margin-bottom:1.2rem;">
+            <div style="margin-bottom:1.2rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;justify-content:space-between;">
+                <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+                    @foreach ([
+                        ['key' => 'active', 'label' => 'Actief (' . ($activeCount ?? 0) . ')'],
+                        ['key' => 'archived', 'label' => 'Gearchiveerd (' . ($archivedCount ?? 0) . ')'],
+                        ['key' => 'all', 'label' => 'Alle'],
+                    ] as $pill)
+                        <a href="{{ route('admin.hvac.products.index', ['view' => 'lists', 'lists' => $pill['key']]) }}"
+                           style="padding:0.3rem 0.8rem;border-radius:999px;text-decoration:none;font-size:0.84rem;{{ ($listsFilter ?? 'active') === $pill['key'] ? 'background:#374151;color:#fff;' : 'background:#f3f4f6;color:#111827;' }}">
+                            {{ $pill['label'] }}
+                        </a>
+                    @endforeach
+                </div>
+
                 <a class="button button-primary" href="{{ route('admin.hvac.import.index') }}">Nieuwe lijst importeren</a>
             </div>
 
             @if ($catalogs->isEmpty())
                 <div class="admin-detail-card">
-                    <p>Er zijn nog geen productlijsten.
-                        <a class="admin-link" href="{{ route('admin.hvac.import.index') }}">Importeer het eerste leveranciersbestand.</a>
-                    </p>
+                    @if (($listsFilter ?? 'active') === 'archived')
+                        <p>Geen gearchiveerde productlijsten.</p>
+                    @elseif (($archivedCount ?? 0) > 0)
+                        <p>Geen actieve productlijsten.
+                            <a class="admin-link" href="{{ route('admin.hvac.products.index', ['view' => 'lists', 'lists' => 'archived']) }}">Bekijk de gearchiveerde lijsten</a>
+                            of <a class="admin-link" href="{{ route('admin.hvac.import.index') }}">importeer een nieuw leveranciersbestand.</a>
+                        </p>
+                    @else
+                        <p>Er zijn nog geen productlijsten.
+                            <a class="admin-link" href="{{ route('admin.hvac.import.index') }}">Importeer het eerste leveranciersbestand.</a>
+                        </p>
+                    @endif
                 </div>
             @endif
 

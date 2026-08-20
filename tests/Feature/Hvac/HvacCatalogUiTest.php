@@ -175,6 +175,35 @@ class HvacCatalogUiTest extends TestCase
             ->assertSee('Gearchiveerd');
     }
 
+    public function test_archived_catalogs_move_to_their_own_filter_tab(): void
+    {
+        $this->seedCatalog('Actieve lijst 2026', 1);
+        $archived = $this->seedCatalog('Oude lijst 2024', 1);
+        $archived->update(['status' => HvacImportCatalog::STATUS_ARCHIVED]);
+
+        // Default overview: only active lists, with a link to the archived tab.
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.products.index', ['view' => 'lists']))
+            ->assertOk()
+            ->assertSee('Actieve lijst 2026')
+            ->assertDontSee('Oude lijst 2024')
+            ->assertSee('Gearchiveerd (1)');
+
+        // Archived tab: only archived lists.
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.products.index', ['view' => 'lists', 'lists' => 'archived']))
+            ->assertOk()
+            ->assertSee('Oude lijst 2024')
+            ->assertDontSee('Actieve lijst 2026');
+
+        // "Alle" shows both.
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.products.index', ['view' => 'lists', 'lists' => 'all']))
+            ->assertOk()
+            ->assertSee('Oude lijst 2024')
+            ->assertSee('Actieve lijst 2026');
+    }
+
     public function test_product_edit_page_shows_source_block(): void
     {
         $catalog = $this->seedCatalog('Bronlijst 2026', 1);

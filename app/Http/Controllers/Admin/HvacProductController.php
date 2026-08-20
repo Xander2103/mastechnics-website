@@ -52,7 +52,7 @@ class HvacProductController extends Controller
         $view = $request->string('view')->toString();
         $hasFilters = $request->hasAny(['quality', 'type', 'brand', 'active', 'q', 'page']);
         if ($view === 'lists' || ($view === '' && ! $hasFilters && \App\Models\HvacImportCatalog::query()->exists())) {
-            return $this->catalogOverview();
+            return $this->catalogOverview($request);
         }
 
         $scopes = $this->qualityScopes();
@@ -104,19 +104,36 @@ class HvacProductController extends Controller
         ]);
     }
 
-    private function catalogOverview(): View
+    private function catalogOverview(Request $request): View
     {
+        $filter = $request->string('lists')->toString();
+        if (! in_array($filter, ['archived', 'all'], true)) {
+            $filter = 'active';
+        }
+
+        $archivedCount = \App\Models\HvacImportCatalog::query()
+            ->where('status', \App\Models\HvacImportCatalog::STATUS_ARCHIVED)->count();
+        $activeCount = \App\Models\HvacImportCatalog::query()
+            ->where('status', '!=', \App\Models\HvacImportCatalog::STATUS_ARCHIVED)->count();
+
         $catalogs = \App\Models\HvacImportCatalog::query()
             ->with('supplier')
             ->withCount([
                 'products as active_products_count' => fn ($q) => $q->where('is_active', true),
                 'products as review_products_count' => fn ($q) => $q->where('metadata->import->needs_review', true),
             ])
+            ->when($filter === 'active', fn ($q) => $q->where('status', '!=', \App\Models\HvacImportCatalog::STATUS_ARCHIVED))
+            ->when($filter === 'archived', fn ($q) => $q->where('status', \App\Models\HvacImportCatalog::STATUS_ARCHIVED))
             ->orderByRaw("CASE WHEN status = 'archived' THEN 1 ELSE 0 END")
             ->orderByDesc('imported_at')
             ->get();
 
-        return view('admin.hvac.catalogs.index', ['catalogs' => $catalogs]);
+        return view('admin.hvac.catalogs.index', [
+            'catalogs'      => $catalogs,
+            'listsFilter'   => $filter,
+            'activeCount'   => $activeCount,
+            'archivedCount' => $archivedCount,
+        ]);
     }
 
     public function create(): View

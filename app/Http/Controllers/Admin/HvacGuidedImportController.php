@@ -504,10 +504,37 @@ class HvacGuidedImportController extends Controller
 
     public function confirm(Request $request, string $token): RedirectResponse
     {
+        // A repeated POST after a completed import (double-click, back button)
+        // must land on the result page — expired() would wipe the state and
+        // show a misleading "verlopen" error over a successful import. The
+        // source file is already deleted at that point, so check the bare
+        // state before stateAndPath() (which requires the file to exist).
+        if (($this->state($token)['step'] ?? null) === 'done') {
+            return redirect()->route('admin.hvac.import.guided.result', $token);
+        }
+
         [$state, $path] = $this->stateAndPath($token);
         if ($state === null || $state['step'] !== 'confirm') {
             return $this->expired($token);
         }
+
+        // Concurrent double submits: only one request may import; the loser
+        // is sent to the result route, whose own guard falls back safely if
+        // the winner has not finished yet.
+        $lock = Cache::lock("hvac-guided-confirm:{$token}", 120);
+        if (! $lock->get()) {
+            return redirect()->route('admin.hvac.import.guided.result', $token);
+        }
+
+        try {
+            return $this->runConfirmedImport($request, $token, $state, $path);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function runConfirmedImport(Request $request, string $token, array $state, string $path): RedirectResponse
+    {
 
         $data = $request->validate([
             'mode'               => ['required', 'in:create_and_update,create_only,update_only'],

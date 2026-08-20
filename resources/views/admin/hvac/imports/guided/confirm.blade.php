@@ -30,7 +30,10 @@
                     <div><strong>Met waarschuwing:</strong> {{ number_format($reviewCount, 0, ',', '.') }}</div>
                 </div>
 
-                <form method="POST" action="{{ route('admin.hvac.import.guided.confirm', $token) }}">
+                {{-- The submit button locks after the first click; the server
+                     is idempotent for this token as well, this is UX only. --}}
+                <form method="POST" action="{{ route('admin.hvac.import.guided.confirm', $token) }}"
+                      onsubmit="var b=this.querySelector('button[type=submit]');if(b.disabled)return false;b.disabled=true;b.textContent='Bezig met importeren…';">
                     @csrf
 
                     <fieldset style="border:none;padding:0;margin:0 0 1rem 0;">

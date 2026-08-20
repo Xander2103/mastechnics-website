@@ -208,6 +208,35 @@ class HvacCatalogFrImportTest extends TestCase
         $this->assertSame('CatalogFR.csv', $run->source_filename);
     }
 
+    public function test_double_submitting_confirm_does_not_duplicate_and_lands_on_result(): void
+    {
+        $token = $this->uploadFixture();
+        $this->chooseClimatiseurs($token);
+        $this->answerReview($token);
+        $this->confirmImport($token);
+
+        // A second POST (double-click, back button) must not wipe the wizard
+        // state, must not create a second catalog or run, and must land on
+        // the result page instead of the "verlopen" error.
+        $this->withSession($this->adminSession())
+            ->post(route('admin.hvac.import.guided.confirm', $token), [
+                'mode'           => 'create_and_update',
+                'catalog_choice' => 'new',
+                'catalog_name'   => 'TestSupplier — CatalogFR 2026',
+            ])
+            ->assertRedirect(route('admin.hvac.import.guided.result', $token))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(1, HvacImportCatalog::count());
+        $this->assertSame(1, HvacImportRun::count());
+        $this->assertSame(CatalogFrFixture::CLIMATE_COUNT, HvacProduct::count());
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.import.guided.result', $token))
+            ->assertOk()
+            ->assertSee('Import voltooid');
+    }
+
     public function test_result_page_offers_profile_save_and_saved_profile_is_recognized(): void
     {
         $token = $this->uploadFixture();

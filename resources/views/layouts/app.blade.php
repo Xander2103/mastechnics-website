@@ -17,7 +17,6 @@
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'BTW',
             'all_services' => 'Alle diensten',
-            'area_note' => 'Actief in de Druivenstreek en omliggende gemeenten.',
         ],
         'fr' => [
             'services' => 'Services',
@@ -32,7 +31,6 @@
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'TVA',
             'all_services' => 'Tous les services',
-            'area_note' => 'Actifs dans le Druivenstreek et les communes environnantes.',
         ],
         'en' => [
             'services' => 'Services',
@@ -46,7 +44,6 @@
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'VAT',
             'all_services' => 'All services',
-            'area_note' => 'Active in the Druivenstreek and surrounding municipalities.',
         ],
     ];
 
@@ -405,9 +402,6 @@
                     </a>
                 </div>
 
-                {{-- Service links use this column; the single area sentence
-                     below keeps the service-area hub reachable site-wide
-                     without a municipality link grid. --}}
                 <div>
                     <h3>{{ $seoService->pageLabel('services', $currentLocale) }}</h3>
 
@@ -427,10 +421,6 @@
                             </a>
                         </li>
                     </ul>
-
-                    <p class="footer-area-note">
-                        <a href="{{ $seoService->pageUrl('service_area', $currentLocale) }}">{{ $nav['area_note'] }}</a>
-                    </p>
                 </div>
             @endunless
         </div>

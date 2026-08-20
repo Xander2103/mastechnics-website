@@ -62,22 +62,6 @@
     color: #dbeafe;
 }
 
-.footer-area-note {
-    margin-top: 14px;
-    font-size: 0.85rem;
-    color: #c6d7e8;
-}
-
-.footer-area-note a {
-    color: inherit;
-    font-weight: 400;
-}
-
-.footer-area-note a:hover {
-    color: #dbeafe;
-    text-decoration: underline;
-}
-
 .footer-link {
     display: inline-flex;
     margin-top: 16px;

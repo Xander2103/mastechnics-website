@@ -16,7 +16,8 @@
             'footer_request_text' => 'Start een slimme aanvraag en vul meteen de juiste technische informatie in.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'BTW',
-            'all_areas' => 'Volledig werkgebied',
+            'all_services' => 'Alle diensten',
+            'area_note' => 'Actief in de Druivenstreek en omliggende gemeenten.',
         ],
         'fr' => [
             'services' => 'Services',
@@ -30,7 +31,8 @@
                 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'TVA',
-            'all_areas' => 'Toute la zone d\'intervention',
+            'all_services' => 'Tous les services',
+            'area_note' => 'Actifs dans le Druivenstreek et les communes environnantes.',
         ],
         'en' => [
             'services' => 'Services',
@@ -43,7 +45,8 @@
             'footer_request_text' => 'Start a smart request and add the right technical information immediately.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'VAT',
-            'all_areas' => 'Full service area',
+            'all_services' => 'All services',
+            'area_note' => 'Active in the Druivenstreek and surrounding municipalities.',
         ],
     ];
 
@@ -69,11 +72,6 @@
     $contactSlug  = $seoService->pageSlug('contact', $currentLocale);
     $privacySlug  = $seoService->pageSlug('privacy', $currentLocale);
     $privacyLabel = $seoService->pageLabel('privacy', $currentLocale);
-
-    $footerAreas = collect(config('site.service_areas', []))
-        ->filter(fn ($area) => $area['page'] ?? false)
-        ->take(4)
-        ->values();
 
     // Public page views pass $seo from PageController; admin views do not.
     $isPublicPage = isset($page, $seo);
@@ -407,34 +405,32 @@
                     </a>
                 </div>
 
-                {{-- Site-wide links into the two hub pages and the busiest
-                     municipalities. Keeps every location page within two
-                     clicks of any page on the site. --}}
+                {{-- Service links use this column; the single area sentence
+                     below keeps the service-area hub reachable site-wide
+                     without a municipality link grid. --}}
                 <div>
-                    <h3>{{ $seoService->pageLabel('service_area', $currentLocale) }}</h3>
+                    <h3>{{ $seoService->pageLabel('services', $currentLocale) }}</h3>
 
                     <ul class="footer-list">
-                        @foreach ($footerAreas as $footerArea)
+                        @foreach ($serviceNav as $footerService)
                             <li>
                                 <a href="{{ route('pages.show', [
                                     'locale' => $currentLocale,
-                                    'slug' => \Illuminate\Support\Str::slug($footerArea['name']),
-                                ]) }}">{{ $footerArea['name'] }}</a>
+                                    'slug' => $footerService['slug'],
+                                ]) }}">{{ $footerService['title'] }}</a>
                             </li>
                         @endforeach
 
                         <li>
-                            <a href="{{ $seoService->pageUrl('service_area', $currentLocale) }}">
-                                {{ $nav['all_areas'] }}
-                            </a>
-                        </li>
-
-                        <li>
                             <a href="{{ $seoService->pageUrl('services', $currentLocale) }}">
-                                {{ $seoService->pageLabel('services', $currentLocale) }}
+                                {{ $nav['all_services'] }}
                             </a>
                         </li>
                     </ul>
+
+                    <p class="footer-area-note">
+                        <a href="{{ $seoService->pageUrl('service_area', $currentLocale) }}">{{ $nav['area_note'] }}</a>
+                    </p>
                 </div>
             @endunless
         </div>

@@ -104,10 +104,6 @@
                 'en' => 'Vertaald uit het Engels',
             ],
             'reviews_rating_aria' => ':rating van 5 sterren',
-            'areas_label' => 'Werkgebied',
-            'areas_title' => 'Actief in de Druivenstreek en oostelijk Vlaams-Brabant',
-            'areas_intro' => 'Door het werkgebied compact te houden blijven verplaatsingen kort en is een dringende interventie realistisch in te plannen. Bekijk de pagina van uw gemeente voor wat er lokaal anders is.',
-            'areas_all' => 'Volledig werkgebied bekijken',
             'services_all' => 'Alle diensten bekijken',
         ],
 
@@ -203,10 +199,6 @@
                 'en' => "Traduit de l'anglais",
             ],
             'reviews_rating_aria' => ':rating sur 5 étoiles',
-            'areas_label' => 'Zone d\'intervention',
-            'areas_title' => 'Actifs dans le Druivenstreek et l\'est du Brabant flamand',
-            'areas_intro' => 'En gardant une zone d\'intervention compacte, les déplacements restent courts et une intervention urgente reste réellement planifiable. Consultez la page de votre commune pour les particularités locales.',
-            'areas_all' => 'Voir toute la zone d\'intervention',
             'services_all' => 'Voir tous les services',
         ],
 
@@ -302,10 +294,6 @@
                 'fr' => 'Translated from French',
             ],
             'reviews_rating_aria' => ':rating out of 5 stars',
-            'areas_label' => 'Service area',
-            'areas_title' => 'Active across the Druivenstreek and eastern Flemish Brabant',
-            'areas_intro' => 'Keeping the service area compact keeps travel short and makes an urgent call-out realistic to schedule. Check your municipality page for what is different locally.',
-            'areas_all' => 'View the full service area',
             'services_all' => 'View all services',
         ],
     ];
@@ -315,10 +303,6 @@
     $text = $labels[$locale] ?? $labels['nl'];
     $requestSlug = $seoService->pageSlug('request', $locale);
     $hexServices = $services->keyBy('key');
-
-    $serviceAreas = collect(config('site.service_areas', []))
-        ->filter(fn ($area) => $area['page'] ?? false)
-        ->values();
 
     // ── Reviews: source-labeled, locale-aware, faithfully translated ───────────
     $platformIcons = [
@@ -514,33 +498,6 @@
              route into the service cluster. --}}
         <p class="services-hub-areas-link">
             <a href="{{ $seoService->pageUrl('services', $locale) }}">{{ $text['services_all'] }}</a>
-        </p>
-    </div>
-</section>
-
-{{-- ═══════════════════════════════════════════════════════════
-     Service area — the homepage previously carried no geographic
-     signal at all, and no route into the municipality pages.
-═══════════════════════════════════════════════════════════ --}}
-<section class="section section-white section-werkgebied" id="werkgebied">
-    <div class="container">
-        <div class="section-header">
-            <span class="eyebrow">{{ $text['areas_label'] }}</span>
-            <h2>{{ $text['areas_title'] }}</h2>
-            <p>{{ $text['areas_intro'] }}</p>
-        </div>
-
-        <div class="service-related-links home-area-links">
-            @foreach ($serviceAreas as $area)
-                <a class="service-related-link"
-                   href="{{ route('pages.show', ['locale' => $locale, 'slug' => \Illuminate\Support\Str::slug($area['name'])]) }}">
-                    {{ $area['name'] }}
-                </a>
-            @endforeach
-        </div>
-
-        <p class="services-hub-areas-link">
-            <a href="{{ $seoService->pageUrl('service_area', $locale) }}">{{ $text['areas_all'] }}</a>
         </p>
     </div>
 </section>

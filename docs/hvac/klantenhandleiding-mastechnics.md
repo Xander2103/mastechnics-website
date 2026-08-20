@@ -44,6 +44,7 @@
 26. [Back-up en ondersteuning](#26-back-up-en-ondersteuning)
 27. [Checklists](#27-checklists)
 28. [Verklarende woordenlijst](#28-verklarende-woordenlijst)
+29. [De website: werkgebied en gemeentepagina's](#29-de-website-werkgebied-en-gemeentepaginas)
 
 ---
 
@@ -230,20 +231,27 @@ producten van die lijst te zien, met filters (type, merk, koelvermogen,
 status, zonder prijs, zonder compatibiliteit, te controleren) en de
 **importgeschiedenis** van die lijst. Via de tab **Alle producten** blijft
 het volledige overzicht beschikbaar; **Merken** en **Leveranciers** hebben
-hun eigen tabs.
+hun eigen tabs. Bij **Leveranciers** ziet u per leverancier hoeveel
+productlijsten en actieve producten er zijn, wanneer de laatste import
+was, en de lijsten zelf — met één klik opent u zo'n lijst.
 
 - **Hernoemen** geeft een lijst een vriendelijke naam ("Fujitsu 2026").
-- **Archiveren** verbergt een verouderde lijst. Alles blijft leesbaar en
-  historiek blijft intact, maar producten die *alleen* nog in gearchiveerde
-  lijsten zitten worden **niet meer voorgesteld** in nieuwe aanbevelingen.
+- **Archiveren** verplaatst een verouderde lijst naar het filtertabblad
+  **Gearchiveerd** (boven het overzicht kiest u Actief / Gearchiveerd /
+  Alle). Alles blijft leesbaar en historiek blijft intact, maar producten
+  die *alleen* nog in gearchiveerde lijsten zitten worden **niet meer
+  voorgesteld** in nieuwe aanbevelingen.
 - **Bestaande lijst bijwerken**: importeer het nieuwe bestand en kies bij de
   bevestiging "Bestaande productlijst bijwerken". U ziet vooraf hoeveel
   producten nieuw, gewijzigd, ongewijzigd of niet meer in het bestand zijn.
   Er wordt **nooit** iets automatisch verwijderd; ontbrekende producten
   inactief zetten kan alleen via het aparte vinkje.
 - **Bron per product**: op de productpagina toont het blok "Bron" uit welke
-  lijst, welk bestand, welke rij en met welke leveranciersinstellingen het
-  product geïmporteerd werd, en wat de prijs in het bronbestand betekende.
+  lijst, welk bestand, welke rij en met welk importprofiel het product
+  geïmporteerd werd, en wat de prijs in het bronbestand betekende.
+- **Dubbelklikken bij een import kan geen kwaad**: de knop vergrendelt
+  zichzelf en een tweede klik maakt nooit een dubbele lijst of dubbele
+  import aan — u komt gewoon op de resultaatpagina terecht.
 
 Elk product heeft: merk, leverancier, SKU (artikelcode), model, type
 (binnenunit, buitenunit, single-split-set, multi-split-buitenunit of een
@@ -835,6 +843,27 @@ zelf geen bestanden op de server aan.
 | Conceptofferte | Offerte die bestaat maar nog niet verstuurd is. |
 | CSV | Kommagescheiden tekstbestand, te bewerken in Excel. |
 | Voorraad / levertijd | Beschikbaarheid bij de leverancier; weegt mee in de rangschikking. |
+
+---
+
+## 29. De website: werkgebied en gemeentepagina's
+
+Sinds augustus 2026 staat het opvallende blok "Werkgebied" (met de knoppen
+Tervuren, Overijse, Hoeilaart, …) **niet meer** op de homepage en in de
+footer. Dat is een bewuste keuze: het oogde te veel als zoekmachinetruc.
+
+Belangrijk om te weten:
+
+- **De gemeentepagina's bestaan nog steeds** (bv. `/nl/tervuren`,
+  `/nl/overijse`) en blijven vindbaar voor Google via de sitemap, de
+  kruimelpaden en de werkgebiedpagina (`/nl/werkgebied`). Uw lokale
+  vindbaarheid verandert hier niet door.
+- Onderaan elke pagina staat één rustige zin — "Actief in de Druivenstreek
+  en omliggende gemeenten." — die naar de werkgebiedpagina linkt.
+- Op de dienstenpagina's blijft de rubriek "Waar we deze dienst uitvoeren"
+  staan; die is informatief voor bezoekers én goed voor lokale SEO.
+- Verwijder de gemeentepagina's dus **niet** en vraag ook niet om ze uit de
+  sitemap te halen: zij dragen de lokale zoekresultaten.
 
 ---
 

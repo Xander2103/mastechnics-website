@@ -17,6 +17,42 @@ use Illuminate\View\View;
  */
 class HvacCatalogController extends Controller
 {
+    /**
+     * Productlijsten overview. Also the default view of the products index —
+     * HvacProductController delegates here when no flat-table filters apply.
+     */
+    public function index(Request $request): View
+    {
+        $filter = $request->string('lists')->toString();
+        if (! in_array($filter, ['archived', 'all'], true)) {
+            $filter = 'active';
+        }
+
+        $archivedCount = HvacImportCatalog::query()
+            ->where('status', HvacImportCatalog::STATUS_ARCHIVED)->count();
+        $activeCount = HvacImportCatalog::query()
+            ->where('status', '!=', HvacImportCatalog::STATUS_ARCHIVED)->count();
+
+        $catalogs = HvacImportCatalog::query()
+            ->with('supplier')
+            ->withCount([
+                'products as active_products_count' => fn ($q) => $q->where('is_active', true),
+                'products as review_products_count' => fn ($q) => $q->where('metadata->import->needs_review', true),
+            ])
+            ->when($filter === 'active', fn ($q) => $q->where('status', '!=', HvacImportCatalog::STATUS_ARCHIVED))
+            ->when($filter === 'archived', fn ($q) => $q->where('status', HvacImportCatalog::STATUS_ARCHIVED))
+            ->orderByRaw("CASE WHEN status = 'archived' THEN 1 ELSE 0 END")
+            ->orderByDesc('imported_at')
+            ->get();
+
+        return view('admin.hvac.catalogs.index', [
+            'catalogs'      => $catalogs,
+            'listsFilter'   => $filter,
+            'activeCount'   => $activeCount,
+            'archivedCount' => $archivedCount,
+        ]);
+    }
+
     public function show(Request $request, HvacImportCatalog $catalog): View
     {
         $products = $catalog->products()

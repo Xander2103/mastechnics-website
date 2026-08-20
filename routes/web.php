@@ -123,6 +123,8 @@ Route::middleware('admin')
         // ── HVAC product catalog ─────────────────────────────────────────────
         Route::get('/hvac/products', [HvacProductController::class, 'index'])
             ->name('hvac.products.index');
+        Route::get('/hvac/catalogs', [HvacCatalogController::class, 'index'])
+            ->name('hvac.catalogs.index');
         Route::get('/hvac/catalogs/{catalog}', [HvacCatalogController::class, 'show'])
             ->name('hvac.catalogs.show');
         Route::patch('/hvac/catalogs/{catalog}/rename', [HvacCatalogController::class, 'rename'])

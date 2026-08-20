@@ -175,6 +175,17 @@ class HvacCatalogUiTest extends TestCase
             ->assertSee('Gearchiveerd');
     }
 
+    public function test_dedicated_catalogs_route_serves_the_overview(): void
+    {
+        $this->seedCatalog('Directe lijst 2026', 1);
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.catalogs.index'))
+            ->assertOk()
+            ->assertViewIs('admin.hvac.catalogs.index')
+            ->assertSee('Directe lijst 2026');
+    }
+
     public function test_catalog_detail_table_carries_mobile_data_labels(): void
     {
         $catalog = $this->seedCatalog('Mobiele lijst', 1);
@@ -298,7 +309,7 @@ class HvacCatalogUiTest extends TestCase
         $this->withSession($this->adminSession())
             ->get(route('admin.hvac.products.edit', $product))
             ->assertOk()
-            ->assertSee('Leveranciersinstellingen')
+            ->assertSee('Importprofiel')
             ->assertSee('TestSupplier — automatisch');
     }
 

@@ -156,15 +156,15 @@
                         <tbody>
                             @forelse ($products as $product)
                                 <tr>
-                                    <td><a class="admin-link" href="{{ route('admin.hvac.products.edit', $product) }}">{{ $product->sku }}</a></td>
-                                    <td>{{ $product->model }}</td>
-                                    <td>{{ $product->brand?->name }}</td>
-                                    <td>{{ $product->product_type }}</td>
-                                    <td>{{ $product->cooling_capacity_kw !== null ? number_format($product->cooling_capacity_kw, 1, ',', '.') . ' kW' : '—' }}</td>
-                                    <td>{{ $product->default_sale_price_excl_vat !== null ? '€ ' . number_format($product->default_sale_price_excl_vat, 2, ',', '.') : '—' }}</td>
-                                    <td>{{ $product->stock_quantity ?? '—' }}</td>
-                                    <td>{{ $product->lead_time_days !== null ? $product->lead_time_days . ' d' : '—' }}</td>
-                                    <td>
+                                    <td data-label="SKU"><a class="admin-link" href="{{ route('admin.hvac.products.edit', $product) }}">{{ $product->sku }}</a></td>
+                                    <td data-label="Model">{{ $product->model }}</td>
+                                    <td data-label="Merk">{{ $product->brand?->name }}</td>
+                                    <td data-label="Type">{{ $product->product_type }}</td>
+                                    <td data-label="Koelvermogen">{{ $product->cooling_capacity_kw !== null ? number_format($product->cooling_capacity_kw, 1, ',', '.') . ' kW' : '—' }}</td>
+                                    <td data-label="Verkoopprijs">{{ $product->default_sale_price_excl_vat !== null ? '€ ' . number_format($product->default_sale_price_excl_vat, 2, ',', '.') : '—' }}</td>
+                                    <td data-label="Voorraad">{{ $product->stock_quantity ?? '—' }}</td>
+                                    <td data-label="Levertijd">{{ $product->lead_time_days !== null ? $product->lead_time_days . ' d' : '—' }}</td>
+                                    <td data-label="Status">
                                         {{ $product->is_active ? 'actief' : 'inactief' }}
                                         @if ($product->metadata['import']['needs_review'] ?? false)
                                             · <span style="color:#9a6700;">controleren</span>

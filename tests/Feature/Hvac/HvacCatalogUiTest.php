@@ -175,6 +175,20 @@ class HvacCatalogUiTest extends TestCase
             ->assertSee('Gearchiveerd');
     }
 
+    public function test_catalog_detail_table_carries_mobile_data_labels(): void
+    {
+        $catalog = $this->seedCatalog('Mobiele lijst', 1);
+
+        // The responsive card CSS renders td::before from data-label under
+        // 680px; without the attribute the stacked cells lose their labels.
+        $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.catalogs.show', $catalog))
+            ->assertOk()
+            ->assertSee('data-label="Koelvermogen"', false)
+            ->assertSee('data-label="Verkoopprijs"', false)
+            ->assertSee('data-label="Status"', false);
+    }
+
     public function test_archived_catalogs_move_to_their_own_filter_tab(): void
     {
         $this->seedCatalog('Actieve lijst 2026', 1);

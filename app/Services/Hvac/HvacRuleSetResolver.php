@@ -23,17 +23,27 @@ class HvacRuleSetResolver
 
         $default = config('hvac.default_rule_set');
 
-        return HvacRuleSet::firstOrCreate(
-            [
-                'name'    => $default['name'],
-                'version' => $default['version'],
-            ],
-            [
-                'status'         => 'active',
-                'effective_from' => now()->toDateString(),
-                'configuration'  => $default['configuration'],
-                'created_by'     => 'system (config/hvac.php v1)',
-            ]
-        );
+        // The config seed only fills an EMPTY table. When the default set
+        // exists but was archived (or is still a draft), silently reviving
+        // it would calculate with rules nobody chose to be active.
+        $existing = HvacRuleSet::where('name', $default['name'])
+            ->where('version', $default['version'])
+            ->first();
+
+        if ($existing !== null) {
+            throw new \RuntimeException(
+                'Geen actieve regelset: de standaardregelset "' . $default['name'] . '" v' . $default['version']
+                . ' heeft status "' . $existing->status . '". Activeer een regelset via Berekeningsregels.'
+            );
+        }
+
+        return HvacRuleSet::create([
+            'name'           => $default['name'],
+            'version'        => $default['version'],
+            'status'         => 'active',
+            'effective_from' => now()->toDateString(),
+            'configuration'  => $default['configuration'],
+            'created_by'     => 'system (config/hvac.php v1)',
+        ]);
     }
 }

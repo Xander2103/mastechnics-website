@@ -86,6 +86,7 @@ class ProductSelector
             ->where('cooling_capacity_kw', '>=', $loadKw)
             ->where('cooling_capacity_kw', '<=', $maxKw)
             ->with('brand')
+            ->orderBy('id')
             ->get();
 
         foreach ($sets as $set) {
@@ -99,13 +100,22 @@ class ProductSelector
             ->where('cooling_capacity_kw', '>=', $loadKw)
             ->where('cooling_capacity_kw', '<=', $maxKw)
             ->with('brand')
+            ->orderBy('id')
             ->get();
 
-        // One query for all indoor units instead of one per unit.
+        // One query for all indoor units instead of one per unit. Only
+        // SELECTABLE outdoor units may be paired: an outdoor living solely
+        // in an archived product list is no longer offered.
+        $selectableOutdoorIds = HvacProduct::selectable()
+            ->where('product_type', 'outdoor_unit')
+            ->pluck('id');
+
         $linksByIndoor = HvacProductCompatibility::whereIn('compatible_product_id', $indoors->pluck('id'))
+            ->whereIn('parent_product_id', $selectableOutdoorIds)
             ->where('compatibility_type', 'indoor_outdoor')
             ->where('is_active', true)
             ->with('parent.brand')
+            ->orderBy('id')
             ->get()
             ->groupBy('compatible_product_id');
 
@@ -200,6 +210,7 @@ class ProductSelector
                 ->where('cooling_capacity_kw', '>=', $loadKw)
                 ->where('cooling_capacity_kw', '<=', $maxKw)
                 ->with('brand')
+                ->orderBy('id')
                 ->get();
 
             if ($units->isEmpty()) {
@@ -273,6 +284,7 @@ class ProductSelector
                     ->orWhere('maximum_connected_indoor_units', '>=', $indoorCount);
             })
             ->with('brand')
+            ->orderBy('id')
             ->get();
 
         foreach ($this->sortByPreference($outdoors) as $outdoor) {
@@ -286,6 +298,7 @@ class ProductSelector
                 ->where('compatibility_type', 'multi_split_indoor')
                 ->where('is_active', true)
                 ->whereIn('compatible_product_id', $distinctIndoorIds)
+                ->orderBy('id')
                 ->get();
 
             if ($links->pluck('compatible_product_id')->unique()->count() < count($distinctIndoorIds)) {
@@ -440,7 +453,14 @@ class ProductSelector
         ];
     }
 
-    private function limitChecks(HvacProduct $product, float $totalPipe, float $maxPerUnitPipe, float $rise, array $rules): array
+    /**
+     * Pipe/height limit checks of a product against the estimated pipe run.
+     * Public so a manual product change can re-run the same checks
+     * (HvacManualOverrideService) instead of trusting the original candidate.
+     *
+     * @return array{pipe: string, height: string, electrical: string} ok|exceeded|unknown
+     */
+    public function limitChecks(HvacProduct $product, float $totalPipe, float $maxPerUnitPipe, float $rise, array $rules): array
     {
         $pipeCheck = 'unknown';
         if ($product->maximum_pipe_length_m !== null) {
@@ -464,7 +484,8 @@ class ProductSelector
         ];
     }
 
-    private function productData(HvacProduct $product, ?string $forRoom = null): array
+    /** Snapshot of the product facts stored in a candidate (public: reused after a manual product change). */
+    public function productData(HvacProduct $product, ?string $forRoom = null): array
     {
         $saleprice = $product->default_sale_price_excl_vat;
         $priceSource = 'catalog_sale_price';

@@ -163,6 +163,13 @@ class AccessorySelector
         return ['items' => $items, 'warnings' => $warnings];
     }
 
+    /**
+     * Cheapest selectable, priced product of a type. Products whose import
+     * still needs review (derived capacity, unknown price meaning) are
+     * skipped: a suspicious price must never win on being the cheapest. The
+     * review flag lives in JSON metadata, so it is filtered in PHP — the
+     * accessory tables are small and the candidates arrive price-ordered.
+     */
     private function cheapestCatalogProduct(string $type): ?HvacProduct
     {
         return HvacProduct::selectable()
@@ -172,7 +179,9 @@ class AccessorySelector
                     ->orWhereNotNull('purchase_price_excl_vat');
             })
             ->orderByRaw('COALESCE(default_sale_price_excl_vat, purchase_price_excl_vat * 2) asc')
-            ->first();
+            ->orderBy('id')
+            ->get()
+            ->first(fn (HvacProduct $product) => ! $product->needsImportReview());
     }
 
     private function fallbackDescription(string $key): string

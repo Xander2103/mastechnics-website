@@ -4,6 +4,7 @@ namespace App\Services\Hvac;
 
 use App\Models\HvacCalculation;
 use App\Models\HvacProduct;
+use App\Models\HvacProductCompatibility;
 use App\Models\HvacRecommendation;
 use App\Models\HvacRecommendationItem;
 use App\Services\Hvac\CapacityClassSelector;
@@ -16,6 +17,21 @@ use Illuminate\Support\Facades\DB;
  */
 class HvacManualOverrideService
 {
+    /** Warning codes owned by the post-change re-validation (replaced on every run). */
+    private const REVALIDATION_CODES = [
+        'pipe_limit_exceeded', 'height_limit_exceeded', 'limits_unknown',
+        'compatibility_missing_after_change', 'connected_units_exceeded',
+    ];
+
+    public const NEGATIVE_MARGIN_WARNING = [
+        'code'    => 'negative_margin',
+        'message' => 'De marge is NEGATIEF: de verkoopprijs dekt de aankoopkosten niet. Controleer prijzen en kortingen vóór goedkeuring.',
+    ];
+
+    public function __construct(private readonly ProductSelector $selector)
+    {
+    }
+
     public function overrideItem(
         HvacRecommendationItem $item,
         ?float $quantity,
@@ -23,6 +39,10 @@ class HvacManualOverrideService
         string $reason,
         string $adminEmail
     ): HvacRecommendationItem {
+        if ($item->item_type === 'discount') {
+            [$quantity, $saleUnitPrice] = $this->guardDiscountOverride($item, $quantity, $saleUnitPrice);
+        }
+
         return DB::transaction(function () use ($item, $quantity, $saleUnitPrice, $reason, $adminEmail) {
             $recommendation = $item->recommendation;
 
@@ -51,6 +71,39 @@ class HvacManualOverrideService
         });
     }
 
+    /**
+     * A discount line is always "1 × −amount": the quantity can never be
+     * changed and the amount can never exceed what the other lines add up
+     * to, so a discount can never flip the subtotal negative.
+     *
+     * @return array{0: ?float, 1: ?float} [quantity, saleUnitPrice] to apply
+     */
+    private function guardDiscountOverride(HvacRecommendationItem $item, ?float $quantity, ?float $saleUnitPrice): array
+    {
+        if ($quantity !== null && (float) $quantity !== 1.0) {
+            throw new \InvalidArgumentException(
+                'De hoeveelheid van een kortingsregel is altijd 1. Pas het kortingsbedrag aan in plaats van de hoeveelheid.'
+            );
+        }
+
+        if ($saleUnitPrice === null) {
+            return [null, null];
+        }
+
+        $normalised = -abs($saleUnitPrice);
+        $others = $item->recommendation->items()->whereKeyNot($item->id)->get();
+        $coverable = round((float) $others->sum('line_total'), 2); // other discounts already negative
+
+        if (abs($normalised) > $coverable) {
+            throw new \InvalidArgumentException(
+                'De korting (€ ' . number_format(abs($normalised), 2, ',', '.') . ') is groter dan het subtotaal van de overige regels (€ '
+                . number_format(max($coverable, 0), 2, ',', '.') . ').'
+            );
+        }
+
+        return [null, $normalised];
+    }
+
     public function overrideVatRate(
         HvacRecommendation $recommendation,
         float $vatRate,
@@ -69,8 +122,12 @@ class HvacManualOverrideService
     }
 
     /**
-     * Replace the product behind an equipment item with another ACTIVE
-     * catalog product. Prices come from the catalog, never free input.
+     * Replace the product behind an equipment item with another ACTIVE,
+     * selectable catalog product of the SAME type. Prices come from the
+     * catalog, never free input. Afterwards the technical validation
+     * (limits + explicit compatibility) is re-run and written into the
+     * candidate snapshot, so the readiness gate reflects the new product
+     * instead of the one the selector originally proved.
      */
     public function changeItemProduct(
         HvacRecommendationItem $item,
@@ -86,9 +143,19 @@ class HvacManualOverrideService
                 'Dit product zit alleen nog in gearchiveerde productlijsten en kan niet gekozen worden voor nieuwe aanbevelingen.'
             );
         }
+        if ($item->item_type !== 'equipment') {
+            throw new \InvalidArgumentException('Alleen toestelregels kunnen van product gewisseld worden.');
+        }
+        $currentType = $item->product?->product_type;
+        if ($currentType !== null && $product->product_type !== $currentType) {
+            throw new \InvalidArgumentException(
+                'Het nieuwe product moet van hetzelfde type zijn als het huidige (' . $currentType . '); gekozen: ' . $product->product_type . '.'
+            );
+        }
 
         return DB::transaction(function () use ($item, $product, $reason, $adminEmail) {
             $recommendation = $item->recommendation;
+            $previousProductId = $item->hvac_product_id;
 
             $this->log(
                 $recommendation,
@@ -119,10 +186,151 @@ class HvacManualOverrideService
                 ]),
             ]);
 
+            $this->revalidateCandidate($recommendation->fresh(), $previousProductId, $product);
             $this->recalculateTotals($recommendation);
 
             return $item->fresh();
         });
+    }
+
+    /**
+     * Re-run the selector's technical checks for the equipment now on the
+     * recommendation and store the outcome in metadata.candidate
+     * (valid / checks / warnings) — the readiness gate reads exactly that.
+     */
+    private function revalidateCandidate(HvacRecommendation $recommendation, ?int $previousProductId, HvacProduct $newProduct): void
+    {
+        $metadata = $recommendation->metadata ?? [];
+        $candidate = $metadata['candidate'] ?? [];
+        $calculation = $recommendation->calculation;
+        $result = $calculation->result ?? [];
+        $rules = $result['rule_set']['configuration'] ?? [];
+
+        $totalPipe = 0.0;
+        $maxRoomPipe = 0.0;
+        $maxRise = 0.0;
+        foreach ($result['rooms'] ?? [] as $room) {
+            $equivalent = (float) ($room['pipe']['equivalent_length_m'] ?? 0);
+            $totalPipe += $equivalent;
+            $maxRoomPipe = max($maxRoomPipe, $equivalent);
+            $maxRise = max($maxRise, (float) ($room['pipe']['vertical_rise_m'] ?? 0));
+        }
+
+        $equipment = $recommendation->items()->where('item_type', 'equipment')->with('product.brand')->orderBy('id')->get();
+        $products = $equipment->pluck('product')->filter()->values();
+
+        $limitsProduct = $products->first(fn (HvacProduct $p) => in_array($p->product_type, ['single_split_set', 'outdoor_unit', 'multi_split_outdoor'], true));
+        $indoors = $products->filter(fn (HvacProduct $p) => $p->product_type === 'indoor_unit')->values();
+
+        $warnings = [];
+        $valid = true;
+
+        if ($limitsProduct === null) {
+            $checks = ['pipe' => 'unknown', 'height' => 'unknown', 'electrical' => 'unknown_supply'];
+            $valid = false;
+            $warnings[] = [
+                'code'    => 'limits_unknown',
+                'message' => 'Geen buitenunit of set in deze optie — leiding- en hoogtelimieten kunnen niet gecontroleerd worden.',
+            ];
+        } else {
+            $checks = $this->selector->limitChecks($limitsProduct, $totalPipe, $maxRoomPipe, $maxRise, $rules);
+
+            if ($checks['pipe'] === 'exceeded') {
+                $valid = false;
+                $warnings[] = [
+                    'code'    => 'pipe_limit_exceeded',
+                    'message' => "{$limitsProduct->model}: geschatte leidinglengte overschrijdt de maximale leidinglengte van het product.",
+                ];
+            }
+            if ($checks['height'] === 'exceeded') {
+                $valid = false;
+                $warnings[] = [
+                    'code'    => 'height_limit_exceeded',
+                    'message' => "{$limitsProduct->model}: geschat hoogteverschil overschrijdt het maximum van het product.",
+                ];
+            }
+            if ($checks['pipe'] === 'unknown' || $checks['height'] === 'unknown') {
+                $valid = false;
+                $warnings[] = [
+                    'code'    => 'limits_unknown',
+                    'message' => "{$limitsProduct->model}: leiding- of hoogtelimieten onbekend in de catalogus — handmatige controle vereist.",
+                ];
+            }
+
+            // Explicit compatibility rows between the outdoor and every
+            // distinct indoor unit (a single-split set is compatible by
+            // definition). Units are never paired on kW alone.
+            if ($limitsProduct->product_type !== 'single_split_set') {
+                $type = $limitsProduct->product_type === 'multi_split_outdoor' ? 'multi_split_indoor' : 'indoor_outdoor';
+                $indoorIds = $indoors->pluck('id')->unique()->values();
+                $linked = HvacProductCompatibility::where('parent_product_id', $limitsProduct->id)
+                    ->where('compatibility_type', $type)
+                    ->where('is_active', true)
+                    ->whereIn('compatible_product_id', $indoorIds)
+                    ->pluck('compatible_product_id')
+                    ->unique();
+
+                $missing = $indoors->filter(fn (HvacProduct $p) => ! $linked->contains($p->id));
+                if ($indoorIds->isEmpty() || $missing->isNotEmpty()) {
+                    $valid = false;
+                    $models = $missing->pluck('model')->unique()->implode(', ');
+                    $warnings[] = [
+                        'code'    => 'compatibility_missing_after_change',
+                        'message' => "Buitenunit {$limitsProduct->model}: geen actieve compatibiliteitsregel met "
+                            . ($models !== '' ? "binnenunit(s) {$models}" : 'een binnenunit')
+                            . ' — compatibiliteit niet aantoonbaar na de productwijziging.',
+                    ];
+                }
+
+                if ($limitsProduct->maximum_connected_indoor_units !== null
+                    && $indoors->count() > $limitsProduct->maximum_connected_indoor_units) {
+                    $valid = false;
+                    $warnings[] = [
+                        'code'    => 'connected_units_exceeded',
+                        'message' => "Buitenunit {$limitsProduct->model}: meer binnenunits ({$indoors->count()}) dan het maximum ({$limitsProduct->maximum_connected_indoor_units}).",
+                    ];
+                }
+            }
+        }
+
+        // Price gaps keep invalidating the candidate, as in the selector.
+        $priceMissing = $products->contains(
+            fn (HvacProduct $p) => $p->default_sale_price_excl_vat === null && $p->purchase_price_excl_vat === null
+        );
+        if ($priceMissing) {
+            $valid = false;
+        }
+
+        // Refresh the product snapshot of the swapped unit (room label kept).
+        $candidateProducts = $candidate['products'] ?? [];
+        $replaced = false;
+        foreach ($candidateProducts as $i => $p) {
+            if ($previousProductId !== null && ($p['id'] ?? null) === $previousProductId && ! $replaced) {
+                $candidateProducts[$i] = $this->selector->productData($newProduct, $p['for_room'] ?? null);
+                $replaced = true;
+            }
+        }
+        if (! $replaced) {
+            $candidateProducts[] = $this->selector->productData($newProduct);
+        }
+
+        $keep = fn (array $w) => ! in_array($w['code'] ?? '', self::REVALIDATION_CODES, true);
+        $candidate['products'] = array_values($candidateProducts);
+        $candidate['checks'] = $checks;
+        $candidate['valid'] = $valid;
+        $candidate['revalidated_after_product_change'] = true;
+        $candidate['warnings'] = array_values(array_merge(
+            array_filter($candidate['warnings'] ?? [], $keep),
+            $warnings
+        ));
+
+        $metadata['candidate'] = $candidate;
+        $metadata['warnings'] = array_values(array_merge(
+            array_filter($metadata['warnings'] ?? [], $keep),
+            $warnings
+        ));
+
+        $recommendation->update(['metadata' => $metadata]);
     }
 
     /**
@@ -301,6 +509,9 @@ class HvacManualOverrideService
 
     private function recalculateTotals(HvacRecommendation $recommendation): void
     {
+        // Metadata may have been rewritten in this transaction (candidate
+        // re-validation) — never merge warnings from a stale copy.
+        $recommendation->refresh();
         $items = $recommendation->items()->get();
 
         $sum = fn (string $type) => round((float) $items->where('item_type', $type)->sum('line_total'), 2);
@@ -311,7 +522,17 @@ class HvacManualOverrideService
         $travel = $sum('travel');
         $discount = $sum('discount'); // negative
         $subtotal = round($equipment + $materials + $labor + $travel + $discount, 2);
-        $vat = round($subtotal * (float) $recommendation->vat_rate / 100, 2);
+
+        if ($subtotal < 0) {
+            throw new \InvalidArgumentException(
+                'Deze aanpassing zou het subtotaal negatief maken (€ ' . number_format($subtotal, 2, ',', '.') . ') en is geweigerd.'
+            );
+        }
+
+        // VAT per line (rounded per line, then summed): the same arithmetic
+        // as QuoteItem::calculateLine, so approval and quote PDF agree.
+        $vatRate = (float) $recommendation->vat_rate;
+        $vat = round((float) $items->sum(fn ($i) => round((float) $i->line_total * $vatRate / 100, 2)), 2);
 
         // Unpriced optional flag lines don't count against margin completeness.
         $marginItems = $items->whereIn('item_type', ['equipment', 'material'])
@@ -322,12 +543,23 @@ class HvacManualOverrideService
         $margin = null;
         $marginPct = null;
         if ($purchaseKnown) {
-            $saleTotal = (float) $marginItems->sum('line_total');
+            // Commercial discounts come straight out of the margin.
+            $saleTotal = (float) $marginItems->sum('line_total') + $discount;
             $purchaseTotal = (float) $marginItems
                 ->sum(fn ($i) => (float) $i->purchase_unit_price * (float) $i->quantity);
             $margin = round($saleTotal - $purchaseTotal, 2);
             $marginPct = $subtotal > 0 ? round($margin / $subtotal * 100, 1) : null;
         }
+
+        $metadata = $recommendation->metadata ?? [];
+        $warnings = array_values(array_filter(
+            $metadata['warnings'] ?? [],
+            fn ($w) => ($w['code'] ?? '') !== 'negative_margin'
+        ));
+        if ($margin !== null && $margin < 0) {
+            $warnings[] = self::NEGATIVE_MARGIN_WARNING;
+        }
+        $metadata['warnings'] = $warnings;
 
         $recommendation->update([
             'equipment_total_excl_vat' => $equipment,
@@ -339,6 +571,7 @@ class HvacManualOverrideService
             'total_incl_vat'           => round($subtotal + $vat, 2),
             'margin_amount'            => $margin,
             'margin_percentage'        => $marginPct,
+            'metadata'                 => $metadata,
         ]);
     }
 }

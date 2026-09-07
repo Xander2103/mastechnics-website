@@ -12,17 +12,26 @@ use Illuminate\Support\Facades\DB;
  * Converts an APPROVED recommendation into the existing quote system.
  *
  * - Only approved recommendations convert; anything else throws.
+ * - The readiness gate is re-evaluated at conversion time: a critical rule
+ *   unvalidated after approval blocks the conversion.
  * - An existing quote is never silently replaced: conversion is blocked
  *   until Martin removes the existing quote through the normal quote flow.
  * - Quote items preserve SKU, description, quantity, unit price and VAT.
  * - Purchase prices and margin NEVER reach the quote (customer-facing).
  * - The quote stays a draft; sending remains a separate explicit action
  *   through the existing quote mail flow. No automatic email, ever.
+ * - Test-catalog (demo) recommendations may convert so the flow can be
+ *   rehearsed, but the quote title is marked and such a quote can never
+ *   be e-mailed (QuoteController::sendEmail refuses the marker).
  */
 class HvacQuoteConversionService
 {
-    public function __construct(private readonly QuoteNumberGenerator $quoteNumbers)
-    {
+    public const TEST_CATALOG_TITLE_PREFIX = '[TESTCATALOGUS] ';
+
+    public function __construct(
+        private readonly QuoteNumberGenerator $quoteNumbers,
+        private readonly HvacRecommendationReadiness $readiness,
+    ) {
     }
 
     public function convert(HvacRecommendation $recommendation, string $adminEmail): Quote
@@ -39,6 +48,16 @@ class HvacQuoteConversionService
             );
         }
 
+        // Re-gate: readiness can regress after approval (e.g. a critical
+        // rule was unvalidated). Same gate as approval, same blockers.
+        $evaluation = $this->readiness->evaluate($recommendation->loadMissing('items', 'calculation'));
+        if (! $evaluation['ready']) {
+            throw new \DomainException(
+                'Deze optie voldoet niet meer aan de voorwaarden om omgezet te worden: '
+                . implode(' ', $evaluation['blockers'])
+            );
+        }
+
         $customerRequest = $recommendation->calculation->customerRequest;
 
         if ($customerRequest->quote()->exists()) {
@@ -47,17 +66,19 @@ class HvacQuoteConversionService
             );
         }
 
+        $isDemo = (bool) $evaluation['demo'];
+
         // The quote number is reserved under the generator's lock for the
         // whole transaction, so a concurrent conversion or manual quote save
         // cannot end up with the same number.
-        return $this->quoteNumbers->withNextNumber(fn (string $quoteNumber) => DB::transaction(function () use ($recommendation, $customerRequest, $adminEmail, $quoteNumber) {
+        return $this->quoteNumbers->withNextNumber(fn (string $quoteNumber) => DB::transaction(function () use ($recommendation, $customerRequest, $adminEmail, $quoteNumber, $isDemo) {
             $vatRate = (float) $recommendation->vat_rate;
 
             $quote = Quote::create([
                 'customer_request_id' => $customerRequest->id,
                 'quote_number'        => $quoteNumber,
                 'quote_status'        => 'draft',
-                'title'               => $this->quoteTitle($customerRequest->locale),
+                'title'               => ($isDemo ? self::TEST_CATALOG_TITLE_PREFIX : '') . $this->quoteTitle($customerRequest->locale),
                 'vat_rate'            => $vatRate,
                 'valid_until'         => now()->addDays(30)->toDateString(),
             ]);

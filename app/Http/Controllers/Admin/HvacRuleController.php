@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\HvacRuleSet;
+use App\Models\HvacRuleValidation;
 use App\Services\Hvac\HvacRuleCatalog;
 use App\Services\Hvac\HvacRuleSetResolver;
 use Illuminate\Http\RedirectResponse;
@@ -26,11 +27,17 @@ class HvacRuleController extends Controller
             ->values()
             ->map(function (array $entry) use ($active, $validations) {
                 $validation = $validations->get($entry['key']);
+                $currentValue = HvacRuleCatalog::value($active->configuration, $entry['key']);
+                // A validation from a previous version whose value has since
+                // changed no longer counts: the rule shows as not validated
+                // (the readiness gate applies the same test).
+                $stillValid = $validation !== null && $validation->appliesTo($currentValue);
 
                 return $entry + [
-                    'value'      => HvacRuleCatalog::formatValue(HvacRuleCatalog::value($active->configuration, $entry['key'])),
-                    'validation' => $validation,
-                    'status'     => $validation !== null ? 'validated' : $entry['default_status'],
+                    'value'         => HvacRuleCatalog::formatValue($currentValue),
+                    'validation'    => $validation,
+                    'value_changed' => $validation !== null && ! $stillValid,
+                    'status'        => $stillValid ? 'validated' : $entry['default_status'],
                 ];
             });
 
@@ -60,10 +67,15 @@ class HvacRuleController extends Controller
         $active->validations()->updateOrCreate(
             ['rule_key' => $data['rule_key']],
             [
-                'status'       => 'validated',
-                'note'         => $data['note'] ?? null,
-                'validated_by' => (string) session('admin_user_email'),
-                'validated_at' => now(),
+                'status'          => 'validated',
+                'note'            => $data['note'] ?? null,
+                // Snapshot of the validated value: the validation stops
+                // counting as soon as the rule carries a different value.
+                'validated_value' => HvacRuleValidation::encodeValue(
+                    HvacRuleCatalog::value($active->configuration, $data['rule_key'])
+                ),
+                'validated_by'    => (string) session('admin_user_email'),
+                'validated_at'    => now(),
             ]
         );
 
@@ -102,11 +114,18 @@ class HvacRuleController extends Controller
                 'created_by'    => (string) session('admin_user_email'),
             ]);
 
-            // Validations carry over: the copied values are identical.
+            // Validations carry over: the copied values are identical at this
+            // point. The validated value is stored with the copy so a value
+            // changed later in the draft invalidates that rule again.
             foreach ($active->validations as $validation) {
                 $draft->validations()->create($validation->only([
                     'rule_key', 'status', 'note', 'validated_by', 'validated_at',
-                ]));
+                ]) + [
+                    'validated_value' => $validation->validated_value
+                        ?? HvacRuleValidation::encodeValue(
+                            HvacRuleCatalog::value($active->configuration, $validation->rule_key)
+                        ),
+                ]);
             }
 
             return $draft;

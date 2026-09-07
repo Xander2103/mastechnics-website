@@ -143,7 +143,13 @@ class HvacPricingService
         $laborTotal = $sumType('labor');
         $travelTotal = $sumType('travel');
         $subtotal = round($equipmentTotal + $materialsTotal + $laborTotal + $travelTotal, 2);
-        $vatAmount = round($subtotal * $vatRate / 100, 2);
+        // VAT per line (rounded per line, then summed) — identical to how the
+        // quote system computes it (QuoteItem::calculateLine), so the approved
+        // total and the customer PDF never differ by a cent.
+        $vatAmount = round(array_sum(array_map(
+            fn ($i) => round((float) $i['line_total'] * $vatRate / 100, 2),
+            $items
+        )), 2);
 
         $margin = $this->marginCalculator->calculate($items, $subtotal);
         if (! $margin['complete']) {

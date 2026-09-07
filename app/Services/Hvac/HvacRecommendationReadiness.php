@@ -77,11 +77,6 @@ class HvacRecommendationReadiness
             return $this->rulesValidatedMemo[$ruleSetId];
         }
 
-        $validated = HvacRuleValidation::where('hvac_rule_set_id', $ruleSetId)
-            ->where('status', 'validated')
-            ->pluck('rule_key')
-            ->all();
-
         // Only critical rules that actually exist in this rule set's
         // configuration apply: v1 sets must not be blocked by v2-only rules
         // and vice versa.
@@ -90,6 +85,17 @@ class HvacRecommendationReadiness
             HvacRuleCatalog::criticalKeys(),
             fn (string $key) => HvacRuleCatalog::value($configuration, $key) !== null
         );
+
+        // A validation only counts while the rule still carries the value
+        // that was validated (draft copies inherit validations, but a value
+        // changed afterwards must be re-validated). Legacy rows without a
+        // stored value keep counting.
+        $validated = HvacRuleValidation::where('hvac_rule_set_id', $ruleSetId)
+            ->where('status', 'validated')
+            ->get()
+            ->filter(fn (HvacRuleValidation $v) => $v->appliesTo(HvacRuleCatalog::value($configuration, $v->rule_key)))
+            ->pluck('rule_key')
+            ->all();
 
         return $this->rulesValidatedMemo[$ruleSetId] = array_diff($applicable, $validated) === [];
     }

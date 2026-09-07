@@ -32,8 +32,10 @@
         );
     }
     // One query for the product-change dropdowns instead of one per item row.
+    // Same rule as the server: selectable (active, not archived-only) and —
+    // per row — only products of the item's own product type.
     $hvacAltProducts = $hvacCalculation
-        ? \App\Models\HvacProduct::active()
+        ? \App\Models\HvacProduct::selectable()
             ->whereIn('product_type', ['single_split_set', 'indoor_unit', 'outdoor_unit', 'multi_split_outdoor'])
             ->orderBy('model')
             ->get(['id', 'model', 'sku', 'product_type'])
@@ -546,8 +548,9 @@
                                                               action="{{ route('admin.requests.hvac.items.change-product', [$customerRequest, $item]) }}">
                                                             @csrf
                                                             <select name="product_id" required>
-                                                                <option value="">Ander product…</option>
+                                                                <option value="">Ander product (zelfde type)…</option>
                                                                 @foreach ($hvacAltProducts[$item->product?->product_type ?? 'single_split_set'] ?? [] as $alt)
+                                                                    @continue($alt->id === $item->hvac_product_id)
                                                                     <option value="{{ $alt->id }}">{{ $alt->model }} ({{ $alt->sku }})</option>
                                                                 @endforeach
                                                             </select>
@@ -566,7 +569,7 @@
 
                     @if ($laborDetail)
                         <details style="margin-top: 0.5rem;">
-                            <summary style="cursor:pointer;font-size:0.82rem;">Arbeidsdetail ({{ $laborDetail['total_hours'] }} u × € {{ number_format($laborDetail['hourly_rate'], 2, ',', '.') }})</summary>
+                            <summary style="cursor:pointer;font-size:0.82rem;">Arbeidsdetail ({{ number_format((float) $laborDetail['total_hours'], 1, ',', '.') }} u × € {{ number_format($laborDetail['hourly_rate'], 2, ',', '.') }})</summary>
                             <ul class="hvac-warning-list" style="color:#374151;">
                                 @foreach ($laborDetail['lines'] as $line)
                                     <li>{{ $line['hours'] }} u — {{ $line['reason'] }}</li>
@@ -601,7 +604,7 @@
                             @php $marginNegative = $recommendation->margin_amount < 0; @endphp
                             <span class="hvac-margin {{ $marginNegative ? 'is-negative' : '' }}">Marge</span>
                             <span class="hvac-margin {{ $marginNegative ? 'is-negative' : '' }}">
-                                € {{ number_format($recommendation->margin_amount, 2, ',', '.') }} ({{ $recommendation->margin_percentage }}%)
+                                € {{ number_format($recommendation->margin_amount, 2, ',', '.') }} ({{ $recommendation->margin_percentage !== null ? number_format((float) $recommendation->margin_percentage, 1, ',', '.') : '—' }}%)
                                 @if ($marginNegative) — NEGATIEF: verkoopprijs dekt de kosten niet @endif
                             </span>
                         @else
@@ -635,7 +638,13 @@
                         @if ($recommendation->status === 'draft')
                             <form method="POST" action="{{ route('admin.requests.hvac.approve', [$customerRequest, $recommendation]) }}">
                                 @csrf
-                                <button type="submit" class="button button-primary">Optie goedkeuren</button>
+                                @if ($readinessEval['ready'])
+                                    <button type="submit" class="button button-primary">Optie goedkeuren</button>
+                                @else
+                                    <button type="submit" class="button button-primary" disabled
+                                            title="{{ implode(' ', $readinessEval['blockers']) }}"
+                                            style="opacity:0.55;cursor:not-allowed;">Optie goedkeuren</button>
+                                @endif
                             </form>
                         @endif
 

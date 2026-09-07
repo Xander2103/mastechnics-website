@@ -4,6 +4,7 @@ namespace App\Services\Hvac;
 
 use App\Models\CustomerRequest;
 use App\Models\HvacCalculation;
+use App\Models\HvacRecommendation;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -39,6 +40,15 @@ class HvacCalculationService
                 ->update(['status' => 'superseded']);
 
             if (! $validation->isCalculable()) {
+                // The builder is not called for a blocked run, so open
+                // options of the (now superseded) previous calculation must
+                // be superseded here — otherwise a stale draft could still be
+                // approved against customer data that has changed.
+                HvacRecommendation::whereIn(
+                    'hvac_calculation_id',
+                    HvacCalculation::where('customer_request_id', $request->id)->pluck('id')
+                )->whereIn('status', ['draft', 'manual_review'])->update(['status' => 'superseded']);
+
                 return HvacCalculation::create([
                     'customer_request_id' => $request->id,
                     'hvac_rule_set_id'    => $ruleSet->id,
@@ -152,7 +162,7 @@ class HvacCalculationService
                     'warnings' => $warnings,
                     'blockers' => [],
                 ],
-                'status'        => $anyManualReview ? 'calculated' : 'calculated',
+                'status'        => 'calculated',
                 'calculated_by' => $adminEmail,
                 'calculated_at' => now(),
             ]);

@@ -77,6 +77,15 @@ class HvacCalculationController extends Controller
             return back()->with('success', 'hvac_not_approvable');
         }
 
+        // A draft whose calculation was superseded (recalculated, possibly
+        // blocked) describes customer data that no longer applies.
+        if ($recommendation->calculation->status !== 'calculated') {
+            return back()->withErrors([
+                'hvac_approve' => 'Deze optie hoort bij een verouderde berekening (status "'
+                    . $recommendation->calculation->status . '"). Voer de voorcalculatie opnieuw uit en beoordeel de nieuwe opties.',
+            ]);
+        }
+
         // Production safety: technical + price + validated critical rules
         // (test-catalog recommendations bypass only the rule gate).
         $evaluation = $readiness->evaluate($recommendation);
@@ -182,13 +191,17 @@ class HvacCalculationController extends Controller
             return back()->withErrors(['quantity' => 'Geef een nieuwe hoeveelheid of prijs op.']);
         }
 
-        $overrideService->overrideItem(
-            $item,
-            isset($data['quantity']) ? (float) $data['quantity'] : null,
-            isset($data['sale_unit_price']) ? (float) $data['sale_unit_price'] : null,
-            $data['reason'],
-            (string) session('admin_user_email')
-        );
+        try {
+            $overrideService->overrideItem(
+                $item,
+                isset($data['quantity']) ? (float) $data['quantity'] : null,
+                isset($data['sale_unit_price']) ? (float) $data['sale_unit_price'] : null,
+                $data['reason'],
+                (string) session('admin_user_email')
+            );
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['quantity' => $e->getMessage()]);
+        }
 
         return back()->with('success', 'hvac_override_applied');
     }
@@ -283,6 +296,15 @@ class HvacCalculationController extends Controller
 
         if ($calculation === null) {
             return back()->withErrors(['room_index' => 'Er is geen actieve berekening om aan te passen.']);
+        }
+
+        // An approved option is a commitment on THIS calculation: the load
+        // (and thus the capacity) can't change underneath it. Reject the
+        // approval first, then override and rebuild.
+        if ($calculation->recommendations()->where('status', 'approved')->exists()) {
+            return back()->withErrors([
+                'room_index' => 'Er is al een goedgekeurde optie voor deze berekening. Wijs die eerst af voordat u de koellast aanpast.',
+            ]);
         }
 
         try {

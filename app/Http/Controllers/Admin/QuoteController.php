@@ -7,6 +7,7 @@ use App\Mail\QuoteSentMail;
 use App\Models\CustomerRequest;
 use App\Models\Quote;
 use App\Models\QuoteItem;
+use App\Services\Hvac\HvacQuoteConversionService;
 use App\Services\MailDispatcher;
 use App\Services\QuoteNumberGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -207,6 +208,14 @@ class QuoteController extends Controller
             'subject' => ['required', 'string', 'max:200'],
             'body'    => ['required', 'string', 'max:5000'],
         ]);
+
+        // A quote converted from a test-catalog (demo) pre-calculation is a
+        // rehearsal and must never reach a customer.
+        if (str_starts_with((string) $quote->title, HvacQuoteConversionService::TEST_CATALOG_TITLE_PREFIX)) {
+            return back()->withErrors([
+                'to' => 'Deze offerte komt uit de testcatalogus en kan niet verstuurd worden. Maak een echte offerte op basis van de productlijsten.',
+            ]);
+        }
 
         // Double-click / concurrent-request guard: only one send per quote
         // may run at a time. The UI also disables the submit button, but the

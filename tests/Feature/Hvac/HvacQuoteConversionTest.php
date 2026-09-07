@@ -159,7 +159,9 @@ class HvacQuoteConversionTest extends TestCase
         $this->withSession($this->adminSession())
             ->post(route('admin.requests.hvac.convert', [$request, $recommendation]));
 
-        $this->assertSame('Installation de climatisation — pré-calcul', Quote::first()->title);
+        // The TestBrand fixture is a demo (test-catalog) recommendation, so
+        // the quote carries the test marker in front of the localised title.
+        $this->assertSame('[TESTCATALOGUS] Installation de climatisation — pré-calcul', Quote::first()->title);
     }
 
     public function test_purchase_prices_never_reach_the_quote(): void

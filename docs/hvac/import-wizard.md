@@ -67,3 +67,24 @@ and skips products in other active lists.
 - Regression fixtures: `tests/Support/CatalogFrFixture.php` (sanitized
   CatalogFR.csv structure); `HvacRealCatalogFrQaTest` runs the real file
   end-to-end when present on this machine (skipped elsewhere).
+- Row limit: both imports read at most `hvac.import.max_rows` rows
+  (default 100 000, no config entry needed to override the default); the
+  classic template import refuses a larger workbook with a clear message
+  instead of truncating silently.
+- A saved profile is applied automatically only when the typed supplier is
+  empty or equal (case-insensitive) to the profile's supplier; a same-layout
+  file for another supplier only gets a warning, never A's price meaning.
+- "Niet in dit bestand" / deactivate-missing compares supplier + SKU of
+  EVERY row in the file (also rows with errors and rows skipped by
+  create_only) — a product is only deactivated when it appears nowhere.
+
+## Known open items (audit, not yet addressed)
+
+- Memory: a 60k-row CSV is materialised in memory by `validatedRows()`
+  (rows + normalized + validated copies); a streaming refactor of
+  normalize/validate is needed before files of that size are routine.
+- N+1 queries in `deactivateMissing()` (one exists-query per missing
+  product) and in `confirmView()` (all products of every non-archived
+  list are loaded to count "niet in dit bestand").
+- `xl/sharedStrings.xml` is loaded whole into memory (only the 200 MB
+  per-entry zip guard applies).

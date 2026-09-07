@@ -11,13 +11,19 @@ use App\Services\Hvac\Import\XlsxReadException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class HvacImportController extends Controller
 {
     private const CACHE_TTL = 3600;
+
+    private const UNREADABLE_FILE = 'Het bestand kon niet gelezen worden. Controleer of het een geldig CSV- of Excel-bestand is en bewaar het eventueel opnieuw.';
+
+    private const ALREADY_IMPORTED = 'Deze import werd al uitgevoerd; de producten zijn niet nogmaals geïmporteerd. Upload het bestand opnieuw als u het nogmaals wilt importeren.';
 
     /**
      * Application-level upload limit in kilobytes, from
@@ -43,13 +49,24 @@ class HvacImportController extends Controller
     }
 
     /**
+     * Maximum number of sheet rows an import reads (config
+     * hvac.import.max_rows, default 100 000). Larger files are refused with
+     * a clear message instead of being silently cut off.
+     */
+    public static function maxRows(): int
+    {
+        return max(1, (int) config('hvac.import.max_rows', 100000));
+    }
+
+    /**
      * File contents as CSV text. XLSX files (template layout: headers on the
      * first filled row of the first visible sheet) are converted through the
      * safe workbook reader — formulas are never evaluated, macro files are
      * rejected. Files with a genuinely different layout belong in the guided
      * mapping import instead.
      *
-     * @throws XlsxReadException
+     * @throws XlsxReadException when the workbook is unreadable OR has more
+     *                           rows than maxRows() (never truncate silently)
      */
     private function contentsAsCsv(Request $request): string
     {
@@ -59,7 +76,13 @@ class HvacImportController extends Controller
             return (string) file_get_contents($file->getRealPath());
         }
 
-        $data = (new TabularFileReader())->rows($file->getRealPath(), 'xlsx');
+        $data = (new TabularFileReader())->rows($file->getRealPath(), 'xlsx', null, self::maxRows());
+
+        if ($data['truncated']) {
+            $limit = number_format(self::maxRows(), 0, ',', '.');
+
+            throw new XlsxReadException("Het werkblad bevat meer dan {$limit} rijen; de import leest maximaal {$limit} rijen. Splits het bestand op in kleinere bestanden.");
+        }
 
         $stream = fopen('php://temp', 'r+');
         foreach ($data['rows'] as $cells) {
@@ -94,6 +117,10 @@ class HvacImportController extends Controller
             $contents = $this->contentsAsCsv($request);
         } catch (XlsxReadException $e) {
             return back()->withErrors(['file' => $e->getMessage()]);
+        } catch (Throwable $e) {
+            Log::warning('HVAC template import: file could not be read', ['error' => $e->getMessage()]);
+
+            return back()->withErrors(['file' => self::UNREADABLE_FILE]);
         }
 
         $parsed = $importer->parse($contents);
@@ -128,12 +155,42 @@ class HvacImportController extends Controller
         $request->validate(['token' => ['required', 'string', 'size:40']]);
         $token = $request->string('token')->toString();
 
-        $payload = Cache::pull("hvac-import:{$token}");
-        if ($payload === null) {
-            return redirect()->route('admin.hvac.import.index')
-                ->withErrors(['file' => 'De voorbereide import is verlopen. Upload het bestand opnieuw.']);
+        // Same guard as the guided wizard: a repeated POST (double-click,
+        // back button) after a completed import must say so instead of
+        // "verlopen", and two concurrent POSTs may never import twice.
+        if (Cache::get("hvac-import-done:{$token}") !== null) {
+            return redirect()->route('admin.hvac.import.index')->withErrors(['file' => self::ALREADY_IMPORTED]);
         }
 
+        $lock = Cache::lock("hvac-import-confirm:{$token}", 120);
+        if (! $lock->get()) {
+            return redirect()->route('admin.hvac.import.index')->withErrors(['file' => self::ALREADY_IMPORTED]);
+        }
+
+        try {
+            if (Cache::get("hvac-import-done:{$token}") !== null) {
+                return redirect()->route('admin.hvac.import.index')->withErrors(['file' => self::ALREADY_IMPORTED]);
+            }
+
+            $payload = Cache::get("hvac-import:{$token}");
+            if ($payload === null) {
+                return redirect()->route('admin.hvac.import.index')
+                    ->withErrors(['file' => 'De voorbereide import is verlopen. Upload het bestand opnieuw.']);
+            }
+
+            $response = $this->runConfirmedImport($importer, $payload);
+
+            Cache::put("hvac-import-done:{$token}", true, self::CACHE_TTL);
+            Cache::forget("hvac-import:{$token}");
+
+            return $response;
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function runConfirmedImport(HvacCsvImporter $importer, array $payload): RedirectResponse
+    {
         $filename = (string) ($payload['filename'] ?? 'sjabloonbestand.csv');
 
         // Template imports belong in the Productlijsten overview too: link the
@@ -214,6 +271,10 @@ class HvacImportController extends Controller
             $contents = $this->contentsAsCsv($request);
         } catch (XlsxReadException $e) {
             return back()->withErrors(['compat_file' => $e->getMessage()]);
+        } catch (Throwable $e) {
+            Log::warning('HVAC compatibility import: file could not be read', ['error' => $e->getMessage()]);
+
+            return back()->withErrors(['compat_file' => self::UNREADABLE_FILE]);
         }
 
         $parsed = $importer->parse($contents);

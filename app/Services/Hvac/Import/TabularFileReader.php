@@ -53,15 +53,9 @@ class TabularFileReader
         if ($this->isXlsx($extension)) {
             $reader = new XlsxWorkbookReader($path);
             $sheet ??= $reader->sheets()[0]['name'];
-            $data = $reader->rows($sheet, $maxRows, $maxCols);
-
-            if ($rowFilter !== null) {
-                foreach ($data['rows'] as $index => $cells) {
-                    if (! $rowFilter($cells, $index)) {
-                        unset($data['rows'][$index]);
-                    }
-                }
-            }
+            // The filter runs inside the workbook reader so it sees every
+            // row BEFORE the row limit applies — identical to the CSV loop.
+            $data = $reader->rows($sheet, $maxRows, $maxCols, $rowFilter);
 
             return $data + ['delimiter' => null, 'delimiter_confidence' => 'high'];
         }
@@ -162,6 +156,15 @@ class TabularFileReader
 
     private function toUtf8(string $contents, bool $allowLossy): string
     {
+        // UTF-16 exports (Excel "Unicode Text", some ERP dumps) carry a BOM;
+        // without this they would be mistaken for cp1252 garbage.
+        if (str_starts_with($contents, "\xFF\xFE")) {
+            return mb_convert_encoding(substr($contents, 2), 'UTF-8', 'UTF-16LE');
+        }
+        if (str_starts_with($contents, "\xFE\xFF")) {
+            return mb_convert_encoding(substr($contents, 2), 'UTF-8', 'UTF-16BE');
+        }
+
         if (mb_check_encoding($contents, 'UTF-8')) {
             return $contents;
         }

@@ -29,14 +29,23 @@ class HvacSupplierController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name'  => ['required', 'string', 'max:150'],
+            'name'  => [
+                'required', 'string', 'max:150',
+                // Case-insensitive: "Airco NV" and "airco nv" are one supplier
+                // (same identity rule as the importers).
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (HvacSupplier::findByName((string) $value) !== null) {
+                        $fail('Deze leverancier bestaat al (hoofdletters tellen niet mee).');
+                    }
+                },
+            ],
             'code'  => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        HvacSupplier::create($data + ['is_active' => true]);
+        HvacSupplier::create(['name' => trim((string) $data['name'])] + $data + ['is_active' => true]);
 
         return back()->with('success', 'hvac_supplier_saved');
     }

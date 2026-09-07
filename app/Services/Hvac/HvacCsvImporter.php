@@ -6,7 +6,6 @@ use App\Models\HvacBrand;
 use App\Models\HvacProduct;
 use App\Models\HvacSupplier;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * CSV import for the HVAC product catalog.
@@ -47,6 +46,46 @@ class HvacCsvImporter
     ];
 
     /**
+     * Upper bounds mirroring HvacProductController::validated() and the
+     * column types (decimal(6,2), unsignedSmallInteger, ...). Without them a
+     * strict MySQL rejects the row mid-import instead of the preview.
+     */
+    private const NUMERIC_MAX = [
+        'cooling_capacity_kw'        => 100,
+        'heating_capacity_kw'        => 100,
+        'minimum_capacity_kw'        => 100,
+        'maximum_capacity_kw'        => 100,
+        'purchase_price_excl_vat'    => 99999999.99,
+        'sale_price_excl_vat'        => 99999999.99,
+        'sound_level_db'             => 120,
+        'seer'                       => 15,
+        'scop'                       => 10,
+        'max_pipe_length_m'          => 500,
+        'max_pipe_length_per_unit_m' => 500,
+        'max_height_difference_m'    => 100,
+    ];
+
+    private const INTEGER_MAX = [
+        'stock_quantity'             => 1000000,
+        'lead_time_days'             => 365,
+        'breaker_a'                  => 200,
+        'max_connected_indoor_units' => 20,
+    ];
+
+    private const TEXT_MAX_LENGTH = [
+        'supplier'             => 255,
+        'brand'                => 255,
+        'sku'                  => 100,
+        'model'                => 255,
+        'name'                 => 255,
+        'voltage'              => 50,
+        'phase'                => 20,
+        'cable'                => 50,
+        'liquid_pipe_diameter' => 20,
+        'gas_pipe_diameter'    => 20,
+    ];
+
+    /**
      * Fields parsed as numbers (used by the guided import to apply the
      * profile's decimal format before validation).
      *
@@ -74,16 +113,20 @@ class HvacCsvImporter
             }
         }
 
-        $contents = str_replace("\r\n", "\n", trim($contents, "\xEF\xBB\xBF \n\r"));
-        $lines = array_values(array_filter(explode("\n", $contents), fn ($l) => trim($l) !== ''));
+        $contents = trim($contents, "\xEF\xBB\xBF \n\r");
 
-        if (count($lines) < 2) {
+        $detected = (new Import\CsvDelimiterDetector())->detect(substr($contents, 0, 65536));
+        $delimiter = $detected['delimiter'] ?? ';';
+
+        // fgetcsv over a stream (not explode("\n") + str_getcsv) so a quoted
+        // value containing a newline stays one record.
+        $records = self::csvRecords($contents, $delimiter);
+
+        if (count($records) < 2) {
             return ['rows' => [], 'global_errors' => ['Het bestand bevat geen datarijen.']];
         }
 
-        $detected = (new Import\CsvDelimiterDetector())->detect(implode("\n", array_slice($lines, 0, 25)));
-        $delimiter = $detected['delimiter'] ?? ';';
-        $header = array_map(fn ($h) => strtolower(trim($h)), str_getcsv($lines[0], $delimiter));
+        $header = array_map(fn ($h) => strtolower(trim((string) $h)), $records[0]);
 
         $missing = array_diff(self::REQUIRED_COLUMNS, $header);
         if ($missing !== []) {
@@ -91,8 +134,7 @@ class HvacCsvImporter
         }
 
         $rawRows = [];
-        foreach (array_slice($lines, 1) as $i => $line) {
-            $values = str_getcsv($line, $delimiter);
+        foreach (array_slice($records, 1) as $i => $values) {
             $raw = [];
             foreach ($header as $col => $name) {
                 $raw[$name] = trim((string) ($values[$col] ?? ''));
@@ -101,6 +143,31 @@ class HvacCsvImporter
         }
 
         return ['rows' => $this->validateRows($rawRows), 'global_errors' => $globalErrors];
+    }
+
+    /**
+     * Splits CSV text into records with fgetcsv (quote-aware, so quoted
+     * delimiters and newlines are preserved). Fully empty records are
+     * dropped. Shared with the compatibility importer.
+     *
+     * @return array<int, array<int, string|null>>
+     */
+    public static function csvRecords(string $contents, string $delimiter): array
+    {
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, $contents);
+        rewind($stream);
+
+        $records = [];
+        while (($cells = fgetcsv($stream, 0, $delimiter, '"', '\\')) !== false) {
+            if ($cells === [null] || array_filter($cells, fn ($c) => trim((string) $c) !== '') === []) {
+                continue;
+            }
+            $records[] = $cells;
+        }
+        fclose($stream);
+
+        return $records;
     }
 
     /**
@@ -184,6 +251,12 @@ class HvacCsvImporter
             $errors[] = "Onbekend producttype '{$productType}'.";
         }
 
+        foreach (self::TEXT_MAX_LENGTH as $field => $maxLength) {
+            if (mb_strlen((string) ($raw[$field] ?? '')) > $maxLength) {
+                $errors[] = "Kolom '{$field}': waarde is langer dan {$maxLength} tekens.";
+            }
+        }
+
         foreach (self::NUMERIC_FIELDS as $field) {
             $value = $raw[$field] ?? '';
             if ($value === '') {
@@ -193,6 +266,9 @@ class HvacCsvImporter
             $normalized = str_replace(',', '.', $value);
             if (! is_numeric($normalized) || (float) $normalized < 0) {
                 $errors[] = "Kolom '{$field}': '{$value}' is geen geldig positief getal.";
+                $data[$field] = null;
+            } elseif ((float) $normalized > self::NUMERIC_MAX[$field]) {
+                $errors[] = "Kolom '{$field}': '{$value}' is groter dan het maximum van " . self::NUMERIC_MAX[$field] . '.';
                 $data[$field] = null;
             } else {
                 $data[$field] = (float) $normalized;
@@ -207,6 +283,12 @@ class HvacCsvImporter
             }
             if (! ctype_digit($value)) {
                 $errors[] = "Kolom '{$field}': '{$value}' is geen geldig geheel getal.";
+                $data[$field] = null;
+            } elseif ((float) $value > self::INTEGER_MAX[$field]) {
+                $errors[] = "Kolom '{$field}': '{$value}' is groter dan het maximum van " . self::INTEGER_MAX[$field] . '.';
+                $data[$field] = null;
+            } elseif ($field === 'max_connected_indoor_units' && (int) $value < 1) {
+                $errors[] = "Kolom '{$field}': '{$value}' moet minstens 1 zijn.";
                 $data[$field] = null;
             } else {
                 $data[$field] = (int) $value;
@@ -281,8 +363,12 @@ class HvacCsvImporter
      *  HvacGuidedImportService::normalizeRows()]]. Existing metadata keys
      * (e.g. notes) are preserved on update.
      *
-     * @return array{created: int, updated: int, skipped: int, product_ids: array<int, int>}
-     *         product_ids: source line number => written product id
+     * @return array{created: int, updated: int, skipped: int, product_ids: array<int, int>, present_ids: array<int, int>}
+     *         product_ids: source line number => written product id;
+     *         present_ids: source line number => id of an existing product
+     *         that was matched (supplier + SKU) but deliberately not written
+     *         (create_only) — it IS in the file and must never count as
+     *         "missing".
      */
     public function import(array $rows, string $mode, array $context = []): array
     {
@@ -291,6 +377,7 @@ class HvacCsvImporter
             $updated = 0;
             $skipped = 0;
             $productIds = [];
+            $presentIds = [];
 
             foreach ($rows as $row) {
                 if ($row['errors'] !== []) {
@@ -303,10 +390,9 @@ class HvacCsvImporter
                 // Case-insensitive supplier identity — "Airco NV" and
                 // "AIRCO NV" must never become two suppliers (which would let
                 // the same SKU exist twice as separate products).
-                $supplier = HvacSupplier::whereRaw('LOWER(name) = ?', [strtolower($data['supplier'])])->first()
-                    ?? HvacSupplier::create(['name' => $data['supplier'], 'is_active' => true]);
+                $supplier = HvacSupplier::resolveByName($data['supplier']);
                 $brand = HvacBrand::firstOrCreate(
-                    ['slug' => Str::slug($data['brand'])],
+                    ['slug' => HvacBrand::slugFor($data['brand'])],
                     ['name' => $data['brand'], 'is_active' => true]
                 );
 
@@ -315,6 +401,7 @@ class HvacCsvImporter
                     ->first();
 
                 if ($existing !== null && $mode === 'create_only') {
+                    $presentIds[$row['line']] = $existing->id;
                     $skipped++;
                     continue;
                 }
@@ -395,7 +482,13 @@ class HvacCsvImporter
                 }
             }
 
-            return ['created' => $created, 'updated' => $updated, 'skipped' => $skipped, 'product_ids' => $productIds];
+            return [
+                'created'     => $created,
+                'updated'     => $updated,
+                'skipped'     => $skipped,
+                'product_ids' => $productIds,
+                'present_ids' => $presentIds,
+            ];
         });
     }
 
@@ -419,18 +512,25 @@ class HvacCsvImporter
      */
     public static function errorReport(array $errorRows): string
     {
-        $out = "lijn;fouten;sku;model\r\n";
+        // Every field starting with a formula trigger gets a leading
+        // apostrophe AFTER the raw values were embedded in the messages, and
+        // fputcsv quotes delimiters, quotes and newlines — so a value such as
+        // `abc;=HYPERLINK(...)` can never land in its own unquoted cell.
+        $sanitise = fn (string $v): string => preg_match('/^[=@+\-\t\r]/', $v) === 1 ? "'" . $v : $v;
+
+        $stream = fopen('php://temp', 'r+');
+        fputcsv($stream, ['lijn', 'fouten', 'sku', 'model'], ';', '"', '\\', "\r\n");
         foreach ($errorRows as $row) {
-            $sanitise = function (string $v): string {
-                return preg_match('/^[=@+\-\t]/', $v) === 1 ? "'" . $v : $v;
-            };
-            $out .= implode(';', [
-                $row['line'],
+            fputcsv($stream, [
+                $sanitise((string) $row['line']),
                 $sanitise(implode(' | ', $row['errors'])),
-                $sanitise($row['data']['sku'] ?? ''),
-                $sanitise($row['data']['model'] ?? ''),
-            ]) . "\r\n";
+                $sanitise((string) ($row['data']['sku'] ?? '')),
+                $sanitise((string) ($row['data']['model'] ?? '')),
+            ], ';', '"', '\\', "\r\n");
         }
+        rewind($stream);
+        $out = (string) stream_get_contents($stream);
+        fclose($stream);
 
         return $out;
     }

@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Throwable;
 
@@ -184,8 +185,15 @@ class HvacGuidedImportController extends Controller
 
             if ($state['profile_id'] === null) {
                 $profile = $this->guided->recognizeProfile($headerCells);
-                if ($profile !== null) {
+                if ($profile !== null && $this->profileMatchesSupplier($state, $profile)) {
                     $state = $this->applyProfile($state, $profile, $headerCells);
+                } elseif ($profile !== null) {
+                    // Same header layout, different supplier: the remembered
+                    // price meaning / mapping of supplier A must never be
+                    // applied silently to supplier B's file — suggest only.
+                    $state['profile_warning'] = 'Dit bestand heeft dezelfde kolommen als de opgeslagen instellingen van '
+                        . $profile->supplier_name . ', maar u gaf "' . $state['supplier_name'] . '" op als leverancier. '
+                        . 'Die instellingen zijn NIET toegepast; controleer de koppelingen en de prijsbetekenis hieronder.';
                 }
             }
 
@@ -235,6 +243,17 @@ class HvacGuidedImportController extends Controller
         $state['step'] = 'review';
 
         return $state;
+    }
+
+    /**
+     * A profile may only be applied automatically when the admin typed no
+     * supplier or the same supplier (case-insensitive, trimmed).
+     */
+    private function profileMatchesSupplier(array $state, HvacMappingProfile $profile): bool
+    {
+        $typed = mb_strtolower(trim((string) $state['supplier_name']));
+
+        return $typed === '' || $typed === mb_strtolower(trim((string) $profile->supplier_name));
     }
 
     private function applyProfile(array $state, HvacMappingProfile $profile, array $headerCells): array
@@ -350,7 +369,24 @@ class HvacGuidedImportController extends Controller
             default     => $this->files->detectDelimiter($path)['delimiter'] ?? ';',
         };
 
+        // A different delimiter changes every column: header row, mapping,
+        // category column and recognized profile must all be recomputed.
+        $state = $this->resetDerivedState($state);
+
         return $this->reanalyze($token, $state, $path);
+    }
+
+    /** Clears everything analyze() derives from the columns of the file. */
+    private function resetDerivedState(array $state): array
+    {
+        $state['header_row'] = null;
+        $state['column_map'] = null;
+        $state['category'] = null;
+        $state['profile_id'] = null;
+        $state['profile_notice'] = null;
+        $state['profile_warning'] = null;
+
+        return $state;
     }
 
     public function chooseSheet(Request $request, string $token): RedirectResponse
@@ -361,12 +397,11 @@ class HvacGuidedImportController extends Controller
         }
 
         $names = array_column($this->files->sheets($path, $state['extension']), 'name');
-        $request->validate(['sheet' => ['required', 'string', 'in:' . implode(',', $names)]]);
+        // Rule::in — a sheet name may itself contain a comma ("Prijzen, 2026").
+        $request->validate(['sheet' => ['required', 'string', Rule::in($names)]]);
 
         $state['sheet'] = $request->string('sheet')->toString();
-        $state['header_row'] = null;
-        $state['column_map'] = null;
-        $state['category'] = null;
+        $state = $this->resetDerivedState($state);
 
         return $this->reanalyze($token, $state, $path);
     }
@@ -380,9 +415,8 @@ class HvacGuidedImportController extends Controller
 
         $request->validate(['header_row' => ['required', 'integer', 'min:1', 'max:1000']]);
 
+        $state = $this->resetDerivedState($state);
         $state['header_row'] = $request->integer('header_row') - 1;
-        $state['column_map'] = null;
-        $state['category'] = null;
 
         return $this->reanalyze($token, $state, $path);
     }
@@ -540,11 +574,17 @@ class HvacGuidedImportController extends Controller
             'mode'               => ['required', 'in:create_and_update,create_only,update_only'],
             'catalog_choice'     => ['required', 'in:new,existing'],
             'catalog_name'       => ['required_if:catalog_choice,new', 'nullable', 'string', 'max:150'],
-            'catalog_id'         => ['required_if:catalog_choice,existing', 'nullable', 'integer', 'exists:hvac_import_catalogs,id'],
+            'catalog_id'         => [
+                'required_if:catalog_choice,existing', 'nullable', 'integer',
+                // An archived list is never a valid target — updating it would
+                // silently reactivate it.
+                Rule::exists('hvac_import_catalogs', 'id')->whereNot('status', HvacImportCatalog::STATUS_ARCHIVED),
+            ],
             'deactivate_missing' => ['nullable', 'boolean'],
         ], [
             'catalog_name.required_if' => 'Geef deze productlijst een naam.',
             'catalog_id.required_if'   => 'Kies welke bestaande productlijst u wilt bijwerken.',
+            'catalog_id.exists'        => 'Deze productlijst bestaat niet of is gearchiveerd. Kies een actieve lijst of maak een nieuwe.',
         ]);
 
         $state['mode'] = $data['mode'];
@@ -565,7 +605,51 @@ class HvacGuidedImportController extends Controller
             $provenanceByLine[$entry['line']] = $entry['provenance'];
         }
 
-        $result = DB::transaction(function () use ($state, $data, $validated, $provenanceByLine) {
+        try {
+            $result = $this->importInTransaction($state, $data, $validated, $provenanceByLine);
+        } catch (Throwable $e) {
+            // The transaction rolled back: nothing was written. Keep the
+            // state (and the file) at the confirm step so the admin can
+            // retry or cancel instead of landing on a blank 500.
+            Log::error('HVAC guided import: import failed, transaction rolled back', [
+                'file'  => $state['original_name'],
+                'error' => $e->getMessage(),
+            ]);
+            $state['step'] = 'confirm';
+            $this->put($token, $state);
+
+            return redirect()->route('admin.hvac.import.guided.step', $token)
+                ->withErrors(['confirm' => 'Import mislukt, er is niets opgeslagen. Probeer het opnieuw of neem contact op als het probleem blijft.']);
+        }
+
+        // Error report for the "problemen bekijken" button.
+        if ($result['errors'] > 0) {
+            $reportToken = Str::random(40);
+            Cache::put("hvac-import-errors:{$reportToken}", $result['error_rows'], self::CACHE_TTL);
+            $result['error_token'] = $reportToken;
+        }
+        unset($result['error_rows']);
+
+        // Snapshot the headers BEFORE deleting the file — the result page's
+        // profile-save prompt needs them. The state lives on (step 'done').
+        $state['header_cells_snapshot'] = $this->headerCellsSafe($state, $path);
+        Storage::disk('local')->delete(self::STORAGE_DIR . "/{$token}.{$state['extension']}");
+        $state['step'] = 'done';
+        $state['result'] = $result;
+        $this->put($token, $state);
+
+        return redirect()->route('admin.hvac.import.guided.result', $token);
+    }
+
+    /**
+     * The single database write of the wizard: catalog, products, links and
+     * run history in one transaction.
+     *
+     * @return array<string, mixed>
+     */
+    private function importInTransaction(array $state, array $data, array $validated, array $provenanceByLine): array
+    {
+        return DB::transaction(function () use ($state, $data, $validated, $provenanceByLine) {
             $catalog = $this->resolveCatalog($state, $data);
 
             $importResult = $this->importer->import($validated['rows'], $state['mode'], [
@@ -575,7 +659,7 @@ class HvacGuidedImportController extends Controller
                 'provenance_by_line' => $provenanceByLine,
             ]);
 
-            $missing = $this->syncCatalog($catalog, $importResult['product_ids'], $provenanceByLine, $validated['rows']);
+            $missing = $this->syncCatalog($catalog, $importResult, $provenanceByLine, $validated['rows']);
 
             $deactivated = 0;
             if ((bool) ($data['deactivate_missing'] ?? false)) {
@@ -619,30 +703,14 @@ class HvacGuidedImportController extends Controller
                 'missing'      => count($missing),
             ];
         });
-
-        // Error report for the "problemen bekijken" button.
-        if ($result['errors'] > 0) {
-            $reportToken = Str::random(40);
-            Cache::put("hvac-import-errors:{$reportToken}", $result['error_rows'], self::CACHE_TTL);
-            $result['error_token'] = $reportToken;
-        }
-        unset($result['error_rows']);
-
-        // Snapshot the headers BEFORE deleting the file — the result page's
-        // profile-save prompt needs them. The state lives on (step 'done').
-        $state['header_cells_snapshot'] = $this->headerCellsSafe($state, $path);
-        Storage::disk('local')->delete(self::STORAGE_DIR . "/{$token}.{$state['extension']}");
-        $state['step'] = 'done';
-        $state['result'] = $result;
-        $this->put($token, $state);
-
-        return redirect()->route('admin.hvac.import.guided.result', $token);
     }
 
     private function resolveCatalog(array $state, array $data): HvacImportCatalog
     {
+        // Same case-insensitive identity as the importer, so the catalog and
+        // its products always point at ONE supplier row.
         $supplier = $state['supplier_name'] !== ''
-            ? HvacSupplier::firstOrCreate(['name' => $state['supplier_name']], ['is_active' => true])
+            ? HvacSupplier::resolveByName($state['supplier_name'])
             : null;
 
         if ($data['catalog_choice'] === 'existing') {
@@ -671,16 +739,24 @@ class HvacGuidedImportController extends Controller
      * Links written products to the catalog and returns the previously linked
      * products that are MISSING from this file (never deleted automatically).
      *
-     * @param array<int, int> $productIds line => product id
+     * "Missing" means: not among the rows of the file — clean rows AND rows
+     * that failed validation (a row with a broken price is still in the
+     * file), and rows skipped by create_only/update_only. Only a product
+     * whose supplier + SKU appears nowhere in the file may be deactivated.
+     *
+     * @param array{product_ids: array<int, int>, present_ids: array<int, int>} $importResult
      * @return int[] product ids missing from the new file
      */
-    private function syncCatalog(HvacImportCatalog $catalog, array $productIds, array $provenanceByLine, array $rows): array
+    private function syncCatalog(HvacImportCatalog $catalog, array $importResult, array $provenanceByLine, array $rows): array
     {
-        $previouslyLinked = $catalog->products()->pluck('hvac_products.id')->all();
+        $productIds = $importResult['product_ids'];
+        $previouslyLinked = $catalog->products()->with('supplier')->get(['hvac_products.id', 'sku', 'hvac_supplier_id']);
 
         $pricesByLine = [];
+        $fileKeys = [];
         foreach ($rows as $row) {
             $pricesByLine[$row['line']] = $row['data'];
+            $fileKeys[self::productKey((string) ($row['data']['supplier'] ?? ''), (string) ($row['data']['sku'] ?? ''))] = true;
         }
 
         $attach = [];
@@ -700,7 +776,20 @@ class HvacGuidedImportController extends Controller
 
         $catalog->products()->syncWithoutDetaching($attach);
 
-        return array_values(array_diff($previouslyLinked, array_keys($attach)));
+        $inFile = $attach + array_fill_keys(array_values($importResult['present_ids'] ?? []), true);
+
+        return $previouslyLinked
+            ->reject(fn (HvacProduct $p) => isset($inFile[$p->id])
+                || isset($fileKeys[self::productKey($p->supplier?->name ?? '', (string) $p->sku)]))
+            ->pluck('id')
+            ->values()
+            ->all();
+    }
+
+    /** Case-insensitive "supplier|sku" identity used to match file rows to products. */
+    private static function productKey(string $supplier, string $sku): string
+    {
+        return mb_strtolower(trim($supplier)) . '|' . mb_strtolower(trim($sku));
     }
 
     /**
@@ -939,13 +1028,18 @@ class HvacGuidedImportController extends Controller
 
         // Split "bijwerken" into genuinely changed vs unchanged, and show per
         // existing list how many linked products are MISSING from this file —
-        // all before anything is written.
-        [$changedCount, $unchangedCount, $fileKeys] = $this->diffAgainstExisting($clean);
+        // all before anything is written. "In this file" counts every row,
+        // including rows with errors (same rule as syncCatalog()).
+        [$changedCount, $unchangedCount] = $this->diffAgainstExisting($clean);
+        $fileKeys = [];
+        foreach ($rows as $row) {
+            $fileKeys[self::productKey((string) ($row['data']['supplier'] ?? ''), (string) ($row['data']['sku'] ?? ''))] = true;
+        }
         $catalogs = HvacImportCatalog::where('status', '!=', HvacImportCatalog::STATUS_ARCHIVED)
             ->orderBy('name')->get()
             ->each(function (HvacImportCatalog $catalog) use ($fileKeys): void {
                 $catalog->missing_count = $catalog->products()->with('supplier')->get(['hvac_products.id', 'sku', 'hvac_supplier_id'])
-                    ->filter(fn ($p) => ! isset($fileKeys[strtolower(($p->supplier?->name ?? '') . '|' . $p->sku)]))
+                    ->filter(fn ($p) => ! isset($fileKeys[self::productKey($p->supplier?->name ?? '', (string) $p->sku)]))
                     ->count();
             });
 
@@ -968,18 +1062,13 @@ class HvacGuidedImportController extends Controller
      * Compares update-action rows against the current products so the admin
      * sees "gewijzigd" vs "ongewijzigd" before confirming.
      *
-     * @return array{0: int, 1: int, 2: array<string, true>} changed, unchanged, file supplier|sku keys
+     * @return array{0: int, 1: int} changed, unchanged
      */
     private function diffAgainstExisting(\Illuminate\Support\Collection $clean): array
     {
-        $fileKeys = [];
-        foreach ($clean as $row) {
-            $fileKeys[strtolower(($row['data']['supplier'] ?? '') . '|' . ($row['data']['sku'] ?? ''))] = true;
-        }
-
         $updates = $clean->where('action', 'update');
         if ($updates->isEmpty()) {
-            return [0, 0, $fileKeys];
+            return [0, 0];
         }
 
         $supplierNames = $updates->map(fn ($r) => strtolower($r['data']['supplier']))->unique()->values();
@@ -1017,7 +1106,7 @@ class HvacGuidedImportController extends Controller
             $isChanged ? $changed++ : $unchanged++;
         }
 
-        return [$changed, $unchanged, $fileKeys];
+        return [$changed, $unchanged];
     }
 
     private function suggestCatalogName(array $state): string

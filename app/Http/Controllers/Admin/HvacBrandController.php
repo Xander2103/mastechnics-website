@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\HvacBrand;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class HvacBrandController extends Controller
@@ -23,7 +22,7 @@ class HvacBrandController extends Controller
         $data = $request->validate(['name' => ['required', 'string', 'max:100']]);
 
         HvacBrand::firstOrCreate(
-            ['slug' => Str::slug($data['name'])],
+            ['slug' => HvacBrand::slugFor($data['name'])],
             ['name' => $data['name'], 'is_active' => true]
         );
 

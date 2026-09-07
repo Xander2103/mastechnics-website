@@ -38,15 +38,18 @@ class HvacCompatibilityCsvImporter
             }
         }
 
-        $contents = str_replace("\r\n", "\n", trim($contents, "\xEF\xBB\xBF \n\r"));
-        $lines = array_values(array_filter(explode("\n", $contents), fn ($l) => trim($l) !== ''));
+        $contents = trim($contents, "\xEF\xBB\xBF \n\r");
+        $firstLine = strtok($contents, "\n");
+        $delimiter = substr_count((string) $firstLine, ';') > substr_count((string) $firstLine, ',') ? ';' : ',';
 
-        if (count($lines) < 2) {
+        // Quote-aware records: a quoted note containing a newline stays one row.
+        $records = HvacCsvImporter::csvRecords($contents, $delimiter);
+
+        if (count($records) < 2) {
             return ['rows' => [], 'global_errors' => ['Het bestand bevat geen datarijen.']];
         }
 
-        $delimiter = substr_count($lines[0], ';') > substr_count($lines[0], ',') ? ';' : ',';
-        $header = array_map(fn ($h) => strtolower(trim($h)), str_getcsv($lines[0], $delimiter));
+        $header = array_map(fn ($h) => strtolower(trim((string) $h)), $records[0]);
 
         $missing = array_diff(self::REQUIRED_COLUMNS, $header);
         if ($missing !== []) {
@@ -55,9 +58,8 @@ class HvacCompatibilityCsvImporter
 
         $rows = [];
         $seen = [];
-        foreach (array_slice($lines, 1) as $i => $line) {
+        foreach (array_slice($records, 1) as $i => $values) {
             $lineNumber = $i + 2;
-            $values = str_getcsv($line, $delimiter);
             $raw = [];
             foreach ($header as $col => $name) {
                 $raw[$name] = trim((string) ($values[$col] ?? ''));

@@ -5,6 +5,7 @@ namespace App\Services\Hvac;
 use App\Models\HvacRecommendation;
 use App\Models\Quote;
 use App\Models\QuoteItem;
+use App\Services\QuoteNumberGenerator;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -20,6 +21,10 @@ use Illuminate\Support\Facades\DB;
  */
 class HvacQuoteConversionService
 {
+    public function __construct(private readonly QuoteNumberGenerator $quoteNumbers)
+    {
+    }
+
     public function convert(HvacRecommendation $recommendation, string $adminEmail): Quote
     {
         if ($recommendation->status !== 'approved') {
@@ -42,12 +47,15 @@ class HvacQuoteConversionService
             );
         }
 
-        return DB::transaction(function () use ($recommendation, $customerRequest, $adminEmail) {
+        // The quote number is reserved under the generator's lock for the
+        // whole transaction, so a concurrent conversion or manual quote save
+        // cannot end up with the same number.
+        return $this->quoteNumbers->withNextNumber(fn (string $quoteNumber) => DB::transaction(function () use ($recommendation, $customerRequest, $adminEmail, $quoteNumber) {
             $vatRate = (float) $recommendation->vat_rate;
 
             $quote = Quote::create([
                 'customer_request_id' => $customerRequest->id,
-                'quote_number'        => $this->generateQuoteNumber(),
+                'quote_number'        => $quoteNumber,
                 'quote_status'        => 'draft',
                 'title'               => $this->quoteTitle($customerRequest->locale),
                 'vat_rate'            => $vatRate,
@@ -91,7 +99,7 @@ class HvacQuoteConversionService
             ]);
 
             return $quote->fresh(['items']);
-        });
+        }));
     }
 
     private function quoteTitle(string $locale): string
@@ -101,14 +109,5 @@ class HvacQuoteConversionService
             'en'    => 'Air-conditioning installation — pre-calculation',
             default => 'Airco-installatie — voorcalculatie',
         };
-    }
-
-    private function generateQuoteNumber(): string
-    {
-        $year = now()->year;
-        $max  = Quote::where('quote_number', 'LIKE', "OFF-{$year}-%")->max('quote_number');
-        $next = $max ? ((int) substr($max, -4)) + 1 : 1;
-
-        return 'OFF-' . $year . '-' . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 }

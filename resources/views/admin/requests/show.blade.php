@@ -241,6 +241,16 @@
                 </div>
             @endif
 
+            @if ($errors->has('quote') || $errors->has('action'))
+                <div class="form-error-list" role="alert">
+                    <ul>
+                        @foreach ($errors->get('quote') + $errors->get('action') as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @if (session('success') === 'quote_action_applied')
                 <div class="form-success">
                     Offerte-status werd bijgewerkt.
@@ -605,10 +615,12 @@
 
                             {{-- Actions --}}
                             <div class="admin-quote-actions">
-                                <a class="button button-secondary"
-                                   href="{{ route('admin.requests.quote.edit', $customerRequest) }}">
-                                    ✏ Bewerken
-                                </a>
+                                @if ($quote->quote_status === 'draft')
+                                    <a class="button button-secondary"
+                                       href="{{ route('admin.requests.quote.edit', $customerRequest) }}">
+                                        ✏ Bewerken
+                                    </a>
+                                @endif
 
                                 <a class="button button-secondary"
                                    href="{{ route('admin.requests.quote.pdf', $customerRequest) }}"

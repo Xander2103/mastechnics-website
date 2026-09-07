@@ -8,18 +8,47 @@ use App\Models\CustomerRequest;
 use App\Models\Quote;
 use App\Models\QuoteItem;
 use App\Services\MailDispatcher;
+use App\Services\QuoteNumberGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Validator;
 use Illuminate\View\View;
 
 class QuoteController extends Controller
 {
-    public function edit(CustomerRequest $customerRequest): View
+    /**
+     * Largest amount the quote/quote_items decimal(10,2) columns can hold.
+     * Validation keeps every line and the quote total below it so a save
+     * can never fail half-way with an out-of-range error on MySQL.
+     */
+    private const MAX_AMOUNT = 99999999.99;
+
+    /**
+     * Which quote status may move to which. Anything else is refused server
+     * side, matching the buttons the detail page shows.
+     */
+    private const TRANSITIONS = [
+        'mark_sent'     => ['draft'],
+        'mark_accepted' => ['sent'],
+        'mark_rejected' => ['sent'],
+    ];
+
+    public function __construct(private readonly QuoteNumberGenerator $quoteNumbers)
+    {
+    }
+
+    public function edit(CustomerRequest $customerRequest): View|RedirectResponse
     {
         $quote = $customerRequest->quote;
+
+        if ($quote !== null && $quote->quote_status !== 'draft') {
+            return redirect()->route('admin.requests.show', $customerRequest)
+                ->withErrors(['quote' => 'Een verstuurde offerte kan niet meer bewerkt worden.']);
+        }
 
         if ($quote) {
             $quote->ensureDefaultItem();
@@ -34,51 +63,92 @@ class QuoteController extends Controller
 
     public function store(Request $request, CustomerRequest $customerRequest): RedirectResponse
     {
+        $existingQuote = $customerRequest->quote;
+
+        // A quote that has been sent (or accepted/rejected) is the document
+        // the customer holds: it is never rewritten in place.
+        if ($existingQuote !== null && $existingQuote->quote_status !== 'draft') {
+            return redirect()->route('admin.requests.show', $customerRequest)
+                ->withErrors(['quote' => 'Een verstuurde offerte kan niet meer bewerkt worden.']);
+        }
+
         $validated = $request->validate([
             'title'                           => ['nullable', 'string', 'max:200'],
-            'description'                     => ['nullable', 'string'],
+            'description'                     => ['nullable', 'string', 'max:5000'],
             'valid_until'                     => ['nullable', 'date'],
-            'items'                           => ['required', 'array', 'min:1'],
+            'items'                           => ['required', 'array', 'min:1', 'max:100'],
             'items.*.description'             => ['required', 'string', 'max:500'],
             'items.*.quantity'                => ['required', 'numeric', 'min:0', 'max:9999'],
             'items.*.unit_price_excl_vat'     => ['required', 'numeric', 'min:0', 'max:1000000'],
             'items.*.vat_rate'                => ['required', 'numeric', 'in:0,6,12,21'],
         ]);
 
-        $existingQuote = $customerRequest->quote;
-        $quoteNumber   = $existingQuote?->quote_number ?? $this->generateQuoteNumber();
-
-        $quote = Quote::updateOrCreate(
-            ['customer_request_id' => $customerRequest->id],
-            [
-                'quote_number' => $quoteNumber,
-                'title'        => $validated['title'] ?? null,
-                'description'  => $validated['description'] ?? null,
-                'valid_until'  => $validated['valid_until'] ?? null,
-            ]
-        );
-
-        // Sync items: delete all existing, recreate in submitted order
-        $quote->items()->delete();
+        $lines = [];
 
         foreach ($validated['items'] as $index => $itemData) {
-            $lineTotals = QuoteItem::calculateLine(
+            $lines[$index] = QuoteItem::calculateLine(
                 (float) $itemData['quantity'],
                 (float) $itemData['unit_price_excl_vat'],
                 (float) $itemData['vat_rate']
             );
-
-            $quote->items()->create([
-                'position'            => $index + 1,
-                'description'         => $itemData['description'],
-                'quantity'            => $itemData['quantity'],
-                'unit_price_excl_vat' => $itemData['unit_price_excl_vat'],
-                'vat_rate'            => $itemData['vat_rate'],
-                ...$lineTotals,
-            ]);
         }
 
-        $quote->recalculateTotals();
+        $totalIncl = array_sum(array_column($lines, 'line_total_incl_vat'));
+
+        $validator = validator([]);
+        $validator->after(function (Validator $v) use ($lines, $totalIncl): void {
+            foreach ($lines as $index => $line) {
+                if ($line['line_total_incl_vat'] > self::MAX_AMOUNT) {
+                    $v->errors()->add("items.{$index}.unit_price_excl_vat", 'Het lijntotaal is te groot (maximaal 99.999.999,99).');
+                }
+            }
+
+            if ($totalIncl > self::MAX_AMOUNT) {
+                $v->errors()->add('items', 'Het offertetotaal is te groot (maximaal 99.999.999,99).');
+            }
+        });
+        $validator->validate();
+
+        $writeQuote = function (?string $quoteNumber) use ($customerRequest, $existingQuote, $validated, $lines): Quote {
+            return DB::transaction(function () use ($customerRequest, $existingQuote, $validated, $lines, $quoteNumber): Quote {
+                $quote = Quote::updateOrCreate(
+                    ['customer_request_id' => $customerRequest->id],
+                    [
+                        'quote_number' => $existingQuote?->quote_number ?? $quoteNumber,
+                        'title'        => $validated['title'] ?? null,
+                        'description'  => $validated['description'] ?? null,
+                        'valid_until'  => $validated['valid_until'] ?? null,
+                    ]
+                );
+
+                // Sync items: delete all existing, recreate in submitted order.
+                // Inside the transaction, so a failing insert keeps the old items.
+                $quote->items()->delete();
+
+                foreach ($validated['items'] as $index => $itemData) {
+                    $quote->items()->create([
+                        'position'            => $index + 1,
+                        'description'         => $itemData['description'],
+                        'quantity'            => $itemData['quantity'],
+                        'unit_price_excl_vat' => $itemData['unit_price_excl_vat'],
+                        'vat_rate'            => $itemData['vat_rate'],
+                        ...$lines[$index],
+                    ]);
+                }
+
+                $quote->recalculateTotals();
+
+                return $quote;
+            });
+        };
+
+        if ($existingQuote !== null) {
+            $writeQuote(null);
+        } else {
+            // First save: reserve the number under the generator's lock so
+            // two admins saving at once never collide on the unique index.
+            $this->quoteNumbers->withNextNumber($writeQuote);
+        }
 
         return redirect()->route('admin.requests.show', $customerRequest)
             ->with('success', 'quote_saved');
@@ -94,6 +164,12 @@ class QuoteController extends Controller
 
         if (! $quote) {
             return back()->withErrors(['action' => 'Geen offerte gevonden voor deze aanvraag.']);
+        }
+
+        if (! in_array($quote->quote_status, self::TRANSITIONS[$validated['action']], true)) {
+            return back()->withErrors([
+                'action' => 'Deze actie is niet mogelijk voor een offerte met status "' . $quote->quote_status . '".',
+            ]);
         }
 
         match ($validated['action']) {
@@ -224,14 +300,5 @@ class QuoteController extends Controller
             'status'  => 'lost',
             'lost_at' => $customerRequest->lost_at ?? now(),
         ]);
-    }
-
-    private function generateQuoteNumber(): string
-    {
-        $year = now()->year;
-        $max  = Quote::where('quote_number', 'LIKE', "OFF-{$year}-%")->max('quote_number');
-        $next = $max ? ((int) substr($max, -4)) + 1 : 1;
-
-        return 'OFF-' . $year . '-' . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 }

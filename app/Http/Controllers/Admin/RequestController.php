@@ -201,9 +201,18 @@ class RequestController extends Controller
             'status' => ['required', 'string', 'in:new,viewed,contacted,quote_sent,won,lost,planned,done,cancelled'],
         ]);
 
-        $customerRequest->update([
-            'status' => $validated['status'],
-        ]);
+        // Workflow statuses go through the same helpers as the action
+        // buttons so their timestamps (contacted_at, won_at, ...) are set;
+        // a bare status write left "won" requests out of the dashboard's
+        // "gewonnen deze maand" count.
+        match ($validated['status']) {
+            'viewed'     => $this->applyMarkViewed($customerRequest),
+            'contacted'  => $this->applyMarkContacted($customerRequest),
+            'quote_sent' => $this->applyMarkQuoteSent($customerRequest),
+            'won'        => $this->applyMarkWon($customerRequest),
+            'lost'       => $this->applyMarkLost($customerRequest),
+            default      => $customerRequest->update(['status' => $validated['status']]),
+        };
 
         return back()->with('success', 'status_updated');
     }
@@ -604,11 +613,16 @@ class RequestController extends Controller
     {
         return CustomerRequest::query()
             ->when($request->filled('search'), function ($query) use ($request): void {
-                $search = $request->string('search')->toString();
-                $query->where(function ($q) use ($search): void {
-                    $q->where('customer_name', 'LIKE', "%{$search}%")
-                      ->orWhere('customer_email', 'LIKE', "%{$search}%")
-                      ->orWhere('customer_phone', 'LIKE', "%{$search}%");
+                // Escape LIKE wildcards so "%" or "_" in the box searches for
+                // those characters instead of matching everything. An explicit
+                // ESCAPE character works the same on SQLite and MySQL (SQLite
+                // has no default escape character at all).
+                $search = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $request->string('search')->toString());
+                $like = "%{$search}%";
+                $query->where(function ($q) use ($like): void {
+                    $q->whereRaw("customer_name LIKE ? ESCAPE '!'", [$like])
+                      ->orWhereRaw("customer_email LIKE ? ESCAPE '!'", [$like])
+                      ->orWhereRaw("customer_phone LIKE ? ESCAPE '!'", [$like]);
                 });
             })
             ->when($request->filled('status'), function ($query) use ($request): void {

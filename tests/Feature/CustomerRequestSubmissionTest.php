@@ -58,7 +58,7 @@ class CustomerRequestSubmissionTest extends TestCase
 
         $response->assertSessionHasErrors('customer_type');
         $this->assertSame(
-            'Het klanttype is verplicht.',
+            'Het veld "klanttype" is verplicht.',
             $response->getSession()->get('errors')->first('customer_type')
         );
     }
@@ -72,7 +72,7 @@ class CustomerRequestSubmissionTest extends TestCase
 
         $response->assertSessionHasErrors('customer_type');
         $this->assertSame(
-            'Le type de client est obligatoire.',
+            'Le champ "type de client" est obligatoire.',
             $response->getSession()->get('errors')->first('customer_type')
         );
     }
@@ -86,7 +86,7 @@ class CustomerRequestSubmissionTest extends TestCase
 
         $response->assertSessionHasErrors('customer_type');
         $this->assertSame(
-            'The customer type field is required.',
+            'The "customer type" field is required.',
             $response->getSession()->get('errors')->first('customer_type')
         );
     }

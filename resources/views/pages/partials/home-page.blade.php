@@ -626,7 +626,7 @@
                     <button class="reviews-prev" aria-label="{{ $locale === 'fr' ? 'Précédent' : ($locale === 'en' ? 'Previous' : 'Vorige') }}">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
-                    <div class="reviews-dots" id="reviewsDots" role="tablist" aria-label="{{ $locale === 'fr' ? 'Navigation des avis' : ($locale === 'en' ? 'Review navigation' : 'Review navigatie') }}"></div>
+                    <div class="reviews-dots" id="reviewsDots" role="tablist" data-dot-label="{{ $locale === 'fr' ? 'Avis' : 'Review' }}" aria-label="{{ $locale === 'fr' ? 'Navigation des avis' : ($locale === 'en' ? 'Review navigation' : 'Review navigatie') }}"></div>
                     <button class="reviews-next" aria-label="{{ $locale === 'fr' ? 'Suivant' : ($locale === 'en' ? 'Next' : 'Volgende') }}">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>

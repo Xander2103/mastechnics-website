@@ -16,6 +16,7 @@
             'footer_request_text' => 'Start een slimme aanvraag en vul meteen de juiste technische informatie in.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'BTW',
+            'rights_reserved' => 'Alle rechten voorbehouden',
         ],
         'fr' => [
             'services' => 'Services',
@@ -29,6 +30,7 @@
                 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'TVA',
+            'rights_reserved' => 'Tous droits réservés',
         ],
         'en' => [
             'services' => 'Services',
@@ -41,6 +43,7 @@
             'footer_request_text' => 'Start a smart request and add the right technical information immediately.',
             'designed_by' => 'Designed by VanMalderStudio',
             'vat_label' => 'VAT',
+            'rights_reserved' => 'All rights reserved',
         ],
     ];
 
@@ -125,16 +128,16 @@
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 
     {{-- Open Graph / Twitter --}}
-    @php $socialImage = asset('assets/images/hero.png'); @endphp
+    @php $socialImage = asset('assets/images/og-image.jpg'); @endphp
     <meta property="og:site_name" content="{{ $siteName }}">
     <meta property="og:title" content="@yield('title', $siteName)">
     <meta property="og:description" content="@yield('meta_description', '')">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ $canonical }}">
     <meta property="og:image" content="{{ $socialImage }}">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="1672">
-    <meta property="og:image:height" content="941">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="{{ $siteName }}">
     <meta property="og:locale" content="{{ $seoService->ogLocale($currentLocale) }}">
     @if ($isPublicPage)
@@ -403,7 +406,7 @@
 
         <div class="container footer-bottom">
             <p>
-                &copy; {{ date('Y') }} {{ $siteName }}. All rights reserved.
+                &copy; {{ date('Y') }} {{ $siteName }}. {{ $nav['rights_reserved'] ?? 'Alle rechten voorbehouden' }}.
                 &nbsp;&middot;&nbsp;
                 <a class="footer-privacy-link" href="{{ route('pages.show', ['locale' => $currentLocale, 'slug' => $privacySlug]) }}">
                     {{ $privacyLabel }}

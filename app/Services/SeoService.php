@@ -275,7 +275,7 @@ class SeoService
                 'url' => asset('assets/images/Logo.webp'),
                 'caption' => config('site.name'),
             ],
-            'image' => asset('assets/images/hero.png'),
+            'image' => asset('assets/images/og-image.jpg'),
             'priceRange' => '€€',
             'currenciesAccepted' => 'EUR',
             // Machine-readable form: "BE 0760.768.228" -> "BE0760768228".

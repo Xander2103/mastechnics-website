@@ -212,7 +212,7 @@ function initReviewsCarousel() {
         (function (idx) {
             var dot = document.createElement('button');
             dot.className = 'reviews-dot' + (idx === 0 ? ' is-active' : '');
-            dot.setAttribute('aria-label', 'Review ' + (idx + 1));
+            dot.setAttribute('aria-label', (dotsContainer.dataset.dotLabel || 'Review') + ' ' + (idx + 1));
             dot.setAttribute('role', 'tab');
             dot.addEventListener('click', function () { goTo(idx); restart(); });
             dotsContainer.appendChild(dot);

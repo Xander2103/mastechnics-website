@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Page;
 use App\Models\PageTranslation;
 use App\Services\SeoService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class PageController extends Controller
@@ -26,7 +27,7 @@ class PageController extends Controller
         return $this->renderPage($translation, $locale);
     }
 
-    public function show(string $locale, string $slug): View
+    public function show(string $locale, string $slug): View|RedirectResponse
     {
         $translation = PageTranslation::query()
             ->where('locale', $locale)
@@ -34,6 +35,13 @@ class PageController extends Controller
             ->whereHas('page', fn ($query) => $query->where('is_active', true))
             ->with('page.translations')
             ->firstOrFail();
+
+        // The home page's own slugs (/nl/home, /fr/accueil, /en/home) are a
+        // full duplicate of the locale root; consolidate them with a 301
+        // instead of serving the same indexable page twice.
+        if ($translation->page->code === 'home') {
+            return redirect()->route('pages.home', ['locale' => $locale], 301);
+        }
 
         return $this->renderPage($translation, $locale);
     }

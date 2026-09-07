@@ -5,7 +5,11 @@
     $answers = $metadata['answers'] ?? [];
 
     $serviceTitle = $metadata['service']['title'] ?? $customerRequest->service_slug;
-    $requestTypeLabel = $metadata['request_type']['label'] ?? $customerRequest->request_type;
+    // The wizard stores the chosen category's label; fall back to the raw
+    // request_type value only for very old records.
+    $requestTypeLabel = $metadata['request_type']['label']
+        ?? $answers['service_category_label']
+        ?? $customerRequest->request_type;
 
     $adminUrl = route('admin.requests.show', $customerRequest);
 

@@ -13,6 +13,13 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
+    # Never serve the site under /index.php/...: Apache's AcceptPathInfo makes
+    # every page reachable there as a duplicate. Redirect to the clean URL.
+    RewriteCond %{THE_REQUEST} \s/index\.php/([^\s?]*)[\s?]
+    RewriteRule ^ /%1 [R=301,L]
+    RewriteCond %{THE_REQUEST} \s/index\.php[\s?]
+    RewriteRule ^ / [R=301,L]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$

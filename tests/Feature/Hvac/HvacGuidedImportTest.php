@@ -37,11 +37,6 @@ class HvacGuidedImportTest extends TestCase
         parent::tearDown();
     }
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     /**
      * Supplier-style workbook: a title row, an empty row, Dutch headers on
      * row 3, data below.

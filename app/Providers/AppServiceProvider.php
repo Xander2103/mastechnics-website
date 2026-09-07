@@ -8,6 +8,7 @@ use App\Services\SeoService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
@@ -38,12 +39,31 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // APP_URL is the single source of truth for every absolute URL the
+        // app generates (canonical, hreflang, sitemap, JSON-LD , links in
+        // notification mails). Without this they follow the request's Host /
+        // X-Forwarded-Host header, which any client can set.
+        $appUrl = rtrim((string) config('app.url'), '/');
+
+        if ($appUrl !== '') {
+            URL::forceRootUrl($appUrl);
+
+            if (str_starts_with($appUrl, 'https://')) {
+                URL::forceScheme('https');
+            }
+        }
+
         RateLimiter::for('admin-login', function (Request $request) {
             $email = $request->input('email');
             $email = is_string($email) ? Str::lower($email) : '';
-            $key = $email . '|' . $request->ip();
 
-            return Limit::perMinute(5)->by($key);
+            // Two independent limits: per account (so a rotating source IP
+            // cannot brute-force one admin) and per IP (so one client cannot
+            // spray many addresses).
+            return [
+                Limit::perMinute(5)->by('email|' . $email),
+                Limit::perMinute(20)->by('ip|' . $request->ip()),
+            ];
         });
     }
 }

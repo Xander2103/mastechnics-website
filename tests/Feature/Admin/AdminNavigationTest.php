@@ -19,11 +19,6 @@ class AdminNavigationTest extends TestCase
         $this->seed(PageSeeder::class);
     }
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com', 'admin_user_name' => 'Admin'];
-    }
-
     public function test_authenticated_admin_sees_admin_navigation_on_admin_pages(): void
     {
         $this->withSession($this->adminSession())

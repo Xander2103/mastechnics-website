@@ -21,11 +21,6 @@ class HvacQuoteConversionTest extends TestCase
         Mail::fake();
     }
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     private function makeApprovedRecommendation(string $locale = 'nl'): array
     {
         $brand = HvacBrand::create(['name' => 'TestBrand', 'slug' => 'testbrand']);

@@ -29,11 +29,6 @@ class HvacRealCatalogFrQaTest extends TestCase
         Storage::fake('local');
     }
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     public function test_martin_walkthrough_with_the_real_file(): void
     {
         // Stap 1 — Bestand: upload + "Bestand analyseren".

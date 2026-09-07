@@ -27,11 +27,6 @@ class HvacE2eAcceptanceTest extends TestCase
         Mail::fake();
     }
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     private function brand(): HvacBrand
     {
         return HvacBrand::firstOrCreate(['slug' => 'testbrand'], ['name' => 'TestBrand', 'is_active' => true]);

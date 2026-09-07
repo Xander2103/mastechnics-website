@@ -21,11 +21,6 @@ class AccountSettingsTest extends TestCase
         ]);
     }
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com', 'admin_user_name' => 'Admin'];
-    }
-
     public function test_account_page_renders(): void
     {
         $this->makeAdmin();
@@ -101,7 +96,7 @@ class AccountSettingsTest extends TestCase
             ])
             ->assertSessionHas('success', 'account_email_updated');
 
-        $this->withSession(['admin_user_email' => 'martin-nieuw@test.com'])
+        $this->withSession($this->adminSession('martin-nieuw@test.com'))
             ->patch(route('admin.account.password.update'), [
                 'current_password' => 'CorrectHorse123!',
                 'password' => 'NieuwWachtwoord42abc',
@@ -114,7 +109,7 @@ class AccountSettingsTest extends TestCase
         $this->assertTrue(Hash::check('XanderWachtwoord1', $xander->password));
 
         // Xander changes his password; Martin's row stays untouched.
-        $this->withSession(['admin_user_email' => 'xander@test.com'])
+        $this->withSession($this->adminSession('xander@test.com'))
             ->patch(route('admin.account.password.update'), [
                 'current_password' => 'XanderWachtwoord1',
                 'password' => 'XanderNieuw42abcdef',

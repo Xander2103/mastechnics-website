@@ -2,11 +2,30 @@
 
 namespace Tests;
 
+use App\Models\AdminUser;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Testing\TestResponse;
 
 abstract class TestCase extends BaseTestCase
 {
+    /**
+     * Session payload of a logged-in admin. The admin middleware verifies the
+     * account exists and that the session fingerprint matches its password
+     * hash, so the account row is created here when it does not exist yet.
+     *
+     * @return array<string, string>
+     */
+    protected function adminSession(string $email = 'admin@test.com', string $name = 'Admin'): array
+    {
+        $adminUser = AdminUser::firstOrCreate(
+            ['email' => $email],
+            ['name' => $name, 'password' => Hash::make('TestWachtwoord123')]
+        );
+
+        return $adminUser->sessionPayload();
+    }
+
     /**
      * Decode the JSON-LD graph a public page emits.
      *

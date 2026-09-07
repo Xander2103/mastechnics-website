@@ -17,8 +17,21 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
-        // Trust the reverse proxy in front of this app (nginx/Forge) so RateLimiter sees the real client IP, not the proxy's.
-        $middleware->trustProxies(at: '*');
+        // Only trust the proxies listed in TRUSTED_PROXIES (comma-separated
+        // IPs/CIDRs, or "*" when a CDN with unknown IPs terminates TLS).
+        // Trusting every proxy would let any client spoof its IP through
+        // X-Forwarded-For (rate-limit bypass on the public forms and the
+        // login throttle) and its host through X-Forwarded-Host. The
+        // production host is Apache without a reverse proxy, so the default
+        // is: trust nobody.
+        $trustedProxies = array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('TRUSTED_PROXIES', ''))
+        )));
+
+        if ($trustedProxies !== []) {
+            $middleware->trustProxies(at: in_array('*', $trustedProxies, true) ? '*' : $trustedProxies);
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // PHP/webserver rejects an upload before Laravel validation runs

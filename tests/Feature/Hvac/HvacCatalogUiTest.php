@@ -14,11 +14,6 @@ class HvacCatalogUiTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     private function seedCatalog(string $name, int $products, array $productOverrides = []): HvacImportCatalog
     {
         $supplier = HvacSupplier::firstOrCreate(['name' => 'TestSupplier BV'], ['is_active' => true]);

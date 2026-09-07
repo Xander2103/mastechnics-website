@@ -10,11 +10,6 @@ class RequestFollowupTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     private function makeRequest(array $attrs = []): CustomerRequest
     {
         return CustomerRequest::create(array_merge([

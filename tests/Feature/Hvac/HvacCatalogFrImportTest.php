@@ -28,11 +28,6 @@ class HvacCatalogFrImportTest extends TestCase
         Storage::fake('local');
     }
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     private function uploadFixture(): string
     {
         $file = UploadedFile::fake()->createWithContent('CatalogFR.csv', CatalogFrFixture::contents());

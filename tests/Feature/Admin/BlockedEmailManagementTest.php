@@ -10,11 +10,6 @@ class BlockedEmailManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com', 'admin_user_name' => 'Admin'];
-    }
-
     public function test_unauthenticated_cannot_manage_blocks(): void
     {
         $this->get(route('admin.blocked-emails.index'))

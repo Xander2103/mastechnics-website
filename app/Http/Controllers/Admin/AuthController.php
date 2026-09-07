@@ -7,6 +7,7 @@ use App\Models\AdminUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -27,7 +28,9 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $adminUser = AdminUser::where('email', $validatedData['email'])->first();
+        // admin:create lowercases the stored address; match the same way so
+        // a mixed-case login works on case-sensitive databases (SQLite).
+        $adminUser = AdminUser::where('email', Str::lower($validatedData['email']))->first();
 
         if (
             $adminUser === null
@@ -42,21 +45,16 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        session([
-            'admin_user_name' => $adminUser->name,
-            'admin_user_email' => $adminUser->email,
-        ]);
+        session($adminUser->sessionPayload());
 
         return redirect()->intended(route('admin.requests.index'));
     }
 
     public function logout(Request $request): RedirectResponse
     {
-        $request->session()->forget([
-            'admin_user_name',
-            'admin_user_email',
-        ]);
-
+        // Invalidate the whole session (new id, all data dropped) instead of
+        // only forgetting the admin keys, so nothing survives a logout.
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect()->route('admin.login');

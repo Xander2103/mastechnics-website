@@ -13,11 +13,6 @@ class HvacCsvImportTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     private function csv(array $rows): string
     {
         $header = 'supplier;brand;sku;model;name;product_type;cooling_capacity_kw;purchase_price_excl_vat;sale_price_excl_vat;stock_quantity;max_pipe_length_m;max_height_difference_m;wifi_included';

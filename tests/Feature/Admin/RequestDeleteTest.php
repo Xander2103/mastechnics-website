@@ -12,11 +12,6 @@ class RequestDeleteTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com', 'admin_user_name' => 'Admin'];
-    }
-
     private function makeRequest(array $attrs = []): CustomerRequest
     {
         return CustomerRequest::create(array_merge([

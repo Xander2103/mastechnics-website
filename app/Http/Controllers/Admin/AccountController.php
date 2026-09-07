@@ -70,7 +70,10 @@ class AccountController extends Controller
 
         $adminUser->update(['password' => Hash::make($validated['password'])]);
 
+        // Other sessions of this account now fail the fingerprint check in
+        // the admin middleware; keep only the current one alive.
         $request->session()->regenerate();
+        session([AdminUser::SESSION_FINGERPRINT_KEY => $adminUser->fresh()->sessionFingerprint()]);
 
         return back()->with('success', 'account_password_updated');
     }

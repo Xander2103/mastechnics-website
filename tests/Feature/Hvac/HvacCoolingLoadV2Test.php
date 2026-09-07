@@ -283,7 +283,7 @@ class HvacCoolingLoadV2Test extends TestCase
 
         app(HvacCalculationService::class)->run($request, 'admin@test.com');
 
-        $response = $this->withSession(['admin_user_email' => 'admin@test.com'])
+        $response = $this->withSession($this->adminSession())
             ->get(route('admin.requests.show', $request));
 
         $response->assertOk();

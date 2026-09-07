@@ -10,11 +10,6 @@ class RequestExportTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     public function test_csv_export_includes_reference_and_status_dates(): void
     {
         $req = CustomerRequest::create([

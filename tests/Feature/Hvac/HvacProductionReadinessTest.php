@@ -20,11 +20,6 @@ class HvacProductionReadinessTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     private function makeAircoRequest(): CustomerRequest
     {
         return CustomerRequest::create([

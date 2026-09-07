@@ -11,11 +11,6 @@ class HvacSupplierViewTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     public function test_supplier_index_lists_catalogs_with_counts_and_last_import(): void
     {
         $supplier = HvacSupplier::create(['name' => 'Cairox', 'is_active' => true]);

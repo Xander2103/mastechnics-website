@@ -15,11 +15,6 @@ class HvacImportLimitTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     private function validProductCsv(int $padToBytes = 0): UploadedFile
     {
         $csv = "supplier;brand;sku;model;name;product_type;notes\n"

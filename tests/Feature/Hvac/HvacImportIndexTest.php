@@ -18,11 +18,6 @@ class HvacImportIndexTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(): array
-    {
-        return ['admin_user_email' => 'admin@test.com'];
-    }
-
     public function test_import_index_renders_with_mapping_profiles_from_controller(): void
     {
         HvacMappingProfile::create([

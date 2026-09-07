@@ -10,11 +10,6 @@ class RequestNotesTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminSession(string $email = 'admin@test.com'): array
-    {
-        return ['admin_user_email' => $email];
-    }
-
     private function makeRequest(array $attrs = []): CustomerRequest
     {
         return CustomerRequest::create(array_merge([

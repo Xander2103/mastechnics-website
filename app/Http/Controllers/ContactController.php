@@ -16,9 +16,20 @@ use Illuminate\Support\Str;
 
 class ContactController extends Controller
 {
+    /**
+     * Name of the honeypot field rendered (visually hidden) in the form.
+     * Humans never see or fill it; a submission that does carry a value is
+     * answered with the normal success message but stored and mailed nowhere.
+     */
+    public const HONEYPOT_FIELD = 'website_url';
+
     public function store(Request $request, string $locale): RedirectResponse
     {
         app()->setLocale($locale);
+
+        if (trim((string) $request->input(self::HONEYPOT_FIELD, '')) !== '') {
+            return back()->with('success', 'contact_message_sent');
+        }
 
         // A fresh random token is rendered into a hidden field on every GET
         // of the contact page. A request replaying that same token (double

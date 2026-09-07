@@ -25,8 +25,10 @@ return [
         'address' => env('COMPANY_ADDRESS'),
     ],
 
-    'request_notification_email' => env('REQUEST_NOTIFICATION_EMAIL', 'martin@mastechnics.be'),
-    'contact_notification_email' => env('CONTACT_NOTIFICATION_EMAIL', 'martin@mastechnics.be'),
+    // An empty or "null" env value must not silently disable the notification
+    // mail to Martin, so the site contact address is the fallback in every case.
+    'request_notification_email' => env('REQUEST_NOTIFICATION_EMAIL') ?: 'martin@mastechnics.be',
+    'contact_notification_email' => env('CONTACT_NOTIFICATION_EMAIL') ?: 'martin@mastechnics.be',
 
     'request_daily_limit' => (int) env('REQUEST_DAILY_LIMIT', 5),
     'request_burst_limit_per_hour' => (int) env('REQUEST_BURST_LIMIT_PER_HOUR', 10),

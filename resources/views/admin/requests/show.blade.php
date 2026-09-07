@@ -1127,7 +1127,8 @@
                                     @php
                                         $attachmentUrl = route('admin.requests.attachments.download', [$customerRequest, $attachment]);
                                         $attachmentIsImage = str_starts_with($attachment->mime_type ?? '', 'image/');
-                                        $attachmentExists = \Illuminate\Support\Facades\Storage::disk('public')->exists($attachment->path ?? '');
+                                        $attachmentExists = \Illuminate\Support\Facades\Storage::disk(\App\Models\CustomerRequestAttachment::DISK)->exists($attachment->path ?? '')
+                                            || \Illuminate\Support\Facades\Storage::disk(\App\Models\CustomerRequestAttachment::LEGACY_DISK)->exists($attachment->path ?? '');
                                         $attachmentType = $attachmentIsImage
                                             ? 'Afbeelding'
                                             : ($attachment->mime_type === 'application/pdf' ? 'PDF' : 'Bestand');

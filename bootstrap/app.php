@@ -44,6 +44,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 return redirect()->route('admin.hvac.import.index', ['upload_too_large' => 1]);
             }
 
+            // Same situation for the public request wizard (8 photos × 5 MB
+            // can exceed post_max_size): send the visitor back to the form
+            // with a localised message instead of a bare 413 page.
+            if ($request->is('nl/requests', 'fr/requests', 'en/requests')) {
+                $locale = $request->segment(1);
+                $slug = config("site.page_slugs.request.{$locale}");
+
+                if (is_string($slug) && $slug !== '') {
+                    return redirect()->route('pages.show', [
+                        'locale' => $locale,
+                        'slug' => $slug,
+                        'upload_too_large' => 1,
+                    ]);
+                }
+            }
+
             return null;
         });
     })->create();

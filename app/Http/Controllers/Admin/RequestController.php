@@ -482,7 +482,9 @@ class RequestController extends Controller
             }
 
             try {
-                Storage::disk('public')->delete($path);
+                foreach ([CustomerRequestAttachment::DISK, CustomerRequestAttachment::LEGACY_DISK] as $diskName) {
+                    Storage::disk($diskName)->delete($path);
+                }
             } catch (\Throwable $e) {
                 Log::error('Attachment file delete failed', [
                     'path' => $path,
@@ -514,13 +516,20 @@ class RequestController extends Controller
         // enumerated across other customers' requests.
         abort_if($attachment->customer_request_id !== $customerRequest->id, 404);
 
-        $disk = Storage::disk('public');
-
         abort_unless(is_string($attachment->path)
             && $attachment->path !== ''
             && ! str_contains($attachment->path, '..')
-            && str_starts_with($attachment->path, 'customer-requests/')
-            && $disk->exists($attachment->path), 404);
+            && str_starts_with($attachment->path, 'customer-requests/'), 404);
+
+        // Private disk first; files uploaded before the move to the private
+        // disk (see attachments:move-to-private) are still read from the
+        // public disk until that command has run.
+        $disk = Storage::disk(CustomerRequestAttachment::DISK);
+
+        if (! $disk->exists($attachment->path)) {
+            $disk = Storage::disk(CustomerRequestAttachment::LEGACY_DISK);
+            abort_unless($disk->exists($attachment->path), 404);
+        }
 
         $isImage = str_starts_with((string) $attachment->mime_type, 'image/');
 

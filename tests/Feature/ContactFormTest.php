@@ -452,4 +452,25 @@ class ContactFormTest extends TestCase
         Mail::assertSentTimes(ContactMessageMail::class, 1);
         Mail::assertSentTimes(ContactMessageConfirmationMail::class, 1);
     }
+
+    public function test_filled_honeypot_is_silently_dropped(): void
+    {
+        Mail::fake();
+
+        $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload([
+            \App\Http\Controllers\ContactController::HONEYPOT_FIELD => 'http://spam.example',
+        ]))->assertSessionHas('success', 'contact_message_sent');
+
+        $this->assertDatabaseCount('contact_submissions', 0);
+        Mail::assertNothingSent();
+    }
+
+    public function test_contact_page_renders_the_honeypot_field_once(): void
+    {
+        $this->seed(\Database\Seeders\PageSeeder::class);
+
+        $html = $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'contact']))->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, 'name="' . \App\Http\Controllers\ContactController::HONEYPOT_FIELD . '"'));
+    }
 }

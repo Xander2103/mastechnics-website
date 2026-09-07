@@ -52,9 +52,10 @@ class RequestDeleteTest extends TestCase
 
     public function test_attachment_files_and_rows_are_removed_on_delete(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('public')->put('customer-requests/a.pdf', 'pdf');
-        Storage::disk('public')->put('customer-requests/b.png', 'png');
+        Storage::disk('local')->put('customer-requests/a.pdf', 'pdf');
+        Storage::disk('local')->put('customer-requests/b.png', 'png');
 
         $request = $this->makeRequest();
         $request->attachments()->create([
@@ -70,14 +71,15 @@ class RequestDeleteTest extends TestCase
             ->delete(route('admin.requests.destroy', $request));
 
         $this->assertDatabaseMissing('customer_request_attachments', ['path' => 'customer-requests/a.pdf']);
-        Storage::disk('public')->assertMissing('customer-requests/a.pdf');
-        Storage::disk('public')->assertMissing('customer-requests/b.png');
+        Storage::disk('local')->assertMissing('customer-requests/a.pdf');
+        Storage::disk('local')->assertMissing('customer-requests/b.png');
     }
 
     public function test_attachment_path_outside_storage_directory_is_not_deleted(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('public')->put('avatars/keep.png', 'png');
+        Storage::disk('local')->put('avatars/keep.png', 'png');
 
         $request = $this->makeRequest();
         $request->attachments()->create([
@@ -94,7 +96,7 @@ class RequestDeleteTest extends TestCase
             ->assertSessionHas('success', 'request_deleted');
 
         $this->assertDatabaseMissing('customer_requests', ['id' => $request->id]);
-        Storage::disk('public')->assertExists('avatars/keep.png');
+        Storage::disk('local')->assertExists('avatars/keep.png');
     }
 
     public function test_unauthenticated_cannot_delete(): void

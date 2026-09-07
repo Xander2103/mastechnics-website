@@ -1,5 +1,4 @@
 import './bootstrap';
-import './request-form';
 
 function initMobileMenu() {
     const header = document.querySelector('.site-header');

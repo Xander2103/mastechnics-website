@@ -2,21 +2,46 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CustomerRequestConfirmationMail;
+use App\Mail\NewCustomerRequestMail;
 use App\Models\CustomerRequest;
+use App\Models\CustomerRequestAttachment;
+use App\Services\MailDispatcher;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use App\Mail\NewCustomerRequestMail;
-use Illuminate\Support\Facades\RateLimiter;
-use App\Mail\CustomerRequestConfirmationMail;
-use App\Services\MailDispatcher;
 
 class CustomerRequestController extends Controller
 {
+    /**
+     * Name of the honeypot field rendered (visually hidden) in the wizard.
+     * Humans never see or fill it; a submission that does carry a value is
+     * accepted with the normal success screen but stored and mailed nowhere.
+     */
+    public const HONEYPOT_FIELD = 'website_url';
+
     public function store(Request $request, string $locale): RedirectResponse
     {
         app()->setLocale($locale);
+
+        if (trim((string) $request->input(self::HONEYPOT_FIELD, '')) !== '') {
+            return $this->successRedirect($locale);
+        }
+
+        // A fresh random token is rendered into the form on every GET. A
+        // request replaying the same token (double-click, refresh, retry)
+        // is not a new request: answer with the success screen and do not
+        // touch the rate limiter, the database or the mailer again.
+        $token = $this->submissionToken($request);
+
+        if ($token !== null && CustomerRequest::where('submission_token', $token)->exists()) {
+            return $this->successRedirect($locale);
+        }
 
         $ip = $request->ip();
         $dailyKey = "request-form-daily:{$ip}";
@@ -36,6 +61,7 @@ class CustomerRequestController extends Controller
         $allowedCategoryValues = $serviceCategories->pluck('value')->toArray();
 
         $dynamicFields = $this->getDynamicFields();
+        $roomStep = $this->roomStepForCategory((string) $request->input('service_category', ''));
 
         $rules = [
             'service_category' => [
@@ -64,23 +90,14 @@ class CustomerRequestController extends Controller
             $rules[$field['name']] = $this->buildRulesForField($field);
         }
 
-        // Rooms validation (only for airco_offerte)
-        $categoryForRooms = $request->input('service_category', '');
-        if ($categoryForRooms === 'airco_offerte') {
-            $rules['rooms']                     = ['required', 'array', 'min:1', 'max:10'];
-            $rules['rooms.*.type']              = ['required', 'string', 'in:slaapkamer,woonkamer,bureau,keuken,zolderkamer,andere'];
-            $rules['rooms.*.width']             = ['required', 'numeric', 'min:1', 'max:50'];
-            $rules['rooms.*.length']            = ['required', 'numeric', 'min:1', 'max:50'];
-            $rules['rooms.*.height']            = ['required', 'numeric', 'min:1.5', 'max:8'];
-            $rules['rooms.*.roof_type']         = ['nullable', 'string', 'in:flat_roof,attic_no_roof_window,attic_with_roof_window,none,other'];
-            $rules['rooms.*.roof_type_other']   = ['nullable', 'string', 'max:255'];
-            $rules['rooms.*.windows']           = ['nullable', 'string', 'in:large,small,mixed,few_none,other'];
-            $rules['rooms.*.windows_other']     = ['nullable', 'string', 'max:255'];
-            $rules['rooms.*.orientation']       = ['nullable', 'string', 'in:north,east,west,south,other,unknown'];
-            $rules['rooms.*.orientation_other'] = ['nullable', 'string', 'max:255'];
+        // Room validation is derived from the airco_rooms step in
+        // config/request-flow.php (room_types + room_fields), exactly like
+        // the UI, so a field marked required there is required here too.
+        if ($roomStep !== null) {
+            $rules = array_merge($rules, $this->buildRoomRules($roomStep));
         }
 
-        $attributes = $this->buildValidationAttributes($dynamicFields, $locale);
+        $attributes = $this->buildValidationAttributes($dynamicFields, $roomStep, $locale);
 
         $validatedData = $request->validate($rules, [], $attributes);
 
@@ -118,13 +135,22 @@ class CustomerRequestController extends Controller
                 continue;
             }
 
-            $answers[$fieldName] = $validatedData[$fieldName] ?? null;
+            $value = $validatedData[$fieldName] ?? null;
+
+            // Single-line fields (name, street, brand, ...) must never carry
+            // line breaks: they end up in mail subjects/headers and CSV
+            // exports. Textareas keep their formatting.
+            if (is_string($value) && ($field['type'] ?? 'text') !== 'textarea') {
+                $value = $this->stripLineBreaks($value);
+            }
+
+            $answers[$fieldName] = $value;
         }
 
         // Store rooms for airco_offerte with server-side surface calculation.
         // "Other" free-text values are only kept when the matching select is
         // actually set to other, so stray hidden-input values never persist.
-        if ($submittedCategory === 'airco_offerte' && $request->has('rooms')) {
+        if ($roomStep !== null && $request->has('rooms')) {
             $processedRooms = [];
             foreach ($request->input('rooms', []) as $room) {
                 $w = round((float) ($room['width']  ?? 0), 2);
@@ -137,21 +163,22 @@ class CustomerRequestController extends Controller
                     'height'            => $h > 0 ? $h : null,
                     'surface'           => ($w > 0 && $l > 0) ? round($w * $l, 1) : null,
                     'roof_type'         => $room['roof_type'] ?? null,
-                    'roof_type_other'   => ($room['roof_type'] ?? null) === 'other' ? ($room['roof_type_other'] ?? null) : null,
+                    'roof_type_other'   => ($room['roof_type'] ?? null) === 'other' ? $this->stripLineBreaks((string) ($room['roof_type_other'] ?? '')) ?: null : null,
                     'windows'           => $room['windows'] ?? null,
-                    'windows_other'     => ($room['windows'] ?? null) === 'other' ? ($room['windows_other'] ?? null) : null,
+                    'windows_other'     => ($room['windows'] ?? null) === 'other' ? $this->stripLineBreaks((string) ($room['windows_other'] ?? '')) ?: null : null,
                     'orientation'       => $room['orientation'] ?? null,
-                    'orientation_other' => ($room['orientation'] ?? null) === 'other' ? ($room['orientation_other'] ?? null) : null,
+                    'orientation_other' => ($room['orientation'] ?? null) === 'other' ? $this->stripLineBreaks((string) ($room['orientation_other'] ?? '')) ?: null : null,
                 ];
             }
             $answers['rooms'] = $processedRooms;
         }
 
-        $customerRequest = CustomerRequest::create([
+        $attributesToStore = [
             'locale'       => $locale,
             'service_slug' => $serviceSlug,
             'request_type' => $derivedRequestType,
             'source'       => 'website',
+            'submission_token' => $token,
 
             // New workflow fields
             'service_category' => $submittedCategory,
@@ -190,23 +217,46 @@ class CustomerRequestController extends Controller
                 'request_type'     => ['value' => $derivedRequestType],
                 'answers'          => $answers,
             ],
-        ]);
+        ];
+
+        $uploadedFiles = $request->hasFile('attachments') ? $request->file('attachments') : [];
+
+        try {
+            // Request row and attachment rows are one unit of work: a failing
+            // attachment insert must not leave a request without its files.
+            $customerRequest = DB::transaction(function () use ($attributesToStore, $uploadedFiles): CustomerRequest {
+                $customerRequest = CustomerRequest::create($attributesToStore);
+
+                foreach ($uploadedFiles as $uploadedFile) {
+                    $path = $uploadedFile->store('customer-requests', CustomerRequestAttachment::DISK);
+
+                    if (! is_string($path) || $path === '') {
+                        throw new \RuntimeException('Attachment could not be stored on disk.');
+                    }
+
+                    $customerRequest->attachments()->create([
+                        'original_name' => Str::limit($uploadedFile->getClientOriginalName(), 250, ''),
+                        'path'          => $path,
+                        'mime_type'     => $uploadedFile->getMimeType(),
+                        'size'          => $uploadedFile->getSize(),
+                    ]);
+                }
+
+                return $customerRequest;
+            });
+        } catch (QueryException $e) {
+            // Lost the race against a concurrent request with the same token
+            // (unique index): the other request stores and mails. Anything
+            // else is a real failure and must surface as such.
+            if ($token !== null && CustomerRequest::where('submission_token', $token)->exists()) {
+                return $this->successRedirect($locale);
+            }
+
+            throw $e;
+        }
 
         RateLimiter::hit($dailyKey, 86400);
         RateLimiter::hit($burstKey, 3600);
-
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $uploadedFile) {
-                $path = $uploadedFile->store('customer-requests', 'public');
-
-                $customerRequest->attachments()->create([
-                    'original_name' => $uploadedFile->getClientOriginalName(),
-                    'path'          => $path,
-                    'mime_type'     => $uploadedFile->getMimeType(),
-                    'size'          => $uploadedFile->getSize(),
-                ]);
-            }
-        }
 
         $customerRequest->load(['attachments', 'notes']);
 
@@ -215,6 +265,12 @@ class CustomerRequestController extends Controller
             ->filter()
             ->unique()
             ->values();
+
+        if ($notificationEmails->isEmpty()) {
+            Log::error('No admin notification recipient configured for customer requests', [
+                'customer_request_id' => $customerRequest->id,
+            ]);
+        }
 
         foreach ($notificationEmails as $email) {
             MailDispatcher::send($email, new NewCustomerRequestMail($customerRequest), $customerRequest);
@@ -226,7 +282,48 @@ class CustomerRequestController extends Controller
             $customerRequest
         );
 
-        return back()->with('success', 'request_created');
+        return $this->successRedirect($locale);
+    }
+
+    /**
+     * The success screen lives on the request page itself. Redirecting there
+     * explicitly (instead of back()) means the flash message is shown even
+     * when the browser sent no Referer header.
+     */
+    private function successRedirect(string $locale): RedirectResponse
+    {
+        $slug = config("site.page_slugs.request.{$locale}");
+
+        if (! is_string($slug) || $slug === '') {
+            return back()->with('success', 'request_created');
+        }
+
+        return redirect()
+            ->route('pages.show', ['locale' => $locale, 'slug' => $slug])
+            ->with('success', 'request_created');
+    }
+
+    private function submissionToken(Request $request): ?string
+    {
+        $token = $request->input('submission_token');
+
+        if (! is_string($token)) {
+            return null;
+        }
+
+        $token = trim($token);
+
+        // Tokens are UUIDs generated by the page; anything else is ignored
+        // rather than rejected so a hand-crafted POST still degrades to the
+        // non-idempotent behaviour of the past.
+        return $token !== '' && strlen($token) <= 64 && preg_match('/^[A-Za-z0-9\-]+$/', $token) === 1
+            ? $token
+            : null;
+    }
+
+    private function stripLineBreaks(string $value): string
+    {
+        return trim(str_replace(["\r", "\n"], ' ', $value));
     }
 
     private function rateLimitMessage(string $locale): string
@@ -240,11 +337,14 @@ class CustomerRequestController extends Controller
         return $messages[$locale] ?? $messages['nl'];
     }
 
-    private function buildValidationAttributes(array $dynamicFields, string $locale): array
+    private function buildValidationAttributes(array $dynamicFields, ?array $roomStep, string $locale): array
     {
         $staticAttributes = [
             'service_category' => ['nl' => 'dienst', 'fr' => 'service', 'en' => 'service'],
-            'attachments'       => ['nl' => 'bijlagen', 'fr' => 'pièces jointes', 'en' => 'attachments'],
+            'attachments'      => ['nl' => 'bijlagen', 'fr' => 'pièces jointes', 'en' => 'attachments'],
+            'attachments.*'    => ['nl' => 'bijlage', 'fr' => 'pièce jointe', 'en' => 'attachment'],
+            'rooms'            => ['nl' => 'kamers', 'fr' => 'pièces', 'en' => 'rooms'],
+            'rooms.*.type'     => ['nl' => 'type kamer', 'fr' => 'type de pièce', 'en' => 'room type'],
         ];
 
         $attributes = [];
@@ -257,7 +357,54 @@ class CustomerRequestController extends Controller
             $attributes[$field['name']] = Str::lower($label);
         }
 
+        foreach (($roomStep['room_fields'] ?? []) as $field) {
+            $label = $field['labels'][$locale] ?? $field['labels']['nl'] ?? $field['name'];
+            $attributes['rooms.*.' . $field['name']] = Str::lower($label);
+        }
+
         return $attributes;
+    }
+
+    /**
+     * The airco_rooms step of the flow, when it applies to the submitted
+     * service category.
+     */
+    private function roomStepForCategory(string $selectedCategory): ?array
+    {
+        foreach (config('request-flow.steps', []) as $step) {
+            if (($step['type'] ?? '') !== 'airco_rooms') {
+                continue;
+            }
+
+            $allowedCategories = $step['condition']['service_categories'] ?? [];
+
+            if (! empty($allowedCategories) && ! in_array($selectedCategory, $allowedCategories, true)) {
+                continue;
+            }
+
+            return $step;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    private function buildRoomRules(array $roomStep): array
+    {
+        $rules = [
+            'rooms' => ['required', 'array', 'min:1', 'max:10'],
+        ];
+
+        $roomTypes = collect($roomStep['room_types'] ?? [])->pluck('value')->filter()->values()->all();
+        $rules['rooms.*.type'] = ['required', 'string', Rule::in($roomTypes)];
+
+        foreach (($roomStep['room_fields'] ?? []) as $field) {
+            $rules['rooms.*.' . $field['name']] = $this->buildRulesForField($field);
+        }
+
+        return $rules;
     }
 
     private function getDynamicFields(): array
@@ -384,5 +531,4 @@ class CustomerRequestController extends Controller
 
         return $rules;
     }
-
 }

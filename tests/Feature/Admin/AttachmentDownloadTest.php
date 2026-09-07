@@ -26,8 +26,9 @@ class AttachmentDownloadTest extends TestCase
 
     public function test_unauthenticated_cannot_download_attachment(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('public')->put('customer-requests/foto.png', 'png');
+        Storage::disk('local')->put('customer-requests/foto.png', 'png');
 
         $request = $this->makeRequest();
         $attachment = $request->attachments()->create([
@@ -41,8 +42,9 @@ class AttachmentDownloadTest extends TestCase
 
     public function test_admin_can_download_own_request_attachment(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('public')->put('customer-requests/offerte.pdf', '%PDF-1.4 test');
+        Storage::disk('local')->put('customer-requests/offerte.pdf', '%PDF-1.4 test');
 
         $request = $this->makeRequest();
         $attachment = $request->attachments()->create([
@@ -60,8 +62,9 @@ class AttachmentDownloadTest extends TestCase
 
     public function test_images_are_served_inline_for_thumbnails(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('public')->put('customer-requests/foto.png', 'png');
+        Storage::disk('local')->put('customer-requests/foto.png', 'png');
 
         $request = $this->makeRequest();
         $attachment = $request->attachments()->create([
@@ -78,8 +81,9 @@ class AttachmentDownloadTest extends TestCase
 
     public function test_attachment_of_other_request_returns_404(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('public')->put('customer-requests/foto.png', 'png');
+        Storage::disk('local')->put('customer-requests/foto.png', 'png');
 
         $requestA = $this->makeRequest();
         $requestB = $this->makeRequest(['customer_email' => 'ander@example.com']);
@@ -95,6 +99,7 @@ class AttachmentDownloadTest extends TestCase
 
     public function test_missing_file_returns_404_and_detail_page_shows_message(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
 
         $request = $this->makeRequest();
@@ -115,8 +120,9 @@ class AttachmentDownloadTest extends TestCase
 
     public function test_path_outside_attachment_directory_returns_404(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('public')->put('avatars/secret.png', 'png');
+        Storage::disk('local')->put('avatars/secret.png', 'png');
 
         $request = $this->makeRequest();
         $attachment = $request->attachments()->create([
@@ -131,8 +137,9 @@ class AttachmentDownloadTest extends TestCase
 
     public function test_detail_page_no_longer_links_direct_storage_paths(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
-        Storage::disk('public')->put('customer-requests/foto.png', 'png');
+        Storage::disk('local')->put('customer-requests/foto.png', 'png');
 
         $request = $this->makeRequest();
         $request->attachments()->create([
@@ -149,5 +156,31 @@ class AttachmentDownloadTest extends TestCase
             ->getContent();
 
         $this->assertStringNotContainsString('storage/customer-requests', $html);
+    }
+
+    public function test_file_still_on_the_legacy_public_disk_is_served_until_moved(): void
+    {
+        Storage::fake('local');
+        Storage::fake('public');
+        Storage::disk('public')->put('customer-requests/oud.png', 'png');
+
+        $request = $this->makeRequest();
+        $attachment = $request->attachments()->create([
+            'original_name' => 'oud.png', 'path' => 'customer-requests/oud.png',
+            'mime_type' => 'image/png', 'size' => 3,
+        ]);
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.attachments.download', [$request, $attachment]))
+            ->assertOk();
+
+        $this->artisan('attachments:move-to-private')->assertExitCode(0);
+
+        Storage::disk('local')->assertExists('customer-requests/oud.png');
+        Storage::disk('public')->assertMissing('customer-requests/oud.png');
+
+        $this->withSession($this->adminSession())
+            ->get(route('admin.requests.attachments.download', [$request, $attachment]))
+            ->assertOk();
     }
 }

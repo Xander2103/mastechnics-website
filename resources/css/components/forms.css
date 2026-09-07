@@ -1,0 +1,10 @@
+/* Honeypot field (contact form + request wizard): kept out of sight and out
+   of the tab order for people, present in the DOM for form bots. */
+.hp-field {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}

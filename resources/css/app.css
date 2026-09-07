@@ -14,6 +14,7 @@
 @import './components/language-switcher.css';
 @import './components/cards.css';
 @import './components/custom-cursor.css';
+@import './components/forms.css';
 
 /* Pages */
 @import './pages/home.css';

@@ -24,6 +24,7 @@ class CustomerRequest extends Model
         'metadata',
         'status',
         'source',
+        'submission_token',
         'service_category',
         'urgency_level',
         'preferred_time',

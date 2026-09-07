@@ -72,6 +72,8 @@
             'terug'          => 'Terug',
             'submit'         => 'Verstuur mijn aanvraag',
             'submit_offerte' => 'Vraag mijn offerte aan',
+            'submit_sending' => 'Bezig met verzenden…',
+            'upload_too_large' => 'De bijlagen zijn samen te groot voor de server. Kies minder of kleinere foto\'s (max. 5 MB per bestand) en probeer opnieuw.',
             'step_indicator' => 'Stap {1} van {2}',
             'success_title'       => 'Je aanvraag werd verzonden.',
             'success_text'        => 'We hebben je aanvraag goed ontvangen en nemen zo snel mogelijk contact op.',
@@ -141,6 +143,8 @@
             'terug'          => 'Retour',
             'submit'         => 'Envoyer ma demande',
             'submit_offerte' => 'Demander mon devis',
+            'submit_sending' => 'Envoi en cours…',
+            'upload_too_large' => 'Les pièces jointes sont trop volumineuses pour le serveur. Choisissez moins de photos ou des photos plus petites (max. 5 Mo par fichier) et réessayez.',
             'step_indicator' => 'Étape {1} sur {2}',
             'success_title'       => 'Votre demande a été envoyée.',
             'success_text'        => 'Nous avons bien reçu votre demande et nous vous contacterons dès que possible.',
@@ -210,6 +214,8 @@
             'terug'          => 'Back',
             'submit'         => 'Send my request',
             'submit_offerte' => 'Request my quote',
+            'submit_sending' => 'Sending…',
+            'upload_too_large' => 'The attachments are too large for the server. Choose fewer or smaller photos (max. 5 MB per file) and try again.',
             'step_indicator' => 'Step {1} of {2}',
             'success_title'       => 'Your request has been sent.',
             'success_text'        => 'We have received your request and will contact you as soon as possible.',
@@ -332,6 +338,15 @@
                 </div>
             @endif
 
+            @if (request()->boolean('upload_too_large'))
+                <div class="form-error-list" role="alert">
+                    <strong>{{ $text['error_title'] }}</strong>
+                    <ul>
+                        <li>{{ $text['upload_too_large'] }}</li>
+                    </ul>
+                </div>
+            @endif
+
             @if ($errors->any())
                 <div class="form-error-list">
                     <strong>{{ $text['error_title'] }}</strong>
@@ -349,8 +364,18 @@
                 action="{{ route('customer-requests.store', ['locale' => $locale]) }}"
                 enctype="multipart/form-data"
                 novalidate
+                id="requestWizardForm"
             >
                 @csrf
+                {{-- Fresh per page-load; lets the server detect and ignore an
+                     exact resubmission (double-click, refresh, retry) without
+                     relying on JavaScript. See CustomerRequestController::store(). --}}
+                <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                {{-- Honeypot: invisible to people, filled in by form bots. --}}
+                <div class="hp-field" aria-hidden="true">
+                    <label for="requestWebsiteUrl">Website</label>
+                    <input type="text" id="requestWebsiteUrl" name="{{ \App\Http\Controllers\CustomerRequestController::HONEYPOT_FIELD }}" tabindex="-1" autocomplete="off" value="">
+                </div>
 
                 <div class="request-layout">
                     <div class="request-form-area">
@@ -832,7 +857,8 @@
                                             <button type="submit" id="wizardSubmitTop"
                                                     class="button button-primary button-large"
                                                     data-label-general="{{ $text['submit'] }}"
-                                                    data-label-offerte="{{ $text['submit_offerte'] }}">
+                                                    data-label-offerte="{{ $text['submit_offerte'] }}"
+                                        data-label-sending="{{ $text['submit_sending'] }}">
                                                 {{ $text['submit'] }}
                                             </button>
                                         </div>
@@ -885,7 +911,8 @@
                                 </button>
                                 <button type="submit" id="wizardSubmit" class="button button-primary button-large is-wizard-hidden"
                                         data-label-general="{{ $text['submit'] }}"
-                                        data-label-offerte="{{ $text['submit_offerte'] }}">
+                                        data-label-offerte="{{ $text['submit_offerte'] }}"
+                                        data-label-sending="{{ $text['submit_sending'] }}">
                                     {{ $text['submit'] }}
                                 </button>
                             </div>
@@ -1175,6 +1202,19 @@
 
         var files = [];
 
+        // Keep the real <input type="file"> in sync with the displayed list:
+        // the browser replaces input.files on every pick, so without this a
+        // second selection silently dropped the first file and "×" removed
+        // it from the list but still uploaded it.
+        function syncInputFiles() {
+            if (typeof DataTransfer === 'undefined') return;
+            try {
+                var dt = new DataTransfer();
+                files.forEach(function (file) { dt.items.add(file); });
+                input.files = dt.files;
+            } catch (e) { /* older browsers: list stays informational */ }
+        }
+
         function renderAttachmentList() {
             list.innerHTML = '';
             files.forEach(function (file, i) {
@@ -1191,6 +1231,7 @@
 
                 removeBtn.addEventListener('click', function () {
                     files.splice(i, 1);
+                    syncInputFiles();
                     renderAttachmentList();
                 });
 
@@ -1206,9 +1247,31 @@
                     files.push(file);
                 }
             });
+            syncInputFiles();
             renderAttachmentList();
         });
     });
+
+    // ── Double-submit guard ─────────────────────────────────────────────────
+    // The server is idempotent on submission_token as well; this only stops
+    // the second POST from being sent at all on a double-click / double-tap.
+    var wizardForm = document.getElementById('requestWizardForm');
+    if (wizardForm) {
+        var wizardSubmitting = false;
+        wizardForm.addEventListener('submit', function (event) {
+            if (wizardSubmitting) {
+                event.preventDefault();
+                return;
+            }
+            wizardSubmitting = true;
+            [wizardSubmit, wizardSubmitTop].forEach(function (btn) {
+                if (!btn) return;
+                btn.disabled = true;
+                btn.setAttribute('aria-disabled', 'true');
+                btn.textContent = btn.dataset.labelSending || btn.textContent;
+            });
+        });
+    }
 
     // ── Serial number help tooltip ─────────────────────────────────────────────
     document.querySelectorAll('.serial-help-btn').forEach(function (btn) {

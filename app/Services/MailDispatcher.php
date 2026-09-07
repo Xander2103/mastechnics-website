@@ -16,9 +16,23 @@ use Illuminate\Support\Facades\Mail;
  */
 class MailDispatcher
 {
-    public static function send(string $recipient, Mailable $mailable, ?CustomerRequest $customerRequest = null): bool
+    public static function send(?string $recipient, Mailable $mailable, ?CustomerRequest $customerRequest = null): bool
     {
         $subject = $mailable->envelope()->subject ?? class_basename($mailable);
+        $recipient = trim((string) $recipient);
+
+        // A missing recipient (empty env value, "null" string) must never be
+        // a TypeError that takes the whole form down; it is a failed send.
+        if ($recipient === '' || $recipient === 'null') {
+            Log::error('Mail send skipped: no recipient', [
+                'mailable'            => class_basename($mailable),
+                'customer_request_id' => $customerRequest?->id,
+            ]);
+
+            self::log($customerRequest, $mailable, $recipient, $subject, 'failed', 'No recipient configured');
+
+            return false;
+        }
 
         try {
             Mail::to($recipient)->send($mailable);

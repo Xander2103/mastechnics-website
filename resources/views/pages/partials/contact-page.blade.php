@@ -210,6 +210,11 @@
                          exact resubmission (double-click, refresh, retry) without
                          relying on JavaScript. See ContactController::firstOrCreateByToken(). --}}
                     <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                    {{-- Honeypot: invisible to people, filled in by form bots. --}}
+                    <div class="hp-field" aria-hidden="true">
+                        <label for="contactWebsiteUrl">Website</label>
+                        <input type="text" id="contactWebsiteUrl" name="{{ \App\Http\Controllers\ContactController::HONEYPOT_FIELD }}" tabindex="-1" autocomplete="off" value="">
+                    </div>
 
                     <div class="contact-field-grid">
                         <label class="{{ $errors->has('name') ? 'field-has-error' : '' }}">

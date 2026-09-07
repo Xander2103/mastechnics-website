@@ -36,6 +36,16 @@ class MaintenanceHardeningTest extends TestCase
         $this->assertSame('Aangepast door migratie', $home->translations()->where('locale', 'nl')->value('meta_title'));
     }
 
+    public function test_page_content_seeder_refuses_to_run_in_production(): void
+    {
+        $this->seed(PageSeeder::class);
+        $this->app->detectEnvironment(fn () => 'production');
+
+        $this->expectException(\RuntimeException::class);
+
+        (new \Database\Seeders\PageContentSeeder())->run();
+    }
+
     public function test_admin_seeder_refuses_to_plant_a_default_password_outside_production(): void
     {
         foreach (['ADMIN_EMAIL', 'ADMIN_PASSWORD'] as $key) {

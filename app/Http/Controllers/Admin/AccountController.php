@@ -8,6 +8,7 @@ use App\Models\BlockedEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
@@ -46,7 +47,8 @@ class AccountController extends Controller
                 ->onlyInput('email');
         }
 
-        $adminUser->update(['email' => $validated['email']]);
+        // Stored lower-case, like admin:create and the login lookup.
+        $adminUser->update(['email' => Str::lower($validated['email'])]);
 
         // Keep the active session working; historical records such as
         // standard_reply_sent_by and note author_email keep the old address.

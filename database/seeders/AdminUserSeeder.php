@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\AdminUser;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminUserSeeder extends Seeder
 {
@@ -13,19 +14,23 @@ class AdminUserSeeder extends Seeder
         $email = env('ADMIN_EMAIL');
         $password = env('ADMIN_PASSWORD');
 
-        if (app()->environment('production') && (empty($email) || empty($password))) {
+        // Never plant a known default password, in any environment: a typo
+        // in APP_ENV must not be the only thing between production and
+        // "admin@example.com / password". Use `php artisan admin:create`
+        // or set ADMIN_EMAIL + ADMIN_PASSWORD for the seeder.
+        if (empty($email) || empty($password)) {
             throw new \RuntimeException(
-                'Refusing to seed an admin user in production without ADMIN_EMAIL and ADMIN_PASSWORD set in the environment.'
+                'Refusing to seed an admin user without ADMIN_EMAIL and ADMIN_PASSWORD set in the environment (or run php artisan admin:create).'
             );
         }
 
         AdminUser::updateOrCreate(
             [
-                'email' => $email ?: 'admin@example.com',
+                'email' => Str::lower(trim((string) $email)),
             ],
             [
                 'name' => env('ADMIN_NAME', 'Admin'),
-                'password' => Hash::make($password ?: 'password'),
+                'password' => Hash::make($password),
             ]
         );
     }

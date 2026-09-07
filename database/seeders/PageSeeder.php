@@ -15,13 +15,31 @@ class PageSeeder extends Seeder
         $this->createServicePages();
     }
 
-    private function createHomePage(): void
+    /**
+     * Pages are keyed by code; re-running the seeder on a database that
+     * already holds a page must skip it instead of crashing on the unique
+     * index (and must never overwrite meta that later migrations rewrote).
+     */
+    private function createPage(string $code, string $type): ?Page
     {
-        $home = Page::create([
-            'code' => 'home',
-            'type' => 'home',
+        if (Page::where('code', $code)->exists()) {
+            return null;
+        }
+
+        return Page::create([
+            'code' => $code,
+            'type' => $type,
             'is_active' => true,
         ]);
+    }
+
+    private function createHomePage(): void
+    {
+        $home = $this->createPage('home', 'home');
+
+        if ($home === null) {
+            return;
+        }
 
         $home->translations()->createMany([
             [
@@ -56,11 +74,11 @@ class PageSeeder extends Seeder
 
     private function createRequestPage(): void
     {
-        $request = Page::create([
-            'code' => 'request',
-            'type' => 'request',
-            'is_active' => true,
-        ]);
+        $request = $this->createPage('request', 'request');
+
+        if ($request === null) {
+            return;
+        }
 
         $request->translations()->createMany([
             [
@@ -95,11 +113,11 @@ class PageSeeder extends Seeder
 
     private function createContactPage(): void
     {
-        $contact = Page::create([
-            'code' => 'contact',
-            'type' => 'contact',
-            'is_active' => true,
-        ]);
+        $contact = $this->createPage('contact', 'contact');
+
+        if ($contact === null) {
+            return;
+        }
 
         $contact->translations()->createMany([
             [
@@ -141,11 +159,11 @@ class PageSeeder extends Seeder
                 continue;
             }
 
-            $page = Page::create([
-                'code' => $serviceCode,
-                'type' => 'service',
-                'is_active' => true,
-            ]);
+            $page = $this->createPage($serviceCode, 'service');
+
+            if ($page === null) {
+                continue;
+            }
 
             $translations = [];
 

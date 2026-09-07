@@ -160,7 +160,10 @@ Admin features:
 - admin login
 - admin logout
 - protected admin routes
-- multiple admin accounts through configuration
+- multiple admin accounts (`php artisan admin:create`, stored hashed in `admin_users`)
+- quotes with itemised lines, PDF and e-mail sending
+- e-mail blocklist for the contact form
+- HVAC pre-quotation (airco): product lists, supplier import wizard, calculation rules
 - request overview
 - request detail page
 - request status management
@@ -171,10 +174,14 @@ Admin features:
 Request statuses:
 
 - new
+- viewed
 - contacted
-- planned
+- quote_sent
+- won
+- lost
 - done
-- cancelled
+
+(`planned` and `cancelled` only exist on very old records.)
 
 Available filters:
 

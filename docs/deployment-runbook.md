@@ -53,8 +53,19 @@ HVAC_IMPORT_MAX_MB=25
   `COMPANY_POSTAL_CODE`, `COMPANY_OPENING_HOURS` invullen (footer +
   LocalBusiness-schema tonen anders niets).
 - `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` zijn enkel nodig als de
-  seeder ooit draait; adminaccounts maak je normaal met
-  `php artisan admin:create`.
+  seeder ooit draait (die weigert nu zonder deze waarden, in élke
+  omgeving); adminaccounts maak je normaal met `php artisan admin:create`.
+- `TRUSTED_PROXIES` **leeg laten** op de Apache-host (geen reverse proxy).
+  Alleen invullen met het echte proxy-IP/CIDR als er ooit een load balancer
+  of CDN vóór PHP komt — anders deelt elke bezoeker hetzelfde IP voor de
+  rate limiting. `*` betekent "vertrouw iedereen" en maakt IP-spoofing
+  via `X-Forwarded-For` mogelijk.
+- `APP_URL` is nu de enige bron voor absolute URL's (canonical, sitemap,
+  maillinks): een verkeerde waarde is direct zichtbaar in de sitemap.
+- Na de release éénmalig `php artisan attachments:move-to-private`
+  draaien: bestaande klantuploads verhuizen van `storage/app/public` naar
+  `storage/app/private`. Tot dan leest de admin-download ze nog van de
+  oude locatie; nieuwe uploads komen meteen op de private disk.
 
 ## 3. Release-stappen op de server
 
@@ -62,8 +73,9 @@ HVAC_IMPORT_MAX_MB=25
 php artisan down
 # code binnenhalen (git pull origin main, of upload)
 composer install --no-dev --optimize-autoloader
-php artisan migrate --force        # additief; ±15 nieuwe migraties incl. HVAC
+php artisan migrate --force        # additief; incl. submission_token, validated_value, indexen
 php artisan storage:link           # controleren dat de link klopt
+php artisan attachments:move-to-private   # eenmalig: klantuploads van public naar private disk (herhaalbaar)
 npm ci && npm run build            # OF: lokaal gebouwde public/build/ uploaden
 php artisan config:clear
 php artisan config:cache
@@ -106,11 +118,20 @@ Maak **geen** testaanvragen aan op productie; er is geen opruimmechanisme.
 
 ## 6. Gekende open punten (bewust niet in deze release)
 
-- **Klantuploads staan op de public disk** en zijn met de directe
-  `/storage/customer-requests/…`-URL zonder login op te vragen (bestandsnamen
-  zijn onraadbare 40-tekens-hashes; robots + noindex staan goed). Nette fix =
-  codewijziging (local disk + bestaande adminroute) plus migratie van
-  bestaande bestanden — als aparte change uitvoeren.
-- `trustProxies('*')` maakt de IP-rate-limiting omzeilbaar via een
-  gespoofde `X-Forwarded-For`; beperken tot het echte proxy-IP is netter.
-- `.env.example` documenteert `ADMIN_*`/`MAIL_ENCRYPTION` niet.
+- ~~Klantuploads op de public disk~~ — opgelost (audit 2026-09-07): nieuwe
+  uploads staan op de private disk; bestaande bestanden verhuizen met
+  `php artisan attachments:move-to-private` (zie release-stappen).
+- ~~`trustProxies('*')`~~ — opgelost: proxies worden alleen vertrouwd via
+  `TRUSTED_PROXIES` (standaard leeg).
+- `.env.example` documenteert `MAIL_ENCRYPTION` niet (`ADMIN_*` en
+  `TRUSTED_PROXIES` inmiddels wel).
+- **Productie-databank-engine is niet gedocumenteerd.** Op SQLite houdt
+  één grote HVAC-import (één transactie) de hele site kort vast
+  (`database is locked` bij sessies/cache in dezelfde file); overweeg
+  `SESSION_DRIVER=file` en `CACHE_STORE=file` op SQLite, of MySQL.
+- De guided import leest grote CSV's (50k+ rijen) nog volledig in het
+  geheugen (≈300 MB piek bij 60k rijen); een `memory_limit` van 512M op
+  de importroute of kleinere bestanden zijn nodig tot dit streaming wordt.
+- Afspraken in het verleden worden aanvaard (`date` zonder
+  `after_or_equal:today`) — bewust gelaten: Martin registreert soms
+  achteraf.

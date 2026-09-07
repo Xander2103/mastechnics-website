@@ -858,8 +858,6 @@ Belangrijk om te weten:
   `/nl/overijse`) en blijven vindbaar voor Google via de sitemap, de
   kruimelpaden en de werkgebiedpagina (`/nl/werkgebied`). Uw lokale
   vindbaarheid verandert hier niet door.
-- Onderaan elke pagina staat één rustige zin — "Actief in de Druivenstreek
-  en omliggende gemeenten." — die naar de werkgebiedpagina linkt.
 - Op de dienstenpagina's blijft de rubriek "Waar we deze dienst uitvoeren"
   staan; die is informatief voor bezoekers én goed voor lokale SEO.
 - Verwijder de gemeentepagina's dus **niet** en vraag ook niet om ze uit de

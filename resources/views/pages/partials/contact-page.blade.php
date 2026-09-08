@@ -223,11 +223,17 @@
                     {{-- Signed "form opened at" timestamp: a submit faster than a human
                          could fill the form is refused server-side (PublicFormGuard). --}}
                     <input type="hidden" name="{{ $formGuard->timingField() }}" value="{{ $formGuard->timingToken('contact') }}">
-                    {{-- Honeypots: invisible to people, filled in by form bots. --}}
+                    {{-- Honeypots: invisible to people, filled in by form bots. The
+                         second is a checkbox: browser autofill never ticks one. --}}
                     <div class="hp-field" aria-hidden="true">
                         @foreach ($formGuard->honeypotFields() as $hpIndex => $hpField)
-                            <label for="contactHp{{ $hpIndex }}">{{ $hpIndex === 0 ? 'Website' : 'Address line 2' }}</label>
-                            <input type="text" id="contactHp{{ $hpIndex }}" name="{{ $hpField }}" tabindex="-1" autocomplete="off" value="">
+                            @if ($hpIndex === 0)
+                                <label for="contactHp{{ $hpIndex }}">Website</label>
+                                <input type="text" id="contactHp{{ $hpIndex }}" name="{{ $hpField }}" tabindex="-1" autocomplete="off" value="">
+                            @else
+                                <label for="contactHp{{ $hpIndex }}">Keep me updated</label>
+                                <input type="checkbox" id="contactHp{{ $hpIndex }}" name="{{ $hpField }}" tabindex="-1" autocomplete="off" value="1">
+                            @endif
                         @endforeach
                     </div>
 

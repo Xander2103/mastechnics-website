@@ -379,11 +379,17 @@
                 {{-- Signed "form opened at" timestamp: a submit faster than a human
                      could fill the wizard is refused server-side (PublicFormGuard). --}}
                 <input type="hidden" name="{{ $formGuard->timingField() }}" value="{{ $formGuard->timingToken('request') }}">
-                {{-- Honeypots: invisible to people, filled in by form bots. --}}
+                {{-- Honeypots: invisible to people, filled in by form bots. The
+                     second is a checkbox: browser autofill never ticks one. --}}
                 <div class="hp-field" aria-hidden="true">
                     @foreach ($formGuard->honeypotFields() as $hpIndex => $hpField)
-                        <label for="requestHp{{ $hpIndex }}">{{ $hpIndex === 0 ? 'Website' : 'Address line 2' }}</label>
-                        <input type="text" id="requestHp{{ $hpIndex }}" name="{{ $hpField }}" tabindex="-1" autocomplete="off" value="">
+                        @if ($hpIndex === 0)
+                            <label for="requestHp{{ $hpIndex }}">Website</label>
+                            <input type="text" id="requestHp{{ $hpIndex }}" name="{{ $hpField }}" tabindex="-1" autocomplete="off" value="">
+                        @else
+                            <label for="requestHp{{ $hpIndex }}">Keep me updated</label>
+                            <input type="checkbox" id="requestHp{{ $hpIndex }}" name="{{ $hpField }}" tabindex="-1" autocomplete="off" value="1">
+                        @endif
                     @endforeach
                 </div>
 

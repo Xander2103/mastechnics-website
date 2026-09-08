@@ -37,37 +37,52 @@ class CaptchaVerifierFactoryTest extends TestCase
         ], $overrides);
     }
 
+    private function withKeys(string $provider = 'turnstile', array $overrides = []): array
+    {
+        return $this->config(array_replace_recursive([
+            'providers' => [$provider => ['site_key' => 'site', 'secret_key' => 'secret']],
+        ], $overrides));
+    }
+
     public function test_production_without_keys_fails_closed(): void
     {
-        $verifier = CaptchaVerifierFactory::make($this->config(), isProduction: true);
+        $verifier = CaptchaVerifierFactory::make($this->config(), 'production');
 
         $this->assertInstanceOf(RejectingCaptchaVerifier::class, $verifier);
         $this->assertTrue($verifier->enabled());
         $this->assertFalse($verifier->verify('any-token', '127.0.0.1'));
     }
 
-    public function test_non_production_without_keys_is_disabled(): void
+    public function test_a_misspelled_or_unknown_app_env_is_treated_as_production(): void
     {
-        $verifier = CaptchaVerifierFactory::make($this->config(), isProduction: false);
+        // The real server .env once carried "poduction": that must not
+        // silently switch the challenge off.
+        foreach (['poduction', 'prod', 'staging', 'Production ', ''] as $environment) {
+            $verifier = CaptchaVerifierFactory::make($this->config(), $environment);
 
-        $this->assertInstanceOf(NullCaptchaVerifier::class, $verifier);
-        $this->assertFalse($verifier->enabled());
+            $this->assertInstanceOf(RejectingCaptchaVerifier::class, $verifier, "env '{$environment}' must fail closed");
+        }
+    }
+
+    public function test_development_environments_without_keys_are_disabled(): void
+    {
+        foreach (['local', 'testing', 'development', 'Local'] as $environment) {
+            $verifier = CaptchaVerifierFactory::make($this->config(), $environment);
+
+            $this->assertInstanceOf(NullCaptchaVerifier::class, $verifier, $environment);
+            $this->assertFalse($verifier->enabled());
+        }
     }
 
     public function test_keys_enable_the_selected_provider_everywhere(): void
     {
-        $turnstile = CaptchaVerifierFactory::make($this->config([
-            'providers' => ['turnstile' => ['site_key' => 'site', 'secret_key' => 'secret']],
-        ]), isProduction: false);
+        $turnstile = CaptchaVerifierFactory::make($this->withKeys(), 'local');
 
         $this->assertInstanceOf(CloudflareTurnstileVerifier::class, $turnstile);
         $this->assertSame('site', $turnstile->siteKey());
         $this->assertSame('cf-turnstile-response', $turnstile->responseField());
 
-        $recaptcha = CaptchaVerifierFactory::make($this->config([
-            'provider' => 'recaptcha',
-            'providers' => ['recaptcha' => ['site_key' => 'gsite', 'secret_key' => 'gsecret']],
-        ]), isProduction: true);
+        $recaptcha = CaptchaVerifierFactory::make($this->withKeys('recaptcha', ['provider' => 'recaptcha']), 'production');
 
         $this->assertInstanceOf(GoogleRecaptchaVerifier::class, $recaptcha);
         $this->assertSame('g-recaptcha-response', $recaptcha->responseField());
@@ -78,36 +93,35 @@ class CaptchaVerifierFactoryTest extends TestCase
     {
         // Turnstile keys present, but CAPTCHA_PROVIDER=recaptcha: never fall
         // back to the other provider silently.
-        $verifier = CaptchaVerifierFactory::make($this->config([
-            'provider' => 'recaptcha',
-            'providers' => ['turnstile' => ['site_key' => 'site', 'secret_key' => 'secret']],
-        ]), isProduction: false);
+        $config = $this->withKeys('turnstile', ['provider' => 'recaptcha']);
 
-        $this->assertInstanceOf(NullCaptchaVerifier::class, $verifier, 'outside production: disabled');
-
-        $verifier = CaptchaVerifierFactory::make($this->config([
-            'provider' => 'recaptcha',
-            'providers' => ['turnstile' => ['site_key' => 'site', 'secret_key' => 'secret']],
-        ]), isProduction: true);
-
-        $this->assertInstanceOf(RejectingCaptchaVerifier::class, $verifier, 'production: fail closed');
+        $this->assertInstanceOf(NullCaptchaVerifier::class, CaptchaVerifierFactory::make($config, 'local'), 'development: disabled');
+        $this->assertInstanceOf(RejectingCaptchaVerifier::class, CaptchaVerifierFactory::make($config, 'production'), 'production: fail closed');
     }
 
     public function test_explicit_enabled_flag_overrides_the_automatic_rule(): void
     {
-        $forcedOn = CaptchaVerifierFactory::make($this->config(['enabled' => 'true']), isProduction: false);
+        $forcedOn = CaptchaVerifierFactory::make($this->config(['enabled' => 'true']), 'local');
         $this->assertInstanceOf(RejectingCaptchaVerifier::class, $forcedOn);
 
-        $forcedOff = CaptchaVerifierFactory::make($this->config([
-            'enabled' => 'false',
-            'providers' => ['turnstile' => ['site_key' => 'site', 'secret_key' => 'secret']],
-        ]), isProduction: true);
+        $forcedOff = CaptchaVerifierFactory::make($this->withKeys('turnstile', ['enabled' => 'false']), 'production');
         $this->assertInstanceOf(NullCaptchaVerifier::class, $forcedOff);
+    }
+
+    public function test_an_unrecognisable_enabled_value_never_switches_the_challenge_off(): void
+    {
+        foreach (['ture', 'flase', 'enabled', 'yes please', 'nope', 'null'] as $value) {
+            $withKeys = CaptchaVerifierFactory::make($this->withKeys('turnstile', ['enabled' => $value]), 'production');
+            $this->assertInstanceOf(CloudflareTurnstileVerifier::class, $withKeys, "'{$value}' with keys");
+
+            $withoutKeys = CaptchaVerifierFactory::make($this->config(['enabled' => $value]), 'production');
+            $this->assertInstanceOf(RejectingCaptchaVerifier::class, $withoutKeys, "'{$value}' without keys");
+        }
     }
 
     public function test_unknown_provider_fails_closed(): void
     {
-        $verifier = CaptchaVerifierFactory::make($this->config(['provider' => 'hcaptcha']), isProduction: true);
+        $verifier = CaptchaVerifierFactory::make($this->config(['provider' => 'hcaptcha']), 'production');
 
         $this->assertInstanceOf(RejectingCaptchaVerifier::class, $verifier);
     }

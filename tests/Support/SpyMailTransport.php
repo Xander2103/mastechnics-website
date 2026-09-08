@@ -53,7 +53,7 @@ class SpyMailTransport implements TransportInterface
     /** @return array<int, string> every recipient address, in send order */
     public function recipients(): array
     {
-        return array_merge(...array_map(fn (array $m) => $m['to'], $this->sent ?: [[]]));
+        return array_merge([], ...array_map(fn (array $m) => $m['to'], $this->sent));
     }
 
     public function __toString(): string

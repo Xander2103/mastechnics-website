@@ -3,6 +3,7 @@
 namespace App\Services\Spam;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 
 /**
@@ -173,23 +174,35 @@ class PublicFormGuard
         $this->log->rejected($form, FormProtectionLog::REASON_DISABLED, $request);
     }
 
-    /** Step 10: called once per stored submission, before mailing. */
+    /**
+     * Step 10: called once per stored submission, before mailing. The row
+     * already exists, so a cache outage here must never turn into a 500 for
+     * a submission that was accepted — it is logged and the send proceeds
+     * (the mail budget has its own fail-closed handling).
+     */
     public function recordAccepted(string $form, Request $request, SubmissionFacts $facts): void
     {
-        $ip = $request->ip();
-        $fingerprint = config('form-protection.fingerprint', []);
+        try {
+            $ip = $request->ip();
+            $fingerprint = config('form-protection.fingerprint', []);
 
-        RateLimiter::hit("form-protection:accepted:{$form}:ip-day:{$ip}", 86400);
-        RateLimiter::hit("form-protection:accepted:{$form}:ip-hour:{$ip}", 3600);
-        RateLimiter::hit($this->emailKey($form, $facts->email), 86400);
-        RateLimiter::hit("form-protection:accepted:{$form}:day", 86400);
-        RateLimiter::hit('form-protection:accepted:global:burst', 600);
-        RateLimiter::hit($this->exactFingerprintKey($form, $request, $facts), (int) ($fingerprint['exact_window_seconds'] ?? 600));
+            RateLimiter::hit("form-protection:accepted:{$form}:ip-day:{$ip}", 86400);
+            RateLimiter::hit("form-protection:accepted:{$form}:ip-hour:{$ip}", 3600);
+            RateLimiter::hit($this->emailKey($form, $facts->email), 86400);
+            RateLimiter::hit("form-protection:accepted:{$form}:day", 86400);
+            RateLimiter::hit('form-protection:accepted:global:burst', 600);
+            RateLimiter::hit($this->exactFingerprintKey($form, $request, $facts), (int) ($fingerprint['exact_window_seconds'] ?? 600));
 
-        $contentKey = $this->contentFingerprintKey($form, $facts);
+            $contentKey = $this->contentFingerprintKey($form, $facts);
 
-        if ($contentKey !== null) {
-            RateLimiter::hit($contentKey, (int) ($fingerprint['content_window_seconds'] ?? 3600));
+            if ($contentKey !== null) {
+                RateLimiter::hit($contentKey, (int) ($fingerprint['content_window_seconds'] ?? 3600));
+            }
+        } catch (\Throwable $e) {
+            Log::error('form_protection counters could not be updated after an accepted submission', [
+                'form' => $form,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

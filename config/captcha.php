@@ -13,18 +13,19 @@ return [
     |   CAPTCHA_PROVIDER=recaptcha   (Google reCAPTCHA v2 checkbox, fallback)
     |
     | 'enabled' = null means automatic:
-    |   - production: always required → without keys every form submission
-    |     is refused (fail closed) and an error is logged;
-    |   - other environments: enabled only when both keys of the active
-    |     provider are present, so local development and the test suite work
-    |     without an external account.
-    | CAPTCHA_ENABLED=true|false overrides that; TURNSTILE_ENABLED is kept
-    | as an alias for the same switch.
+    |   - local / testing / development: enabled only when both keys of the
+    |     active provider are present, so the test suite works without an
+    |     external account;
+    |   - every other APP_ENV (production, or a typo of it): always required
+    |     → without keys every form submission is refused (fail closed) and
+    |     an error is logged.
+    | CAPTCHA_ENABLED=true|false overrides that. An unrecognisable value is
+    | treated as "not set" and logged — never as "off".
     |
     */
 
     'provider' => env('CAPTCHA_PROVIDER', 'turnstile'),
-    'enabled' => env('CAPTCHA_ENABLED', env('TURNSTILE_ENABLED')),
+    'enabled' => env('CAPTCHA_ENABLED'),
     'timeout_seconds' => 5,
 
     'providers' => [

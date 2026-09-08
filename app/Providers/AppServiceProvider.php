@@ -39,14 +39,15 @@ class AppServiceProvider extends ServiceProvider
 
         // Bot challenge on the public forms (Cloudflare Turnstile by default,
         // Google reCAPTCHA as switchable fallback — see config/captcha.php).
-        // Production always requires it: without keys the verifier refuses
-        // every submission (fail closed) instead of running unprotected.
-        // Elsewhere the challenge is only active when the keys are set, so
-        // local development and the test suite need no external account.
+        // Every environment except local/testing/development requires it:
+        // without keys the verifier refuses every submission (fail closed)
+        // instead of running unprotected — a misspelled APP_ENV therefore
+        // still fails closed. In development the challenge is only active
+        // when the keys are set, so the test suite needs no external account.
         $this->app->singleton(CaptchaVerifier::class, function () {
             return CaptchaVerifierFactory::make(
                 (array) config('captcha', []),
-                $this->app->isProduction()
+                (string) config('app.env', 'production')
             );
         });
 

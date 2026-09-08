@@ -24,7 +24,7 @@ Alle logica zit in `app/Services/Spam/`. De controllers roepen alleen
 | 2 | Attempt-limiters | per IP 30/10 min per formulier, site-breed 120/10 min | HTTP 429 (gebrande pagina, nl/fr/en), vóór validatie en captcha. |
 | 3 | Server-side validatie | controller | Gewone veldfouten. Captcha wordt hier nog **niet** aangeroepen. |
 | 4 | CAPTCHA | `CaptchaVerifier` (Turnstile of reCAPTCHA), siteverify server-side | Foutmelding `captcha`. Netwerkfout of ontbrekende keys = fail closed. |
-| 5 | Honeypot | 2 verborgen velden (`website_url`, `mailing_address_2`) | Vals successcherm, niets opgeslagen, niets gemaild. |
+| 5 | Honeypot | 2 verborgen velden (`website_url` tekstveld, `newsletter_optin` checkbox — autofill vinkt nooit een checkbox aan) | Vals successcherm, niets opgeslagen, niets gemaild. |
 | 6 | Invultijd | HMAC-gesigneerde timestamp `form_opened_at`, min 3 s, max 12 u | Foutmelding `captcha`. Ontbrekend/vervalst/verlopen = afgewezen. |
 | 7 | Geaccepteerd-limieten | per IP (dag + uur), per genormaliseerd e-mailadres (3/dag), per formulier (60/dag), globale burst (20/10 min) | Foutmelding `rate_limit` of e-mailveld. |
 | 8 | Fingerprint | exact (ip+e-mail+telefoon+bericht+UA) 1/10 min; zelfde berichttekst 3/uur | Melding "zonet al verstuurd". |
@@ -74,7 +74,7 @@ als dat in productie gebruikt wordt). Geen deploy nodig.
 
 ```
 CAPTCHA_PROVIDER=turnstile        # of: recaptcha
-CAPTCHA_ENABLED=                  # leeg = auto: productie verplicht, elders alleen met keys
+CAPTCHA_ENABLED=                  # leeg = auto: alleen local/testing/development mogen zonder keys draaien
 TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
 RECAPTCHA_SITE_KEY=
@@ -89,7 +89,7 @@ RECAPTCHA_SECRET_KEY=
   Alleen inschakelen als Turnstile onbruikbaar wordt. Nooit beide tegelijk:
   de provider wordt op één plaats gebonden (`AppServiceProvider` →
   `CaptchaVerifierFactory`), controllers en views kennen geen provider.
-- **Fail closed**: in productie zonder keys (of met een onbekende provider)
+- **Fail closed**: buiten `local`/`testing`/`development` (dus ook bij een typo in `APP_ENV`) zonder keys (of met een onbekende provider)
   weigert `RejectingCaptchaVerifier` elke inzending en logt een error.
   Zet dus de keys **vóór** de release.
 - De widget wordt in de wizard pas gerenderd bij het openen van de laatste

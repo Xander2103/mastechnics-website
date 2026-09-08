@@ -15,7 +15,11 @@
 
 return [
     // Visually hidden fields humans never fill. Any non-empty value = bot.
-    'honeypot_fields' => ['website_url', 'mailing_address_2'],
+    // The first is a text field, every further one is rendered as an
+    // unchecked checkbox: browser autofill never ticks checkboxes, so a
+    // human with a saved address profile can never trip it by accident
+    // (an off-screen "address line 2" text field could be autofilled).
+    'honeypot_fields' => ['website_url', 'newsletter_optin'],
 
     // Signed "form opened at" timestamp: a submit faster than min_seconds
     // after the page was rendered is refused, as is a token older than

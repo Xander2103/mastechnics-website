@@ -64,7 +64,18 @@ class MailBudget
             // still atomic on the database/file stores, so degrade to that.
             Log::debug('Mail budget lock unavailable, reserving without lock', ['error' => $e->getMessage()]);
 
-            return $this->reserveUnlocked($kind);
+            try {
+                return $this->reserveUnlocked($kind);
+            } catch (\Throwable $inner) {
+                // Cache store down altogether: the submission is already
+                // stored, so fail closed on the mail (skip + log) rather than
+                // throw a 500 or send unbudgeted.
+                Log::error('Mail budget unavailable; send refused', ['kind' => $kind, 'error' => $inner->getMessage()]);
+
+                return $kind === self::KIND_CUSTOMER
+                    ? FormProtectionLog::MAIL_BUDGET_CUSTOMER
+                    : FormProtectionLog::MAIL_BUDGET_ADMIN;
+            }
         }
     }
 

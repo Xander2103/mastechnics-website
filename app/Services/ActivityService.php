@@ -56,7 +56,11 @@ class ActivityService
 
         $mailLogs = $request->relationLoaded('mailLogs') ? $request->mailLogs : $request->mailLogs()->get();
         foreach ($mailLogs as $log) {
-            $statusLabel = $log->status === 'sent' ? 'verzonden' : 'mislukt';
+            $statusLabel = match ($log->status) {
+                'sent' => 'verzonden',
+                'skipped' => 'niet verstuurd (' . ($log->error ?? 'beleid') . ')',
+                default => 'mislukt',
+            };
             $events[] = self::event($log->created_at, "E-mail {$statusLabel}: {$log->subject}", $log->recipient);
         }
 

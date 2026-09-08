@@ -5,6 +5,10 @@ namespace App\Providers;
 use App\Services\Hvac\Explanation\HvacExplanationGeneratorInterface;
 use App\Services\Hvac\Explanation\NullHvacExplanationGenerator;
 use App\Services\SeoService;
+use App\Services\Spam\CaptchaVerifier;
+use App\Services\Spam\CaptchaVerifierFactory;
+use App\Services\Spam\FormTimingToken;
+use App\Services\Spam\MailBudget;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -31,6 +35,31 @@ class AppServiceProvider extends ServiceProvider
             return match (config('hvac.explanation_provider', 'null')) {
                 default => new NullHvacExplanationGenerator(),
             };
+        });
+
+        // Bot challenge on the public forms (Cloudflare Turnstile by default,
+        // Google reCAPTCHA as switchable fallback — see config/captcha.php).
+        // Production always requires it: without keys the verifier refuses
+        // every submission (fail closed) instead of running unprotected.
+        // Elsewhere the challenge is only active when the keys are set, so
+        // local development and the test suite need no external account.
+        $this->app->singleton(CaptchaVerifier::class, function () {
+            return CaptchaVerifierFactory::make(
+                (array) config('captcha', []),
+                $this->app->isProduction()
+            );
+        });
+
+        $this->app->singleton(FormTimingToken::class, function () {
+            return new FormTimingToken(
+                (string) config('app.key'),
+                (int) config('form-protection.timing.min_seconds', 3),
+                (int) config('form-protection.timing.max_hours', 12) * 3600
+            );
+        });
+
+        $this->app->singleton(MailBudget::class, function () {
+            return new MailBudget((array) config('form-protection.mail', []));
         });
     }
 

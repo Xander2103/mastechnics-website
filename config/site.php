@@ -30,12 +30,6 @@ return [
     'request_notification_email' => env('REQUEST_NOTIFICATION_EMAIL') ?: 'martin@mastechnics.be',
     'contact_notification_email' => env('CONTACT_NOTIFICATION_EMAIL') ?: 'martin@mastechnics.be',
 
-    'request_daily_limit' => (int) env('REQUEST_DAILY_LIMIT', 5),
-    'request_burst_limit_per_hour' => (int) env('REQUEST_BURST_LIMIT_PER_HOUR', 10),
-
-    'contact_daily_limit' => (int) env('CONTACT_DAILY_LIMIT', 10),
-    'contact_burst_limit_per_hour' => (int) env('CONTACT_BURST_LIMIT_PER_HOUR', 20),
-
     'locales' => [
         'nl',
         'fr',

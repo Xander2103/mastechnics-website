@@ -6,10 +6,12 @@ use App\Models\CustomerRequest;
 use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Support\InteractsWithFormProtection;
 use Tests\TestCase;
 
 class WaterSoftenerFlowTest extends TestCase
 {
+    use InteractsWithFormProtection;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -20,7 +22,7 @@ class WaterSoftenerFlowTest extends TestCase
 
     private function validPayload(array $overrides = []): array
     {
-        return array_merge([
+        return array_merge($this->protectionFields('request'), [
             'service_category'         => 'waterverzachter',
             'customer_type'            => 'residential',
             'installation_timeframe'   => 'within_1_month',

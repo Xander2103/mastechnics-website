@@ -7,10 +7,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
+use Tests\Support\InteractsWithFormProtection;
 use Tests\TestCase;
 
 class ContactBlocklistTest extends TestCase
 {
+    use InteractsWithFormProtection;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -22,7 +24,7 @@ class ContactBlocklistTest extends TestCase
 
     private function validPayload(array $overrides = []): array
     {
-        return array_merge([
+        return array_merge($this->protectionFields('contact'), [
             'name'    => 'Jan Janssens',
             'email'   => 'spammer@example.com',
             'phone'   => '+32 495 12 34 56',
@@ -120,15 +122,18 @@ class ContactBlocklistTest extends TestCase
 
         $this->post(route('contact.store', ['locale' => 'nl']), $this->validPayload());
 
-        $this->assertSame(0, RateLimiter::attempts('contact-form-daily:127.0.0.1'));
-        $this->assertSame(0, RateLimiter::attempts('contact-form-burst:127.0.0.1'));
+        // Accepted-submission counters of the anti-abuse guard (per client,
+        // per day / per hour, and the site-wide daily counter for the form).
+        $this->assertSame(0, RateLimiter::attempts('form-protection:accepted:contact:ip-day:127.0.0.1'));
+        $this->assertSame(0, RateLimiter::attempts('form-protection:accepted:contact:ip-hour:127.0.0.1'));
+        $this->assertSame(0, RateLimiter::attempts('form-protection:accepted:contact:day'));
     }
 
     public function test_smart_request_form_is_not_affected_by_blocklist(): void
     {
         $this->block(['email' => 'klant@example.com']);
 
-        $response = $this->post(route('customer-requests.store', ['locale' => 'nl']), [
+        $response = $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->protectionFields('request') + [
             'service_category'      => 'sanitair',
             'customer_type'          => 'residential',
             'urgency'                => 'not_urgent',

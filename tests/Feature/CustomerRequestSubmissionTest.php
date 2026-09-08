@@ -7,10 +7,12 @@ use App\Mail\NewCustomerRequestMail;
 use App\Models\CustomerRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Support\InteractsWithFormProtection;
 use Tests\TestCase;
 
 class CustomerRequestSubmissionTest extends TestCase
 {
+    use InteractsWithFormProtection;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -22,7 +24,7 @@ class CustomerRequestSubmissionTest extends TestCase
 
     private function validPayload(array $overrides = []): array
     {
-        return array_merge([
+        return array_merge($this->protectionFields('request'), [
             'service_category'        => 'sanitair',
             'customer_type'            => 'residential',
             'urgency'                  => 'not_urgent',
@@ -169,12 +171,17 @@ class CustomerRequestSubmissionTest extends TestCase
 
     public function test_first_five_requests_per_day_are_allowed_and_sixth_is_blocked(): void
     {
-        $limit = (int) config('site.request_daily_limit', 5);
+        $limit = (int) config('form-protection.forms.request.daily_limit', 5);
 
         for ($i = 1; $i <= $limit; $i++) {
+            // Distinct address + description per iteration so neither the
+            // e-mail limit nor the same-content fingerprint trips first.
             $response = $this->post(
                 route('customer-requests.store', ['locale' => 'nl']),
-                $this->validPayload(['customer_email' => "jan{$i}@example.com"])
+                $this->validPayload([
+                    'customer_email' => "jan{$i}@example.com",
+                    'description' => "Aanvraag nummer {$i}: lekkende kraan in de keuken.",
+                ])
             );
 
             $response->assertSessionHasNoErrors();
@@ -205,13 +212,16 @@ class CustomerRequestSubmissionTest extends TestCase
     // localized message for whichever locale made the request.
     public function test_rate_limit_message_is_localized_per_locale(): void
     {
-        $limit = (int) config('site.request_daily_limit', 5);
+        $limit = (int) config('form-protection.forms.request.daily_limit', 5);
 
         for ($i = 1; $i <= $limit; $i++) {
             $this->post(
                 route('customer-requests.store', ['locale' => 'fr']),
-                $this->validPayload(['customer_email' => "marie{$i}@example.com"])
-            );
+                $this->validPayload([
+                    'customer_email' => "marie{$i}@example.com",
+                    'description' => "Demande numéro {$i} : robinet qui fuit dans la cuisine.",
+                ])
+            )->assertSessionHasNoErrors();
         }
 
         $frResponse = $this->post(
@@ -227,7 +237,10 @@ class CustomerRequestSubmissionTest extends TestCase
         for ($i = 1; $i <= $limit; $i++) {
             $this->post(
                 route('customer-requests.store', ['locale' => 'en']),
-                $this->validPayload(['customer_email' => "john{$i}@example.com"])
+                $this->validPayload([
+                    'customer_email' => "john{$i}@example.com",
+                    'description' => "Request number {$i}: leaking tap in the kitchen.",
+                ])
             );
         }
 

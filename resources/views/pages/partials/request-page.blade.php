@@ -283,6 +283,8 @@
 
     $hasErrors       = $errors->any();
     $errorFieldNames = $hasErrors ? $errors->keys() : [];
+    $formGuard = app(\App\Services\Spam\PublicFormGuard::class);
+    $requestFormEnabled = $formGuard->formEnabled('request');
 @endphp
 
 <div class="request-page-wrapper">
@@ -359,6 +361,9 @@
                 </div>
             @endif
 
+            @if (! $requestFormEnabled)
+                @include('components.form-disabled-notice')
+            @else
             <form
                 method="POST"
                 action="{{ route('customer-requests.store', ['locale' => $locale]) }}"
@@ -371,10 +376,15 @@
                      exact resubmission (double-click, refresh, retry) without
                      relying on JavaScript. See CustomerRequestController::store(). --}}
                 <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
-                {{-- Honeypot: invisible to people, filled in by form bots. --}}
+                {{-- Signed "form opened at" timestamp: a submit faster than a human
+                     could fill the wizard is refused server-side (PublicFormGuard). --}}
+                <input type="hidden" name="{{ $formGuard->timingField() }}" value="{{ $formGuard->timingToken('request') }}">
+                {{-- Honeypots: invisible to people, filled in by form bots. --}}
                 <div class="hp-field" aria-hidden="true">
-                    <label for="requestWebsiteUrl">Website</label>
-                    <input type="text" id="requestWebsiteUrl" name="{{ \App\Http\Controllers\CustomerRequestController::HONEYPOT_FIELD }}" tabindex="-1" autocomplete="off" value="">
+                    @foreach ($formGuard->honeypotFields() as $hpIndex => $hpField)
+                        <label for="requestHp{{ $hpIndex }}">{{ $hpIndex === 0 ? 'Website' : 'Address line 2' }}</label>
+                        <input type="text" id="requestHp{{ $hpIndex }}" name="{{ $hpField }}" tabindex="-1" autocomplete="off" value="">
+                    @endforeach
                 </div>
 
                 <div class="request-layout">
@@ -410,7 +420,9 @@
                                     if ($stepType === 'service_category_selection') {
                                         $sectionFields = 'service_category';
                                     } elseif ($stepType === 'summary') {
-                                        $sectionFields = 'privacy_consent';
+                                        // 'captcha' is not an input, but an error on it must
+                                        // reopen the last step where the widget lives.
+                                        $sectionFields = 'privacy_consent,captcha';
                                     } else {
                                         $sectionFields = collect($step['fields'] ?? [])
                                             ->pluck('name')
@@ -884,6 +896,11 @@
                                             @enderror
                                         </label>
 
+                                        {{-- Bot challenge (Turnstile or reCAPTCHA, see config/captcha.php).
+                                             Rendered when this last step opens (showStep in the JS below);
+                                             the token is verified server-side before anything is stored. --}}
+                                        @include('components.captcha-widget', ['form' => 'request', 'render' => 'manual'])
+
                                         <div class="request-summary-box" style="margin-top: 20px;">
                                             <h3>{{ $text['estimate_title'] }}</h3>
                                             <p>{{ $text['estimate_text'] }}</p>
@@ -922,6 +939,7 @@
                     </div>
                 </div>
             </form>
+            @endif
         </div>
     </section>
 </div>
@@ -1035,6 +1053,12 @@
         wizardTerug.classList.toggle('is-wizard-hidden', isFirst);
         wizardVerder.classList.toggle('is-wizard-hidden', isLast);
         wizardSubmit.classList.toggle('is-wizard-hidden', !isLast);
+
+        // Bot challenge lives in the last step: render it the moment that
+        // step becomes visible (a widget in a hidden step is unreliable).
+        if (isLast && typeof window.mtRenderCaptcha === 'function') {
+            window.mtRenderCaptcha(document.getElementById('captcha-request'));
+        }
 
         if (wizardTerugTop) wizardTerugTop.classList.toggle('is-wizard-hidden', isFirst);
         if (wizardVerderTop) wizardVerderTop.classList.toggle('is-wizard-hidden', isLast);

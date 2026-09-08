@@ -198,22 +198,37 @@
                     </div>
                 @enderror
 
+                @error('form_disabled')
+                    <div class="form-error-list" role="alert">
+                        <strong>{{ $message }}</strong>
+                    </div>
+                @enderror
+
                 @error('blocked')
                     <div class="form-error-list">
                         <strong>{{ $message }}</strong>
                     </div>
                 @enderror
 
+                @php $formGuard = app(\App\Services\Spam\PublicFormGuard::class); @endphp
+                @if (! $formGuard->formEnabled('contact'))
+                    @include('components.form-disabled-notice')
+                @else
                 <form id="contactForm" method="POST" action="{{ route('contact.store', ['locale' => $locale]) }}">
                     @csrf
                     {{-- Fresh per page-load; lets the server detect and ignore an
                          exact resubmission (double-click, refresh, retry) without
-                         relying on JavaScript. See ContactController::firstOrCreateByToken(). --}}
+                         relying on JavaScript. See ContactController::store(). --}}
                     <input type="hidden" name="submission_token" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
-                    {{-- Honeypot: invisible to people, filled in by form bots. --}}
+                    {{-- Signed "form opened at" timestamp: a submit faster than a human
+                         could fill the form is refused server-side (PublicFormGuard). --}}
+                    <input type="hidden" name="{{ $formGuard->timingField() }}" value="{{ $formGuard->timingToken('contact') }}">
+                    {{-- Honeypots: invisible to people, filled in by form bots. --}}
                     <div class="hp-field" aria-hidden="true">
-                        <label for="contactWebsiteUrl">Website</label>
-                        <input type="text" id="contactWebsiteUrl" name="{{ \App\Http\Controllers\ContactController::HONEYPOT_FIELD }}" tabindex="-1" autocomplete="off" value="">
+                        @foreach ($formGuard->honeypotFields() as $hpIndex => $hpField)
+                            <label for="contactHp{{ $hpIndex }}">{{ $hpIndex === 0 ? 'Website' : 'Address line 2' }}</label>
+                            <input type="text" id="contactHp{{ $hpIndex }}" name="{{ $hpField }}" tabindex="-1" autocomplete="off" value="">
+                        @endforeach
                     </div>
 
                     <div class="contact-field-grid">
@@ -260,6 +275,10 @@
                         @enderror
                     </label>
 
+                    {{-- Bot challenge (Turnstile or reCAPTCHA, see config/captcha.php);
+                         the token is verified server-side before anything is stored. --}}
+                    @include('components.captcha-widget', ['form' => 'contact', 'render' => 'auto'])
+
                     <div class="button-row">
                         <button class="button button-primary button-large" type="submit" id="contactSubmitBtn" data-label-default="{{ $text['button'] }}" data-label-sending="{{ $text['button_sending'] }}">
                             {{ $text['button'] }}
@@ -271,6 +290,7 @@
                         <a href="{{ route('pages.show', ['locale' => $locale, 'slug' => $privacySlug]) }}">{{ $privacyLinkLabel }}</a>
                     </p>
                 </form>
+                @endif
             </div>
         </div>
     </div>

@@ -7,10 +7,12 @@ use App\Mail\ContactMessageMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Tests\Support\InteractsWithFormProtection;
 use Tests\TestCase;
 
 class ContactFormTest extends TestCase
 {
+    use InteractsWithFormProtection;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -22,7 +24,7 @@ class ContactFormTest extends TestCase
 
     private function validPayload(array $overrides = []): array
     {
-        return array_merge([
+        return array_merge($this->protectionFields('contact'), [
             'name'    => 'Jan Janssens',
             'email'   => 'jan@example.com',
             'phone'   => '+32 495 12 34 56',
@@ -187,12 +189,17 @@ class ContactFormTest extends TestCase
 
     public function test_rate_limit_blocks_after_daily_limit_is_reached(): void
     {
-        $limit = (int) config('site.contact_daily_limit', 10);
+        $limit = (int) config('form-protection.forms.contact.daily_limit', 10);
 
         for ($i = 1; $i <= $limit; $i++) {
+            // Distinct address + message per iteration: the e-mail limit and
+            // the same-content fingerprint must not trip before the IP limit.
             $response = $this->post(
                 route('contact.store', ['locale' => 'nl']),
-                $this->validPayload(['email' => "jan{$i}@example.com"])
+                $this->validPayload([
+                    'email' => "jan{$i}@example.com",
+                    'message' => "Bericht nummer {$i}: kunnen jullie mijn ketel nakijken?",
+                ])
             );
 
             $response->assertSessionHasNoErrors();
@@ -364,7 +371,7 @@ class ContactFormTest extends TestCase
 
     public function test_duplicate_submission_does_not_consume_extra_rate_limit_quota(): void
     {
-        $limit = (int) config('site.contact_daily_limit', 10);
+        $limit = (int) config('form-protection.forms.contact.daily_limit', 10);
         $payload = $this->validPayload(['submission_token' => 'quota-token']);
 
         // Submit the same token (limit - 1) + 1 extra duplicate times — if
@@ -372,7 +379,10 @@ class ContactFormTest extends TestCase
         for ($i = 0; $i < $limit - 1; $i++) {
             $this->post(
                 route('contact.store', ['locale' => 'nl']),
-                $this->validPayload(['email' => "unique{$i}@example.com"])
+                $this->validPayload([
+                    'email' => "unique{$i}@example.com",
+                    'message' => "Bericht nummer {$i}: kunnen jullie mijn ketel nakijken?",
+                ])
             )->assertSessionHasNoErrors();
         }
 

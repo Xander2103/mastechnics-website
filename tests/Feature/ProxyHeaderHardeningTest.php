@@ -8,6 +8,7 @@ use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Tests\Support\InteractsWithFormProtection;
 use Tests\TestCase;
 
 /**
@@ -19,6 +20,7 @@ use Tests\TestCase;
  */
 class ProxyHeaderHardeningTest extends TestCase
 {
+    use InteractsWithFormProtection;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -29,7 +31,7 @@ class ProxyHeaderHardeningTest extends TestCase
 
     private function validPayload(array $overrides = []): array
     {
-        return array_merge([
+        return array_merge($this->protectionFields('request'), [
             'service_category' => 'sanitair',
             'customer_type' => 'residential',
             'urgency' => 'not_urgent',
@@ -47,12 +49,13 @@ class ProxyHeaderHardeningTest extends TestCase
     public function test_x_forwarded_for_does_not_reset_the_request_form_rate_limit(): void
     {
         Mail::fake();
-        $limit = (int) config('site.request_daily_limit', 5);
+        $limit = (int) config('form-protection.forms.request.daily_limit', 5);
 
         for ($i = 1; $i <= $limit; $i++) {
             $this->withHeaders(['X-Forwarded-For' => "203.0.113.{$i}"])
                 ->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload([
                     'customer_email' => "jan{$i}@example.com",
+                    'description' => "Aanvraag nummer {$i}: lekkende kraan in de keuken.",
                 ]))
                 ->assertSessionHasNoErrors();
         }

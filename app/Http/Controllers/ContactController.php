@@ -6,29 +6,47 @@ use App\Mail\ContactMessageConfirmationMail;
 use App\Mail\ContactMessageMail;
 use App\Models\BlockedEmail;
 use App\Models\ContactSubmission;
-use App\Services\MailDispatcher;
+use App\Services\Spam\FormMailer;
+use App\Services\Spam\PublicFormGuard;
+use App\Services\Spam\Rejection;
+use App\Services\Spam\SubmissionFacts;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
 class ContactController extends Controller
 {
     /**
-     * Name of the honeypot field rendered (visually hidden) in the form.
-     * Humans never see or fill it; a submission that does carry a value is
-     * answered with the normal success message but stored and mailed nowhere.
+     * Name of the (first) honeypot field rendered visually hidden in the
+     * form. Humans never see or fill it; a submission that does carry a
+     * value is answered with the normal success message but stored and
+     * mailed nowhere.
      */
-    public const HONEYPOT_FIELD = 'website_url';
+    public const HONEYPOT_FIELD = PublicFormGuard::HONEYPOT_FIELD;
 
+    public function __construct(
+        private readonly PublicFormGuard $guard,
+        private readonly FormMailer $mailer,
+    ) {
+    }
+
+    /**
+     * Anti-abuse order (see PublicFormGuard): kill switch → idempotency →
+     * attempt limits → validation → captcha → honeypot → fill time → accepted
+     * limits → fingerprint → blocklist → store → mail. No mail transport is
+     * reached before the row exists.
+     */
     public function store(Request $request, string $locale): RedirectResponse
     {
         app()->setLocale($locale);
+        $form = PublicFormGuard::FORM_CONTACT;
 
-        if (trim((string) $request->input(self::HONEYPOT_FIELD, '')) !== '') {
-            return back()->with('success', 'contact_message_sent');
+        if (! $this->guard->formEnabled($form)) {
+            $this->guard->noteDisabled($form, $request);
+
+            return $this->refuseWith($form, 'disabled', 'form_disabled', $locale);
         }
 
         // A fresh random token is rendered into a hidden field on every GET
@@ -46,27 +64,31 @@ class ContactController extends Controller
             return back()->with('success', 'contact_message_sent');
         }
 
-        $ip = $request->ip();
-        $dailyKey = "contact-form-daily:{$ip}";
-        $burstKey = "contact-form-burst:{$ip}";
-        $dailyLimit = (int) config('site.contact_daily_limit', 10);
-        $burstLimit = (int) config('site.contact_burst_limit_per_hour', 20);
-
-        if (RateLimiter::tooManyAttempts($dailyKey, $dailyLimit)
-            || RateLimiter::tooManyAttempts($burstKey, $burstLimit)
-        ) {
-            return back()
-                ->withErrors(['rate_limit' => $this->rateLimitMessage($locale)])
-                ->withInput();
-        }
+        // Per-client + site-wide attempt limiter: bounds validation and
+        // captcha checks a flood can trigger. Aborts with 429.
+        $this->guard->enforceAttemptLimits($form, $request);
 
         $validated = $request->validate([
             'name'    => ['required', 'string', 'max:255'],
-            'email'   => ['required', 'email', 'max:255'],
+            'email'   => ['required', 'email:rfc', 'max:254'],
             'phone'   => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\s().-]+$/'],
             'subject' => ['nullable', 'string', 'max:255'],
             'message' => ['required', 'string', 'max:5000'],
         ], [], $this->validationAttributes($locale));
+
+        $facts = new SubmissionFacts(
+            email: $validated['email'],
+            phone: $validated['phone'] ?? null,
+            message: $validated['message'],
+        );
+
+        // Captcha, honeypot, fill time, IP/e-mail/form/global limits and the
+        // fingerprint. Nothing is stored or mailed for a rejection.
+        $rejection = $this->guard->screen($form, $request, $facts, 'email');
+
+        if ($rejection !== null) {
+            return $this->refuse($form, $rejection, $locale);
+        }
 
         // Blocklist check happens after validation but before the submission
         // is claimed or the rate limiter is hit: a blocked sender consumes no
@@ -74,6 +96,8 @@ class ContactController extends Controller
         // The message is deliberately neutral so the block itself is not
         // revealed. Applies only to this contact form, not the request wizard.
         if (BlockedEmail::isBlocked($validated['email'])) {
+            $this->guard->noteBlocked($form, $request, $validated['email']);
+
             return back()
                 ->withErrors(['blocked' => $this->blockedMessage($locale)])
                 ->withInput();
@@ -108,15 +132,17 @@ class ContactController extends Controller
             return back()->with('success', 'contact_message_sent');
         }
 
-        RateLimiter::hit($dailyKey, 86400);
-        RateLimiter::hit($burstKey, 3600);
+        // Stored. Only now do counters move and may mail go out.
+        $this->guard->recordAccepted($form, $request, $facts);
 
-        MailDispatcher::send(
+        $this->mailer->sendAdmin(
+            $form,
             config('site.contact_notification_email'),
             new ContactMessageMail($data)
         );
 
-        MailDispatcher::send(
+        $this->mailer->sendCustomer(
+            $form,
             $data['email'],
             new ContactMessageConfirmationMail($data)
         );
@@ -124,6 +150,27 @@ class ContactController extends Controller
         $submission?->update(['mail_sent_at' => now()]);
 
         return back()->with('success', 'contact_message_sent');
+    }
+
+    /**
+     * Answer a rejected submission. Nothing has been stored or mailed when
+     * this is called. A silent rejection (honeypot) shows the normal
+     * success message so a bot learns nothing.
+     */
+    private function refuse(string $form, Rejection $rejection, string $locale): RedirectResponse
+    {
+        if ($rejection->silentSuccess) {
+            return back()->with('success', 'contact_message_sent');
+        }
+
+        return $this->refuseWith($form, $rejection->messageKind, $rejection->errorKey, $locale);
+    }
+
+    private function refuseWith(string $form, string $messageKind, string $errorKey, string $locale): RedirectResponse
+    {
+        return back()
+            ->withErrors([$errorKey => $this->guard->message($form, $messageKind, $locale)])
+            ->withInput();
     }
 
     /**
@@ -218,17 +265,6 @@ class ContactController extends Controller
             'nl' => 'Uw bericht kon niet worden verwerkt. Neem bij een dringende vraag telefonisch contact met ons op.',
             'fr' => "Votre message n'a pas pu être traité. Pour une demande urgente, contactez-nous par téléphone.",
             'en' => 'Your message could not be processed. For urgent enquiries, please contact us by phone.',
-        ];
-
-        return $messages[$locale] ?? $messages['nl'];
-    }
-
-    private function rateLimitMessage(string $locale): string
-    {
-        $messages = [
-            'nl' => 'U heeft al meerdere berichten verstuurd. Probeer later opnieuw of neem rechtstreeks contact op.',
-            'fr' => "Vous avez déjà envoyé plusieurs messages. Veuillez réessayer plus tard ou nous contacter directement.",
-            'en' => 'You have already sent several messages. Please try again later or contact us directly.',
         ];
 
         return $messages[$locale] ?? $messages['nl'];

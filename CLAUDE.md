@@ -171,6 +171,32 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   detection, alias suggestions, `hvac_mapping_profiles`); classic template
   imports also accept .xlsx. Committed locally, **not pushed**.
 
+- **Sprint 20 (anti-spam hardening) ✅** — Actieve botspam op beide
+  publieke formulieren (Brevo 300/dag). Defense-in-depth in
+  `app/Services/Spam/`: provider-agnostische CAPTCHA (`CaptchaVerifier`,
+  Turnstile standaard, reCAPTCHA v2 als wisselbare fallback via
+  `CAPTCHA_PROVIDER`, fail closed in productie zonder keys), dubbele
+  honeypot, HMAC-gesigneerde invultijd (`FormTimingToken`), attempt-limiters
+  (429) + geaccepteerd-limieten per IP/e-mail/formulier/globaal,
+  fingerprint-duplicaatdetectie, mailbudget met `Cache::lock`
+  (`MailBudget`), kill switches, `FormMailer` als enige pad naar
+  `MailDispatcher` (mail_logs status `skipped`), monitoring (log +
+  dashboardtegel + `forms:protection-stats`). Tests bewijzen 0 DB + 0
+  transport-calls per afgewezen laag via `SpyMailTransport`. Zie
+  `docs/anti-spam.md`. Committed lokaal, **niet gepusht**.
+
+## Anti-spam Architecture
+
+- Beide publieke formulieren lopen door `PublicFormGuard` (screening) en
+  `FormMailer` (verzending). Voeg nooit een `Mail::`/`MailDispatcher`-call
+  toe aan een publieke controller buiten `FormMailer`.
+- Controllers en views kennen geen captcha-provider; alleen
+  `CaptchaVerifierFactory`/`AppServiceProvider` binden er een.
+- Elke POST naar de formulieren heeft het gesigneerde veld
+  `form_opened_at` nodig; in tests via `Tests\Support\InteractsWithFormProtection`.
+- Limieten en switches staan in `config/form-protection.php` (niet meer in
+  `config/site.php`).
+
 ## HVAC Architecture
 
 - Deterministic services live in `app/Services/Hvac/`; rules only via

@@ -6,10 +6,12 @@ use App\Models\CustomerRequest;
 use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Support\InteractsWithFormProtection;
 use Tests\TestCase;
 
 class AircoInstallationFlowTest extends TestCase
 {
+    use InteractsWithFormProtection;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -33,7 +35,7 @@ class AircoInstallationFlowTest extends TestCase
 
     private function validPayload(array $overrides = []): array
     {
-        return array_merge([
+        return array_merge($this->protectionFields('request'), [
             'service_category' => 'airco_offerte',
             'customer_type'    => 'residential',
             'airco_house_age'  => 'yes',

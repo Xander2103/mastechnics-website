@@ -6,6 +6,7 @@ use App\Models\CustomerRequest;
 use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Support\InteractsWithFormProtection;
 use Tests\TestCase;
 
 /**
@@ -15,6 +16,7 @@ use Tests\TestCase;
  */
 class RequestFlowDeviceStepTest extends TestCase
 {
+    use InteractsWithFormProtection;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -25,7 +27,7 @@ class RequestFlowDeviceStepTest extends TestCase
 
     private function basePayload(array $overrides = []): array
     {
-        return array_merge([
+        return array_merge($this->protectionFields('request'), [
             'street'          => 'Voorbeeldstraat 12',
             'postal_code'     => '1000',
             'city'            => 'Brussel',

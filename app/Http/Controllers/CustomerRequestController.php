@@ -6,13 +6,15 @@ use App\Mail\CustomerRequestConfirmationMail;
 use App\Mail\NewCustomerRequestMail;
 use App\Models\CustomerRequest;
 use App\Models\CustomerRequestAttachment;
-use App\Services\MailDispatcher;
+use App\Services\Spam\FormMailer;
+use App\Services\Spam\PublicFormGuard;
+use App\Services\Spam\Rejection;
+use App\Services\Spam\SubmissionFacts;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -23,14 +25,29 @@ class CustomerRequestController extends Controller
      * Humans never see or fill it; a submission that does carry a value is
      * accepted with the normal success screen but stored and mailed nowhere.
      */
-    public const HONEYPOT_FIELD = 'website_url';
+    public const HONEYPOT_FIELD = PublicFormGuard::HONEYPOT_FIELD;
 
+    public function __construct(
+        private readonly PublicFormGuard $guard,
+        private readonly FormMailer $mailer,
+    ) {
+    }
+
+    /**
+     * Anti-abuse order (see PublicFormGuard): kill switch → idempotency →
+     * attempt limits → validation → captcha → honeypot → fill time → accepted
+     * limits → fingerprint → store → mail. No mail transport is reached
+     * before the row exists.
+     */
     public function store(Request $request, string $locale): RedirectResponse
     {
         app()->setLocale($locale);
+        $form = PublicFormGuard::FORM_REQUEST;
 
-        if (trim((string) $request->input(self::HONEYPOT_FIELD, '')) !== '') {
-            return $this->successRedirect($locale);
+        if (! $this->guard->formEnabled($form)) {
+            $this->guard->noteDisabled($form, $request);
+
+            return $this->refuseWith($form, 'disabled', 'form_disabled', $locale);
         }
 
         // A fresh random token is rendered into the form on every GET. A
@@ -43,19 +60,9 @@ class CustomerRequestController extends Controller
             return $this->successRedirect($locale);
         }
 
-        $ip = $request->ip();
-        $dailyKey = "request-form-daily:{$ip}";
-        $burstKey = "request-form-burst:{$ip}";
-        $dailyLimit = (int) config('site.request_daily_limit', 5);
-        $burstLimit = (int) config('site.request_burst_limit_per_hour', 10);
-
-        if (RateLimiter::tooManyAttempts($dailyKey, $dailyLimit)
-            || RateLimiter::tooManyAttempts($burstKey, $burstLimit)
-        ) {
-            return back()
-                ->withErrors(['rate_limit' => $this->rateLimitMessage($locale)])
-                ->withInput();
-        }
+        // Per-client + site-wide attempt limiter: bounds validation and
+        // captcha checks a flood can trigger. Aborts with 429.
+        $this->guard->enforceAttemptLimits($form, $request);
 
         $serviceCategories = collect(config('request-flow.service_categories', []));
         $allowedCategoryValues = $serviceCategories->pluck('value')->toArray();
@@ -100,6 +107,20 @@ class CustomerRequestController extends Controller
         $attributes = $this->buildValidationAttributes($dynamicFields, $roomStep, $locale);
 
         $validatedData = $request->validate($rules, [], $attributes);
+
+        $facts = new SubmissionFacts(
+            email: (string) ($validatedData['customer_email'] ?? ''),
+            phone: $validatedData['customer_phone'] ?? null,
+            message: $validatedData['description'] ?? null,
+        );
+
+        // Captcha, honeypot, fill time, IP/e-mail/form/global limits and the
+        // fingerprint. Nothing is stored or mailed for a rejection.
+        $rejection = $this->guard->screen($form, $request, $facts, 'customer_email');
+
+        if ($rejection !== null) {
+            return $this->refuse($rejection, $locale);
+        }
 
         // Derive service_slug and request_type from the selected service_category
         $submittedCategory = $validatedData['service_category'];
@@ -255,8 +276,8 @@ class CustomerRequestController extends Controller
             throw $e;
         }
 
-        RateLimiter::hit($dailyKey, 86400);
-        RateLimiter::hit($burstKey, 3600);
+        // Stored. Only now do counters move and may mail go out.
+        $this->guard->recordAccepted($form, $request, $facts);
 
         $customerRequest->load(['attachments', 'notes']);
 
@@ -273,10 +294,11 @@ class CustomerRequestController extends Controller
         }
 
         foreach ($notificationEmails as $email) {
-            MailDispatcher::send($email, new NewCustomerRequestMail($customerRequest), $customerRequest);
+            $this->mailer->sendAdmin($form, $email, new NewCustomerRequestMail($customerRequest), $customerRequest);
         }
 
-        MailDispatcher::send(
+        $this->mailer->sendCustomer(
+            $form,
             $customerRequest->customer_email,
             new CustomerRequestConfirmationMail($customerRequest),
             $customerRequest
@@ -326,15 +348,25 @@ class CustomerRequestController extends Controller
         return trim(str_replace(["\r", "\n"], ' ', $value));
     }
 
-    private function rateLimitMessage(string $locale): string
+    /**
+     * Answer a rejected submission. Nothing has been stored or mailed when
+     * this is called. A silent rejection (honeypot) shows the normal
+     * success screen so a bot learns nothing.
+     */
+    private function refuse(Rejection $rejection, string $locale): RedirectResponse
     {
-        $messages = [
-            'nl' => 'U heeft vandaag al meerdere aanvragen verstuurd. Probeer later opnieuw of neem rechtstreeks contact op.',
-            'fr' => "Vous avez déjà envoyé plusieurs demandes aujourd'hui. Veuillez réessayer plus tard ou nous contacter directement.",
-            'en' => 'You have already sent several requests today. Please try again later or contact us directly.',
-        ];
+        if ($rejection->silentSuccess) {
+            return $this->successRedirect($locale);
+        }
 
-        return $messages[$locale] ?? $messages['nl'];
+        return $this->refuseWith(PublicFormGuard::FORM_REQUEST, $rejection->messageKind, $rejection->errorKey, $locale);
+    }
+
+    private function refuseWith(string $form, string $messageKind, string $errorKey, string $locale): RedirectResponse
+    {
+        return back()
+            ->withErrors([$errorKey => $this->guard->message($form, $messageKind, $locale)])
+            ->withInput();
     }
 
     private function buildValidationAttributes(array $dynamicFields, ?array $roomStep, string $locale): array
@@ -488,8 +520,8 @@ class CustomerRequestController extends Controller
         }
 
         if ($type === 'email') {
-            $rules[] = 'email';
-            $rules[] = 'max:255';
+            $rules[] = 'email:rfc';
+            $rules[] = 'max:254';
 
             return $rules;
         }

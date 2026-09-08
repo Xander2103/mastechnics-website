@@ -326,6 +326,22 @@
                     <span class="admin-stat-number">{{ $stats['quote_sent'] }}</span>
                     <span class="admin-stat-label">Offerte verstuurd</span>
                 </a>
+                @isset($spamStats)
+                    @php
+                        $spamBreakdown = collect($spamStats['period'])
+                            ->filter()
+                            ->map(fn ($count, $reason) => (\App\Services\Spam\FormProtectionLog::LABELS[$reason] ?? $reason) . ': ' . $count)
+                            ->implode(' · ');
+                        $budgetTitle = isset($mailBudgetRemaining)
+                            ? 'Resterend mailbudget vandaag: ' . $mailBudgetRemaining['customer'] . ' klantbevestigingen, ' . $mailBudgetRemaining['admin'] . ' adminmeldingen'
+                              . (empty($mailBudgetEnabled) ? ' (budget uitgeschakeld)' : '')
+                            : '';
+                    @endphp
+                    <div class="admin-stat-card" title="{{ trim($budgetTitle . ($spamBreakdown !== '' ? ' — ' . $spamBreakdown : '')) }}">
+                        <span class="admin-stat-number">{{ $spamStats['today_total'] }}</span>
+                        <span class="admin-stat-label">Spam tegengehouden vandaag ({{ $spamStats['period_total'] }} in {{ $spamStats['days'] }} d)</span>
+                    </div>
+                @endisset
             </div>
 
             {{-- Dashboard widgets --}}

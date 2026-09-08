@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\InteractsWithFormProtection;
 use Tests\TestCase;
 
 /**
@@ -23,6 +24,7 @@ use Tests\TestCase;
  */
 class RequestWizardHardeningTest extends TestCase
 {
+    use InteractsWithFormProtection;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -34,7 +36,7 @@ class RequestWizardHardeningTest extends TestCase
 
     private function validPayload(array $overrides = []): array
     {
-        return array_merge([
+        return array_merge($this->protectionFields('request'), [
             'service_category' => 'sanitair',
             'customer_type' => 'residential',
             'urgency' => 'not_urgent',
@@ -107,8 +109,18 @@ class RequestWizardHardeningTest extends TestCase
 
     public function test_different_tokens_create_separate_requests(): void
     {
-        $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload(['submission_token' => 'token-a']));
-        $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload(['submission_token' => 'token-b']));
+        // Two genuinely different submissions (the fingerprint layer would
+        // otherwise treat an identical e-mail + description as a repeat).
+        $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload([
+            'submission_token' => 'token-a',
+            'customer_email' => 'a@example.com',
+            'description' => 'Aanvraag A: lekkende kraan in de keuken.',
+        ]));
+        $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload([
+            'submission_token' => 'token-b',
+            'customer_email' => 'b@example.com',
+            'description' => 'Aanvraag B: lekkende kraan in de badkamer.',
+        ]));
 
         $this->assertDatabaseCount('customer_requests', 2);
     }
@@ -127,15 +139,19 @@ class RequestWizardHardeningTest extends TestCase
 
     public function test_duplicate_submission_does_not_consume_rate_limit_quota(): void
     {
-        $limit = (int) config('site.request_daily_limit', 5);
+        $limit = (int) config('form-protection.forms.request.daily_limit', 5);
         $payload = $this->validPayload(['submission_token' => 'quota-token']);
 
         for ($i = 0; $i <= $limit + 2; $i++) {
             $this->post(route('customer-requests.store', ['locale' => 'nl']), $payload);
         }
 
-        $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload(['submission_token' => 'fresh']))
-            ->assertSessionHasNoErrors();
+        // A new submission with different content (the same description
+        // from the same client would be caught by the repeat fingerprint).
+        $this->post(route('customer-requests.store', ['locale' => 'nl']), $this->validPayload([
+            'submission_token' => 'fresh',
+            'description' => 'Nieuwe aanvraag: de kraan in de badkamer lekt nu ook.',
+        ]))->assertSessionHasNoErrors();
 
         $this->assertDatabaseCount('customer_requests', 2);
     }

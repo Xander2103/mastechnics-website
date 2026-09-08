@@ -62,6 +62,16 @@ HVAC_IMPORT_MAX_MB=25
   via `X-Forwarded-For` mogelijk.
 - `APP_URL` is nu de enige bron voor absolute URL's (canonical, sitemap,
   maillinks): een verkeerde waarde is direct zichtbaar in de sitemap.
+- **Anti-spam (sprint 20, `docs/anti-spam.md`)** — vóór de release verplicht:
+  `TURNSTILE_SITE_KEY` en `TURNSTILE_SECRET_KEY` (Cloudflare-dashboard →
+  Turnstile → Add site, hostname mastechnics.be, mode Managed). Zonder keys
+  weigert productie **elke** inzending van beide formulieren (fail closed).
+  Overige nieuwe variabelen hebben veilige standaardwaarden; kopieer het
+  blok uit `.env.example` en zet `CAPTCHA_PROVIDER=turnstile`. Kill switches
+  bij een aanval: `CONTACT_FORM_ENABLED`, `REQUEST_WIZARD_ENABLED`,
+  `CUSTOMER_CONFIRMATION_MAIL_ENABLED` op `false` + `php artisan config:clear`.
+  Komt de site achter de Cloudflare-proxy, zet dan `TRUSTED_PROXIES` op de
+  Cloudflare-IP-reeksen (nooit `*`), zie `docs/anti-spam.md` §6.
 - Na de release éénmalig `php artisan attachments:move-to-private`
   draaien: bestaande klantuploads verhuizen van `storage/app/public` naar
   `storage/app/private`. Tot dan leest de admin-download ze nog van de
@@ -106,7 +116,12 @@ Let op:
 1. `https://mastechnics.be/up` → 200.
 2. `/nl`, `/fr`, `/en` renderen (assets laden, geen manifestfout).
 3. `/sitemap.xml` en `/robots.txt` correct, canonicals op https.
-4. `/nl/aanvraag` formulier laadt; contactpagina laadt.
+4. `/nl/aanvraag` formulier laadt; contactpagina laadt. De Turnstile-widget
+   verschijnt (contact: onder het berichtveld; wizard: in de laatste stap).
+   Een echte testinzending in nl komt aan als 1 adminmail + 1 bevestiging;
+   `php artisan forms:protection-stats` toont 0 of alleen jouw testfouten.
+   In `storage/logs/laravel.log` mag géén regel "Captcha is required but…"
+   staan (dat betekent: keys ontbreken, alles wordt geweigerd).
 5. `/admin/login` → inloggen lukt; `/admin/requests` toont de lijst.
 6. Bijlage van een bestaande aanvraag openen (bewijst `storage:link`).
 7. `/admin/hvac/products` → Productlijsten-overzicht; een lijst openen.

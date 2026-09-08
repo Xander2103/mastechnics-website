@@ -71,10 +71,18 @@ class RequestController extends Controller
             'urgent'     => ReminderService::scopeUrgentOpen(CustomerRequest::query())->count(),
         ];
 
+        // Anti-spam indicator: how many public-form submissions the
+        // protection layers stopped (hashed counters, no personal data).
+        $spamStats = app(\App\Services\Spam\FormProtectionLog::class)->summary(7);
+        $mailBudget = app(\App\Services\Spam\MailBudget::class);
+
         $customerRequests = $this->buildFilteredQuery($request)->get();
 
         return view('admin.requests.index', array_merge([
             'stats'            => $stats,
+            'spamStats'        => $spamStats,
+            'mailBudgetRemaining' => $mailBudget->remaining(),
+            'mailBudgetEnabled' => $mailBudget->enabled(),
             'customerRequests' => $customerRequests,
             'statuses' => $statuses,
             'services' => $services,

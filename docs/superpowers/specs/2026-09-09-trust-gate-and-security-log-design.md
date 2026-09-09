@@ -107,14 +107,14 @@ needs_review.
 | browser | alles consistent | 0 | ✓ |
 | e-mail | domein zonder MX/A-record (gecachte lookup, fail-open bij fout) | 3 | |
 | e-mail | wegwerpdomein (kleine ingebouwde lijst + config) | 3 | |
-| e-mail | lokaal deel ziet er willekeurig uit (≥ 40 % cijfers, of ≥ 12 tekens zonder klinker, of ≥ 6 opeenvolgende medeklinkers) | 2 | |
+| e-mail | lokaal deel ziet er willekeurig uit (≥ 60 % cijfers, ≥ 4 letter↔cijfer-wissels zoals "k8q2zx91", ≥ 12 letters zonder klinker, of ≥ 6 opeenvolgende medeklinkers) | 2 | |
 | e-mail | plausibel (MX ok, niet wegwerp, niet willekeurig) | 0 | ✓ |
 | e-mail | naam komt terug in het lokale deel (bv. "jan" in jan.janssens@) | 0 | ✓ |
 | inhoud | naam of bericht bevat URL(s): ≥ 2 URL's | 2 | |
 | inhoud | naam bevat URL/`http`/`@`/cijferreeks | 2 | |
 | inhoud | bericht in niet-Latijns schrift (Cyrillisch/CJK/Arabisch) op een nl/fr/en-site | 2 | |
 | inhoud | naam en bericht bestaan uit dezelfde willekeurige token (bv. "xkq8Fz") | 2 | |
-| inhoud | **similariteit**: simhash van genormaliseerd bericht binnen Hamming-afstand ≤ 6 van een bericht van de laatste uur (cache-venster, max 200 hashes) | 3 | |
+| inhoud | **similariteit**: simhash van genormaliseerd bericht binnen Hamming-afstand ≤ 12 (64-bit simhash over karakter-3-grammen; gemeten: bijna-identiek 9–10, ongerelateerd 20–29) van een bericht van de laatste uur (cache-venster, max 200 hashes) | 3 | |
 | inhoud | zelfde naam (genormaliseerd) al ≥ 3× geaccepteerd in het laatste uur met andere adressen | 2 | |
 | telefoon | Belgisch-plausibel (+32/0 + 8–9 cijfers) | 0 | ✓ |
 | aanvraag | bijlage(n) meegestuurd, of kamers ingevuld | 0 | ✓ |

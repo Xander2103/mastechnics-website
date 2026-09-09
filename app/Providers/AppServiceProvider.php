@@ -9,6 +9,15 @@ use App\Services\Spam\CaptchaVerifier;
 use App\Services\Spam\CaptchaVerifierFactory;
 use App\Services\Spam\FormTimingToken;
 use App\Services\Spam\MailBudget;
+use App\Services\Spam\Trust\EmailDomainCheck;
+use App\Services\Spam\Trust\Signals\BrowserSignals;
+use App\Services\Spam\Trust\Signals\CaptchaSignals;
+use App\Services\Spam\Trust\Signals\ContentSignals;
+use App\Services\Spam\Trust\Signals\EmailSignals;
+use App\Services\Spam\Trust\Signals\IpSignals;
+use App\Services\Spam\Trust\Signals\TimingSignals;
+use App\Services\Spam\Trust\Signals\VelocitySignals;
+use App\Services\Spam\Trust\TrustEvaluator;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -47,7 +56,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CaptchaVerifier::class, function () {
             return CaptchaVerifierFactory::make(
                 (array) config('captcha', []),
-                (string) config('app.env', 'production')
+                (string) config('app.env', 'production'),
+                (string) config('app.url', '')
             );
         });
 
@@ -61,6 +71,22 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(MailBudget::class, function () {
             return new MailBudget((array) config('form-protection.mail', []));
+        });
+
+        // Pre-mail trust gate: independent, deterministic signal providers.
+        // Order is irrelevant for the verdict; it only orders the log.
+        $this->app->singleton(TrustEvaluator::class, function () {
+            $cfg = (array) config('form-protection.trust', []);
+
+            return new TrustEvaluator($cfg, [
+                new CaptchaSignals($cfg),
+                new TimingSignals($cfg),
+                new BrowserSignals($cfg),
+                new EmailSignals($cfg, new EmailDomainCheck($cfg)),
+                new ContentSignals($cfg),
+                new IpSignals($cfg),
+                new VelocitySignals($cfg),
+            ]);
         });
     }
 

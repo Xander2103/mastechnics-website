@@ -75,10 +75,65 @@ return [
     // request is stored, the skip is logged in mail_logs, nothing retries.
     'mail' => [
         'guard_enabled' => filter_var(env('MAIL_GUARD_ENABLED', true), FILTER_VALIDATE_BOOL),
-        'customer_confirmation_enabled' => filter_var(env('CUSTOMER_CONFIRMATION_MAIL_ENABLED', true), FILTER_VALIDATE_BOOL),
+        // Customer confirmations are OFF by default since sprint 21: every
+        // confirmation is an external (Brevo) call a bot can provoke. Turn on
+        // deliberately with CUSTOMER_CONFIRMATION_MAIL_ENABLED=true.
+        'customer_confirmation_enabled' => filter_var(env('CUSTOMER_CONFIRMATION_MAIL_ENABLED', false), FILTER_VALIDATE_BOOL),
+        // Joint circuit breaker: ALL form-related external mails (admin +
+        // customer, both forms) share these two counters. Once full: zero
+        // further provider calls from the public forms until the window ends.
+        'external_daily_limit' => (int) env('FORM_EXTERNAL_MAIL_DAILY_LIMIT', 20),
+        'external_limit_per_10_minutes' => (int) env('FORM_EXTERNAL_MAIL_LIMIT_PER_10_MINUTES', 4),
         'customer_confirmation_daily_limit' => (int) env('CUSTOMER_CONFIRMATION_DAILY_LIMIT', 100),
         'admin_notification_daily_limit' => (int) env('ADMIN_NOTIFICATION_DAILY_LIMIT', 150),
         // All form-triggered mails together, per hour.
         'burst_limit_per_hour' => (int) env('FORM_MAIL_BURST_LIMIT', 30),
+    ],
+
+    // Pre-mail trust gate (App\Services\Spam\Trust\TrustEvaluator). Every
+    // submission that passes the hard checks is scored on independent
+    // signals; only "trusted" ones may trigger transactional mail, the rest
+    // is stored as needs_review for a human decision in the admin.
+    'trust' => [
+        // Trusted needs BOTH a low risk sum AND enough independent positive
+        // signals (captcha ok, normal fill time, consistent browser, ...):
+        // a passed captcha alone is one positive signal, never enough.
+        'trusted_max_risk' => (int) env('FORM_TRUST_MAX_RISK', 2),
+        'trusted_min_positives' => (int) env('FORM_TRUST_MIN_POSITIVES', 3),
+        // Risk sum at which a submission is silently dropped instead of stored.
+        'block_score' => (int) env('FORM_TRUST_BLOCK_SCORE', 12),
+        // Turnstile challenge_ts older than this counts against the token.
+        'captcha_max_age_seconds' => 300,
+        // Fill time below this (but above the hard minimum) is "fast".
+        'fast_seconds' => [
+            'contact' => 15,
+            'request' => 40,
+        ],
+        // Site-wide accepted submissions: elevated → risk, attack → nobody
+        // is trusted automatically until the window cools down.
+        'velocity' => [
+            'review_per_10_minutes' => (int) env('FORM_VELOCITY_REVIEW_PER_10_MINUTES', 5),
+            'attack_per_10_minutes' => (int) env('FORM_VELOCITY_ATTACK_PER_10_MINUTES', 10),
+            'attack_per_hour' => (int) env('FORM_VELOCITY_ATTACK_PER_HOUR', 25),
+        ],
+        // Near-duplicate messages (SimHash Hamming distance) in a rolling window.
+        'similarity' => [
+            'max_hamming' => 12,
+            'window_seconds' => 3600,
+            'max_entries' => 200,
+        ],
+        'email' => [
+            // MX/A lookup of the sender domain, cached per domain for a day.
+            'dns_check' => filter_var(env('FORM_EMAIL_DNS_CHECK', true), FILTER_VALIDATE_BOOL),
+            'dns_check_in_tests' => false,
+            'disposable_domains' => [
+                'mailinator.com', 'guerrillamail.com', '10minutemail.com', 'tempmail.com',
+                'temp-mail.org', 'yopmail.com', 'sharklasers.com', 'trashmail.com',
+                'getnada.com', 'dispostable.com', 'maildrop.cc', 'mohmal.com',
+                'throwawaymail.com', 'fakeinbox.com', 'mailnesia.com', 'tempr.email',
+                'discard.email', 'spamgourmet.com', 'mintemail.com', 'emailondeck.com',
+                'moakt.com', 'tmpmail.net', 'burnermail.io', 'mailsac.com', 'inboxkitten.com',
+            ],
+        ],
     ],
 ];

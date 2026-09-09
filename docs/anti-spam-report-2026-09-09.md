@@ -139,8 +139,7 @@ teller. 0 calls = Brevo/SMTP is letterlijk niet aangeroepen.
 | Niet-admin geen toegang, filters, paginatie | `SecurityLogTest`, `TrustReviewTest` | ✔ |
 | Retention | `PruneSecurityLogTest` (batches, `--days`, planning 03:30) | ✔ |
 
-Suite-totalen: zie sectie 9 (bijgewerkt na de laatste volledige run).
-Baseline vóór de sprint: 769 tests groen.
+Suite-totalen: sectie 9 (868 groen na de sprint, 769 ervoor).
 
 ## 6. Turnstile-audit
 
@@ -199,7 +198,8 @@ optimalisatie.
    `TURNSTILE_SECRET_KEY` geen testsleutel is; daarna `php artisan config:clear`.
 3. Cron voor de scheduler (`* * * * * cd /pad && php artisan schedule:run`)
    of `forms:prune-security-log` periodiek manueel draaien.
-4. `npm run build` is lokaal gedaan; `public/build` mee deployen.
+4. `npm run build` op de server (of de build mee uploaden): `public/build` staat in
+   `.gitignore`, de nieuwe admin-CSS (tegel, badges, log) zit in `resources/css/pages/admin.css`.
 5. Eerste 48 u: dashboardtegel en `/admin/security-log` volgen. Verwacht:
    spam → needs_review/blocked, echte klanten → trusted. Als échte klanten
    structureel in needs_review belanden: eerst het signaal in het log
@@ -215,5 +215,12 @@ IP-reputatiediensten, ML.
 
 ## 9. Suite-totalen
 
-Zie de laatste regel van `php artisan test --compact` in de sessie: wordt
-hieronder ingevuld na de finale run.
+| Run | Resultaat |
+|---|---|
+| Baseline vóór sprint 21 (2026-09-09) | 769 tests groen (4680 assertions) |
+| Finale run na sprint 21 (`php artisan test --compact`) | **868 tests groen, 0 gefaald** (5296 assertions, 195 s) |
+| Nieuwe tests deze sprint | 99 (trust gate, noodrem, captcha-metadata, evaluator-units, securitylog, admin, retention) |
+
+Visuele controle: dashboardtegel, beveiligingslog en review-banner gerenderd
+op desktop en op 414 px breedte (tegel stapelt in twee kolommen, logtabel
+klapt om naar label/waarde-rijen, knoppen stapelen).

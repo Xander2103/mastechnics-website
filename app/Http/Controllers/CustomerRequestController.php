@@ -10,6 +10,7 @@ use App\Services\Spam\FormMailer;
 use App\Services\Spam\PublicFormGuard;
 use App\Services\Spam\Rejection;
 use App\Services\Spam\SubmissionFacts;
+use App\Services\Spam\Trust\TrustDecision;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -112,14 +113,19 @@ class CustomerRequestController extends Controller
             email: (string) ($validatedData['customer_email'] ?? ''),
             phone: $validatedData['customer_phone'] ?? null,
             message: $validatedData['description'] ?? null,
+            name: isset($validatedData['customer_name']) ? (string) $validatedData['customer_name'] : null,
+            locale: $locale,
+            hasAttachments: $request->hasFile('attachments'),
+            hasRooms: $roomStep !== null && is_array($request->input('rooms')) && $request->input('rooms') !== [],
         );
 
-        // Captcha, honeypot, fill time, IP/e-mail/form/global limits and the
-        // fingerprint. Nothing is stored or mailed for a rejection.
-        $rejection = $this->guard->screen($form, $request, $facts, 'customer_email');
+        // Captcha, honeypot, fill time, IP/e-mail/form/global limits, the
+        // fingerprint and the trust evaluation. Nothing is stored or mailed
+        // for a blocked decision; needs_review is stored but never mailed.
+        $decision = $this->guard->screen($form, $request, $facts, 'customer_email');
 
-        if ($rejection !== null) {
-            return $this->refuse($rejection, $locale);
+        if ($decision->blocked()) {
+            return $this->refuse($decision, $locale);
         }
 
         // Derive service_slug and request_type from the selected service_category
@@ -231,6 +237,12 @@ class CustomerRequestController extends Controller
             'privacy_consent' => $request->boolean('privacy_consent'),
             'status'      => 'new',
 
+            // Pre-mail trust gate (sprint 21): needs_review rows are stored
+            // but cause no mail until an admin releases them.
+            'trust_verdict' => $decision->verdict,
+            'trust_score'   => $decision->risk,
+            'trust_reasons' => $decision->reasons(),
+
             'metadata' => [
                 'source'           => 'smart_request_form',
                 'service_category' => $submittedCategory,
@@ -276,8 +288,9 @@ class CustomerRequestController extends Controller
             throw $e;
         }
 
-        // Stored. Only now do counters move and may mail go out.
-        $this->guard->recordAccepted($form, $request, $facts);
+        // Stored. Only now do counters move and may mail go out — and only
+        // for a trusted decision (FormMailer refuses anything else).
+        $this->guard->recordAccepted($form, $request, $facts, $decision);
 
         $customerRequest->load(['attachments', 'notes']);
 
@@ -293,16 +306,21 @@ class CustomerRequestController extends Controller
             ]);
         }
 
+        $this->mailer->beginSubmission();
+
         foreach ($notificationEmails as $email) {
-            $this->mailer->sendAdmin($form, $email, new NewCustomerRequestMail($customerRequest), $customerRequest);
+            $this->mailer->sendAdmin($form, $email, fn () => new NewCustomerRequestMail($customerRequest), $decision, $customerRequest);
         }
 
         $this->mailer->sendCustomer(
             $form,
             $customerRequest->customer_email,
-            new CustomerRequestConfirmationMail($customerRequest),
+            fn () => new CustomerRequestConfirmationMail($customerRequest),
+            $decision,
             $customerRequest
         );
+
+        $this->guard->recordEvent($decision, $customerRequest, $this->mailer->lastOutcome());
 
         return $this->successRedirect($locale);
     }
@@ -353,8 +371,10 @@ class CustomerRequestController extends Controller
      * this is called. A silent rejection (honeypot) shows the normal
      * success screen so a bot learns nothing.
      */
-    private function refuse(Rejection $rejection, string $locale): RedirectResponse
+    private function refuse(TrustDecision $decision, string $locale): RedirectResponse
     {
+        $rejection = $decision->rejection ?? new Rejection('trust_score', 'captcha', 'captcha', true);
+
         if ($rejection->silentSuccess) {
             return $this->successRedirect($locale);
         }

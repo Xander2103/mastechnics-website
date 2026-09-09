@@ -68,12 +68,9 @@ class FormMailer
     public function sendCustomer(string $form, ?string $recipient, Closure|Mailable $mailable, TrustDecision $decision, ?CustomerRequest $customerRequest = null): bool
     {
         if (! self::customerConfirmationEnabled()) {
-            // Switch is off (the default): nothing is built, no mail_logs
-            // row (this is the normal state, not an incident), no transport.
-            $this->noteSkipped(MailBudget::KIND_CUSTOMER, FormProtectionLog::MAIL_CUSTOMER_DISABLED);
-            $this->log->mailSkipped($form, MailBudget::KIND_CUSTOMER, FormProtectionLog::MAIL_CUSTOMER_DISABLED, $customerRequest?->id);
-
-            return false;
+            // Switch is off (the default): no transport call, only the audit
+            // row in mail_logs so the admin sees why the customer got nothing.
+            return $this->skip($form, MailBudget::KIND_CUSTOMER, FormProtectionLog::MAIL_CUSTOMER_DISABLED, $recipient, $mailable, $customerRequest);
         }
 
         return $this->send($form, MailBudget::KIND_CUSTOMER, $recipient, $mailable, $decision, $customerRequest);

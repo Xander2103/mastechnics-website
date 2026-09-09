@@ -10,6 +10,23 @@ use Illuminate\Testing\TestResponse;
 abstract class TestCase extends BaseTestCase
 {
     /**
+     * Every test request looks like a real browser posting a form: the trust
+     * gate of the public forms treats a request without these headers as a
+     * script (needs_review, no mail). Bot-behaviour tests override or drop
+     * them explicitly (withHeaders() / withoutHeader()).
+     *
+     * @var array<string, string>
+     */
+    protected $defaultHeaders = [
+        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+        'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language' => 'nl-BE,nl;q=0.9,fr;q=0.8,en;q=0.7',
+        'Sec-Fetch-Site' => 'same-origin',
+        'Sec-Fetch-Mode' => 'navigate',
+        'Sec-Fetch-Dest' => 'document',
+    ];
+
+    /**
      * Session payload of a logged-in admin. The admin middleware verifies the
      * account exists and that the session fingerprint matches its password
      * hash, so the account row is created here when it does not exist yet.

@@ -36,6 +36,8 @@ class FormProtectionLog
 
     public const REASON_BLOCKLIST = 'blocklist';
 
+    public const REASON_TRUST_SCORE = 'trust_score';
+
     public const MAIL_CUSTOMER_DISABLED = 'mail_customer_disabled';
 
     public const MAIL_UNSAFE_RECIPIENT = 'mail_unsafe_recipient';
@@ -64,6 +66,7 @@ class FormProtectionLog
         self::REASON_GLOBAL_BURST,
         self::REASON_DUPLICATE,
         self::REASON_BLOCKLIST,
+        self::REASON_TRUST_SCORE,
         self::REASON_DISABLED,
         self::MAIL_CUSTOMER_DISABLED,
         self::MAIL_UNSAFE_RECIPIENT,
@@ -86,6 +89,7 @@ class FormProtectionLog
         self::REASON_GLOBAL_BURST => 'Globale burst-limiet',
         self::REASON_DUPLICATE => 'Herhaalde inzending',
         self::REASON_BLOCKLIST => 'Geblokkeerd adres',
+        self::REASON_TRUST_SCORE => 'Risicoscore te hoog',
         self::REASON_DISABLED => 'Formulier uitgeschakeld',
         self::MAIL_CUSTOMER_DISABLED => 'Klantmail uitgeschakeld',
         self::MAIL_UNSAFE_RECIPIENT => 'Onveilig ontvangeradres',

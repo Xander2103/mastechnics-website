@@ -10,6 +10,7 @@ use App\Services\Spam\FormMailer;
 use App\Services\Spam\PublicFormGuard;
 use App\Services\Spam\Rejection;
 use App\Services\Spam\SubmissionFacts;
+use App\Services\Spam\Trust\TrustDecision;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,8 +36,9 @@ class ContactController extends Controller
     /**
      * Anti-abuse order (see PublicFormGuard): kill switch → idempotency →
      * attempt limits → validation → captcha → honeypot → fill time → accepted
-     * limits → fingerprint → blocklist → store → mail. No mail transport is
-     * reached before the row exists.
+     * limits → fingerprint → trust evaluation → blocklist → store → mail
+     * (trusted only) → security event. No mail transport is reached before
+     * the row exists, and never for a needs_review submission.
      */
     public function store(Request $request, string $locale): RedirectResponse
     {
@@ -80,14 +82,17 @@ class ContactController extends Controller
             email: $validated['email'],
             phone: $validated['phone'] ?? null,
             message: $validated['message'],
+            name: $validated['name'],
+            locale: $locale,
         );
 
-        // Captcha, honeypot, fill time, IP/e-mail/form/global limits and the
-        // fingerprint. Nothing is stored or mailed for a rejection.
-        $rejection = $this->guard->screen($form, $request, $facts, 'email');
+        // Captcha, honeypot, fill time, IP/e-mail/form/global limits, the
+        // fingerprint and the trust evaluation. Nothing is stored or mailed
+        // for a blocked decision; needs_review is stored but never mailed.
+        $decision = $this->guard->screen($form, $request, $facts, 'email');
 
-        if ($rejection !== null) {
-            return $this->refuse($form, $rejection, $locale);
+        if ($decision->blocked()) {
+            return $this->refuse($form, $decision, $locale);
         }
 
         // Blocklist check happens after validation but before the submission
@@ -121,7 +126,7 @@ class ContactController extends Controller
             'source_url' => url()->previous(),
         ];
 
-        [$submission, $isNewSubmission] = $this->claimSubmission($token, $data);
+        [$submission, $isNewSubmission] = $this->claimSubmission($token, $data, $decision);
 
         if (!$isNewSubmission) {
             // Either lost a race against another request with the same
@@ -132,22 +137,32 @@ class ContactController extends Controller
             return back()->with('success', 'contact_message_sent');
         }
 
-        // Stored. Only now do counters move and may mail go out.
-        $this->guard->recordAccepted($form, $request, $facts);
+        // Stored. Only now do counters move and may mail go out — and only
+        // for a trusted decision (FormMailer refuses anything else).
+        $this->guard->recordAccepted($form, $request, $facts, $decision);
+        $this->mailer->beginSubmission();
 
         $this->mailer->sendAdmin(
             $form,
             config('site.contact_notification_email'),
-            new ContactMessageMail($data)
+            fn () => new ContactMessageMail($data),
+            $decision
         );
 
         $this->mailer->sendCustomer(
             $form,
             $data['email'],
-            new ContactMessageConfirmationMail($data)
+            fn () => new ContactMessageConfirmationMail($data),
+            $decision
         );
 
-        $submission?->update(['mail_sent_at' => now()]);
+        $outcome = $this->mailer->lastOutcome();
+
+        if (($outcome['sent'] ?? 0) > 0) {
+            $submission?->update(['mail_sent_at' => now()]);
+        }
+
+        $this->guard->recordEvent($decision, $submission, $outcome);
 
         return back()->with('success', 'contact_message_sent');
     }
@@ -157,8 +172,10 @@ class ContactController extends Controller
      * this is called. A silent rejection (honeypot) shows the normal
      * success message so a bot learns nothing.
      */
-    private function refuse(string $form, Rejection $rejection, string $locale): RedirectResponse
+    private function refuse(string $form, TrustDecision $decision, string $locale): RedirectResponse
     {
+        $rejection = $decision->rejection ?? new Rejection('trust_score', 'captcha', 'captcha', true);
+
         if ($rejection->silentSuccess) {
             return back()->with('success', 'contact_message_sent');
         }
@@ -200,7 +217,7 @@ class ContactController extends Controller
      *   if it couldn't be persisted at all) and whether this call is the
      *   one that "won" and should proceed to send mail
      */
-    private function claimSubmission(string $token, array $data): array
+    private function claimSubmission(string $token, array $data, TrustDecision $decision): array
     {
         try {
             $submission = ContactSubmission::create([
@@ -211,6 +228,9 @@ class ContactController extends Controller
                 'subject' => $data['subject'],
                 'message' => $data['message'],
                 'locale'  => $data['locale'],
+                'trust_verdict' => $decision->verdict,
+                'trust_score'   => $decision->risk,
+                'trust_reasons' => $decision->reasons(),
             ]);
 
             return [$submission, true];

@@ -33,8 +33,28 @@ class FormProtectionStats extends Command
 
         $this->table(['Reden', 'Sleutel', 'Vandaag', "Laatste {$days} d"], $rows);
 
-        $remaining = $budget->remaining();
+        $circuit = $budget->circuitState();
         $this->newLine();
+        $this->line('Externe-mailnoodrem (admin + klant samen): ' . $circuit['daily_used'] . '/' . $circuit['daily_limit']
+            . ' vandaag, ' . $circuit['burst_used'] . '/' . $circuit['burst_limit'] . ' per 10 min — '
+            . ($circuit['open']
+                ? 'ACTIEF: geen verdere formuliermails (' . (FormProtectionLog::LABELS[$circuit['reason']] ?? $circuit['reason']) . ')'
+                : 'gesloten, mail mogelijk'));
+
+        try {
+            $decisions = FormSecurityEvent::query()->today()
+                ->selectRaw('decision, count(*) as total')
+                ->groupBy('decision')
+                ->pluck('total', 'decision');
+
+            $this->line('Beslissingen vandaag: vertrouwd ' . ($decisions['trusted'] ?? 0)
+                . ', te controleren ' . ($decisions['needs_review'] ?? 0)
+                . ', geblokkeerd ' . ($decisions['blocked'] ?? 0));
+        } catch (\Throwable $e) {
+            $this->line('Beslissingen vandaag: beveiligingslog niet beschikbaar (' . $e->getMessage() . ')');
+        }
+
+        $remaining = $budget->remaining();
         $this->line('Resterend mailbudget: klantbevestigingen ' . $remaining[MailBudget::KIND_CUSTOMER]
             . ' / adminmeldingen ' . $remaining[MailBudget::KIND_ADMIN]
             . ' (dag), burst ' . $remaining['burst'] . ' (uur)'

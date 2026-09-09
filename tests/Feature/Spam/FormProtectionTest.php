@@ -41,7 +41,19 @@ class FormProtectionTest extends TestCase
             'form-protection.mail.burst_limit_per_hour' => 500,
             'form-protection.mail.customer_confirmation_daily_limit' => 500,
             'form-protection.mail.admin_notification_daily_limit' => 500,
+            // Sprint 21: the joint circuit breaker has its own suite
+            // (MailCircuitBreakerTest); these tests assume the customer
+            // confirmation is on so both mails can be counted.
+            'form-protection.mail.external_daily_limit' => 500,
+            'form-protection.mail.external_limit_per_10_minutes' => 500,
+            'form-protection.mail.customer_confirmation_enabled' => true,
         ]);
+
+        // The trust gate (TrustGateTest) would flag the deliberately similar
+        // payloads of the limiter loops below as needs_review; here every
+        // non-blocked submission counts as trusted so the hard layers are
+        // tested in isolation.
+        $this->disableTrustGate();
 
         $this->useSpyMailTransport();
         $this->useFakeCaptcha();

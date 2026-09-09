@@ -70,6 +70,12 @@ return [
         'content_window_seconds' => 3600,
     ],
 
+    // Retention of the form security log (form_security_events), pruned by
+    // `php artisan forms:prune-security-log` (scheduled daily).
+    'security_log' => [
+        'retention_days' => (int) env('FORM_SECURITY_LOG_RETENTION_DAYS', 90),
+    ],
+
     // Transactional mail budget (circuit breaker for the Brevo quota) and
     // emergency switches. A blocked mail never blocks the submission: the
     // request is stored, the skip is logged in mail_logs, nothing retries.

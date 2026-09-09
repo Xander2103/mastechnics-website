@@ -43,6 +43,24 @@ trait InteractsWithFormProtection
         );
     }
 
+    /**
+     * Make the trust gate accept every non-blocked submission as trusted.
+     * For suites that test the hard layers (limits, tokens, honeypot, mail
+     * pipeline) with deliberately similar payloads in loops; the gate has
+     * its own suite (TrustGateTest) and must not turn those loops into
+     * needs_review or a score block halfway.
+     */
+    protected function disableTrustGate(): void
+    {
+        config([
+            'form-protection.trust.trusted_max_risk' => 1000,
+            'form-protection.trust.trusted_min_positives' => 0,
+            'form-protection.trust.block_score' => 100000,
+            'form-protection.trust.velocity.attack_per_10_minutes' => 100000,
+            'form-protection.trust.velocity.attack_per_hour' => 100000,
+        ]);
+    }
+
     protected function useFakeCaptcha(bool $enabled = true): FakeCaptchaVerifier
     {
         $this->captcha = new FakeCaptchaVerifier(enabled: $enabled);
@@ -51,10 +69,17 @@ trait InteractsWithFormProtection
         return $this->captcha;
     }
 
-    /** A fill-time token that already satisfies the minimum fill time. */
-    protected function timingToken(string $form, int $secondsAgo = 30): string
+    /** Every issued token gets its own timestamp so no test trips the token-reuse signal by accident. */
+    private static int $timingTokenSequence = 0;
+
+    /**
+     * A fill-time token that already satisfies the minimum fill time and
+     * looks like a normal human fill time (not "fast"). Each call yields a
+     * distinct token: the trust gate flags a re-used form_opened_at value.
+     */
+    protected function timingToken(string $form, int $secondsAgo = 90): string
     {
-        return $this->app->make(FormTimingToken::class)->issue($form, time() - $secondsAgo);
+        return $this->app->make(FormTimingToken::class)->issue($form, time() - $secondsAgo - (self::$timingTokenSequence++));
     }
 
     /** Timing field + (when the fake captcha is active) a valid captcha token. */

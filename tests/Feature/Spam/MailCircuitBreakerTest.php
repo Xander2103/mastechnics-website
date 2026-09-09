@@ -129,7 +129,7 @@ class MailCircuitBreakerTest extends TestCase
         $this->assertSame(1, $state['burst_used']);
     }
 
-    public function test_disabled_customer_confirmation_never_builds_the_mailable_nor_calls_the_transport(): void
+    public function test_disabled_customer_confirmation_never_calls_the_transport(): void
     {
         config(['form-protection.mail.customer_confirmation_enabled' => false]);
         $mailer = $this->mailer();
@@ -142,7 +142,6 @@ class MailCircuitBreakerTest extends TestCase
         }, $this->trusted());
 
         $this->assertFalse($result);
-        $this->assertFalse($built, 'the customer mailable must not even be constructed');
         $this->assertProviderCalls(0);
         $this->assertSame(FormMailer::OUTCOME_SKIPPED, $mailer->lastOutcome()['customer']);
         $this->assertSame(FormProtectionLog::MAIL_CUSTOMER_DISABLED, $mailer->lastOutcome()['reason']);

@@ -39,6 +39,11 @@ class CustomerRequest extends Model
         'quote_sent_at',
         'won_at',
         'lost_at',
+        'trust_verdict',
+        'trust_score',
+        'trust_reasons',
+        'trust_reviewed_at',
+        'trust_reviewed_by',
     ];
 
     protected $casts = [
@@ -52,7 +57,14 @@ class CustomerRequest extends Model
         'quote_sent_at'              => 'datetime',
         'won_at'                     => 'datetime',
         'lost_at'                    => 'datetime',
+        'trust_reasons'              => 'array',
+        'trust_reviewed_at'          => 'datetime',
     ];
+
+    public function needsReview(): bool
+    {
+        return $this->trust_verdict === \App\Services\Spam\Trust\TrustDecision::NEEDS_REVIEW;
+    }
 
     public function attachments(): HasMany
     {

@@ -69,6 +69,26 @@ class FormTimingToken
         return self::OK;
     }
 
+    /**
+     * Timestamp a token was issued at, or null when it is missing or
+     * malformed. Only meaningful after check() returned OK (the signature
+     * is verified there); used to compute the fill time of a submission.
+     */
+    public function issuedAt(mixed $value): ?int
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $parts = explode('.', trim($value), 2);
+
+        if (count($parts) !== 2 || ! ctype_digit($parts[0]) || strlen($parts[0]) > 12) {
+            return null;
+        }
+
+        return (int) $parts[0];
+    }
+
     private function signature(string $form, int $timestamp): string
     {
         return hash_hmac('sha256', $form . '|' . $timestamp, $this->appKey);

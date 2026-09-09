@@ -2,6 +2,11 @@
 
 namespace App\Services\Spam;
 
+use App\Services\Spam\Trust\TrustContext;
+use App\Services\Spam\Trust\TrustDecision;
+use App\Services\Spam\Trust\TrustEvaluator;
+use App\Services\Spam\Trust\TrustSignal;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -9,7 +14,7 @@ use Illuminate\Support\Facades\RateLimiter;
 /**
  * One anti-abuse pipeline for both public forms (contact + request wizard).
  *
- * Every accepted submission costs two transactional e-mails on a 300/day
+ * Every accepted submission may cost transactional e-mail on a 300/day
  * Brevo quota, so the defence is layered and every layer runs BEFORE
  * anything is stored or mailed. Order as enforced by the controllers:
  *
@@ -17,17 +22,21 @@ use Illuminate\Support\Facades\RateLimiter;
  *   1. idempotency            submission_token already processed → fake success (controller)
  *   2. attempt limiters       enforceAttemptLimits(): per IP + site-wide, → 429
  *   3. validation             controller
- *   4. captcha                screen(): provider verdict, verified server-side
+ *   4. captcha                screen(): provider verdict incl. hostname + action, server-side
  *   5. honeypot               screen(): any filled hidden field → fake success
  *   6. fill time              screen(): signed timestamp, too fast / missing / forged
  *   7. accepted limits        screen(): per IP, per e-mail, per form, global burst
  *   8. fingerprint            screen(): exact repeat / same content repeat
- *   9. blocklist              controller (contact only)
- *  10. store                  controller, then recordAccepted()
- *  11. mail                   FormMailer → MailDispatcher → provider
+ *   9. trust evaluation       screen(): TrustEvaluator → trusted | needs_review | blocked
+ *  10. blocklist              controller (contact only)
+ *  11. store                  controller (needs_review rows get trust_verdict), then recordAccepted()
+ *  12. mail                   FormMailer (only for a trusted decision) → MailDispatcher → provider
+ *  13. security event         recordEvent(): one FormSecurityEvent per decision, fail-safe
  *
- * Counters 7–8 are only incremented after a submission was really stored,
- * so a visitor who gets a validation error does not burn quota.
+ * Steps 4–8 are hard blocks (nothing stored). Step 9 combines independent
+ * signals: captcha alone is never enough to be trusted. Counters 7–8 are
+ * only incremented after a submission was really stored, so a visitor who
+ * gets a validation error does not burn quota.
  *
  * IP keys use Request::ip(), which is REMOTE_ADDR unless the proxy is listed
  * in TRUSTED_PROXIES (bootstrap/app.php) — X-Forwarded-For, Forwarded and
@@ -42,10 +51,14 @@ class PublicFormGuard
 
     public const FORM_REQUEST = 'request';
 
+    private ?TrustContext $lastContext = null;
+
     public function __construct(
         private readonly CaptchaVerifier $captcha,
         private readonly FormTimingToken $timing,
         private readonly FormProtectionLog $log,
+        private readonly TrustEvaluator $evaluator,
+        private readonly SecurityEventRecorder $recorder,
     ) {
     }
 
@@ -113,6 +126,7 @@ class PublicFormGuard
 
         if (RateLimiter::tooManyAttempts($ipKey, $ipLimit) || RateLimiter::tooManyAttempts($globalKey, $globalLimit)) {
             $this->log->rejected($form, FormProtectionLog::REASON_ATTEMPTS, $request);
+            $this->recorder->recordSimple($form, TrustDecision::BLOCKED, [FormProtectionLog::REASON_ATTEMPTS], $request);
 
             abort(429);
         }
@@ -122,65 +136,80 @@ class PublicFormGuard
     }
 
     /**
-     * Steps 4–8, after validation. Returns null when the submission may be
-     * stored, otherwise the Rejection to answer with. Nothing is counted
-     * here: counters move in recordAccepted() once the row exists.
+     * Steps 4–9, after validation. Returns the trust decision: blocked
+     * (nothing may be stored; `rejection` says how to answer), needs_review
+     * (store, never mail) or trusted (store, mail allowed). A blocked
+     * decision is already logged here; for the other two the controller
+     * calls recordAccepted() after the row exists and recordEvent() at the
+     * end. Nothing is counted here.
      */
-    public function screen(string $form, Request $request, SubmissionFacts $facts, string $emailErrorKey): ?Rejection
+    public function screen(string $form, Request $request, SubmissionFacts $facts, string $emailErrorKey): TrustDecision
     {
-        if (! $this->captchaPassed($request)) {
-            return $this->reject($form, $request, $facts, FormProtectionLog::REASON_CAPTCHA, 'captcha', 'captcha');
+        $captcha = $this->captchaVerdict($request, $form);
+        $honeypot = $this->honeypotTripped($request);
+        $timingStatus = $this->timing->check($form, $request->input($this->timingField()));
+        $fillSeconds = $timingStatus === FormTimingToken::OK ? $this->fillSeconds($request) : null;
+
+        $hard = null;
+
+        if (! $captcha->passed() && $captcha->status !== CaptchaVerdict::DISABLED) {
+            $reason = match ($captcha->status) {
+                CaptchaVerdict::HOSTNAME_MISMATCH => 'captcha_hostname',
+                CaptchaVerdict::ACTION_MISMATCH => 'captcha_action',
+                default => FormProtectionLog::REASON_CAPTCHA,
+            };
+            $hard = new Rejection($reason, 'captcha', 'captcha');
+        } elseif ($honeypot) {
+            $hard = new Rejection(FormProtectionLog::REASON_HONEYPOT, 'captcha', 'captcha', true);
+        } elseif ($timingStatus !== FormTimingToken::OK) {
+            $hard = new Rejection(FormProtectionLog::REASON_TIMING, 'captcha', 'captcha');
+        } elseif ($this->ipLimitExceeded($form, $request)) {
+            $hard = new Rejection(FormProtectionLog::REASON_IP_LIMIT, 'rate_limit', 'rate_limit');
+        } elseif ($this->emailLimitExceeded($form, $facts->email)) {
+            $hard = new Rejection(FormProtectionLog::REASON_EMAIL_LIMIT, 'email_limit', $emailErrorKey);
+        } elseif ($this->formLimitExceeded($form)) {
+            $hard = new Rejection(FormProtectionLog::REASON_FORM_LIMIT, 'rate_limit', 'rate_limit');
+        } elseif ($this->globalBurstExceeded()) {
+            $hard = new Rejection(FormProtectionLog::REASON_GLOBAL_BURST, 'rate_limit', 'rate_limit');
+        } elseif ($this->duplicateDetected($form, $request, $facts)) {
+            $hard = new Rejection(FormProtectionLog::REASON_DUPLICATE, 'duplicate', 'captcha');
         }
 
-        if ($this->honeypotTripped($request)) {
-            return $this->reject($form, $request, $facts, FormProtectionLog::REASON_HONEYPOT, 'captcha', 'captcha', silent: true);
+        $context = new TrustContext($form, $request, $facts, $captcha, $timingStatus, $fillSeconds, $honeypot, $hard);
+        $this->lastContext = $context;
+
+        $decision = $this->evaluator->evaluate($context);
+
+        if ($decision->blocked()) {
+            $reason = $decision->rejection?->reason ?? 'trust_score';
+            $this->log->rejected($form, $this->counterReason($reason), $request, $facts->email);
+            $this->evaluator->recordBlocked($context);
+            $this->recorder->record($context, $decision);
         }
 
-        if ($this->timing->check($form, $request->input($this->timingField())) !== FormTimingToken::OK) {
-            return $this->reject($form, $request, $facts, FormProtectionLog::REASON_TIMING, 'captcha', 'captcha');
-        }
-
-        if ($this->ipLimitExceeded($form, $request)) {
-            return $this->reject($form, $request, $facts, FormProtectionLog::REASON_IP_LIMIT, 'rate_limit', 'rate_limit');
-        }
-
-        if ($this->emailLimitExceeded($form, $facts->email)) {
-            return $this->reject($form, $request, $facts, FormProtectionLog::REASON_EMAIL_LIMIT, 'email_limit', $emailErrorKey);
-        }
-
-        if ($this->formLimitExceeded($form)) {
-            return $this->reject($form, $request, $facts, FormProtectionLog::REASON_FORM_LIMIT, 'rate_limit', 'rate_limit');
-        }
-
-        if ($this->globalBurstExceeded()) {
-            return $this->reject($form, $request, $facts, FormProtectionLog::REASON_GLOBAL_BURST, 'rate_limit', 'rate_limit');
-        }
-
-        if ($this->duplicateDetected($form, $request, $facts)) {
-            return $this->reject($form, $request, $facts, FormProtectionLog::REASON_DUPLICATE, 'duplicate', 'captcha');
-        }
-
-        return null;
+        return $decision;
     }
 
     /** Blocklist hit (contact form): counted like every other rejection. */
     public function noteBlocked(string $form, Request $request, string $email): void
     {
         $this->log->rejected($form, FormProtectionLog::REASON_BLOCKLIST, $request, $email);
+        $this->recorder->recordSimple($form, TrustDecision::BLOCKED, [FormProtectionLog::REASON_BLOCKLIST], $request, $email);
     }
 
     public function noteDisabled(string $form, Request $request): void
     {
         $this->log->rejected($form, FormProtectionLog::REASON_DISABLED, $request);
+        $this->recorder->recordSimple($form, TrustDecision::BLOCKED, [FormProtectionLog::REASON_DISABLED], $request);
     }
 
     /**
-     * Step 10: called once per stored submission, before mailing. The row
+     * Step 11: called once per stored submission, before mailing. The row
      * already exists, so a cache outage here must never turn into a 500 for
-     * a submission that was accepted — it is logged and the send proceeds
+     * a submission that was accepted — it is logged and the flow proceeds
      * (the mail budget has its own fail-closed handling).
      */
-    public function recordAccepted(string $form, Request $request, SubmissionFacts $facts): void
+    public function recordAccepted(string $form, Request $request, SubmissionFacts $facts, ?TrustDecision $decision = null): void
     {
         try {
             $ip = $request->ip();
@@ -204,19 +233,43 @@ class PublicFormGuard
                 'error' => $e->getMessage(),
             ]);
         }
+
+        if ($decision !== null && $this->lastContext !== null && $this->lastContext->form === $form) {
+            $this->evaluator->recordAccepted($this->lastContext, $decision);
+        }
+    }
+
+    /**
+     * Step 13: the security event for a stored submission, with the mail
+     * outcome of FormMailer::lastOutcome(). Never throws.
+     *
+     * @param  array{admin?: string, customer?: string, reason?: ?string, sent?: int, skipped?: int}  $mail
+     */
+    public function recordEvent(TrustDecision $decision, ?Model $subject, array $mail = []): void
+    {
+        if ($this->lastContext === null) {
+            return;
+        }
+
+        $this->recorder->record($this->lastContext, $decision, $subject, $mail);
     }
 
     // ── Individual checks (public for tests) ────────────────────────────────
 
-    public function captchaPassed(Request $request): bool
+    public function captchaVerdict(Request $request, ?string $form = null): CaptchaVerdict
     {
         if (! $this->captcha->enabled()) {
-            return true;
+            return CaptchaVerdict::disabled();
         }
 
         $token = $request->input($this->captcha->responseField());
 
-        return $this->captcha->verify(is_string($token) ? $token : null, $request->ip());
+        return $this->captcha->verifyDetailed(is_string($token) ? $token : null, $request->ip(), $form);
+    }
+
+    public function captchaPassed(Request $request): bool
+    {
+        return $this->captchaVerdict($request)->passed();
     }
 
     public function honeypotTripped(Request $request): bool
@@ -335,11 +388,21 @@ class PublicFormGuard
 
     // ── Internals ───────────────────────────────────────────────────────────
 
-    private function reject(string $form, Request $request, SubmissionFacts $facts, string $reason, string $messageKind, string $errorKey, bool $silent = false): Rejection
+    /** Counter key for FormProtectionLog: hostname/action mismatches count as captcha failures. */
+    private function counterReason(string $reason): string
     {
-        $this->log->rejected($form, $reason, $request, $facts->email);
+        return match ($reason) {
+            'captcha_hostname', 'captcha_action' => FormProtectionLog::REASON_CAPTCHA,
+            'trust_score' => FormProtectionLog::REASON_TRUST_SCORE,
+            default => $reason,
+        };
+    }
 
-        return new Rejection($reason, $messageKind, $errorKey, $silent);
+    private function fillSeconds(Request $request): ?int
+    {
+        $issuedAt = $this->timing->issuedAt($request->input($this->timingField()));
+
+        return $issuedAt !== null ? max(0, time() - $issuedAt) : null;
     }
 
     private function limit(string $form, string $key, int $default): int

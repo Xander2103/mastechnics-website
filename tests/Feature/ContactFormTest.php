@@ -20,6 +20,11 @@ class ContactFormTest extends TestCase
         parent::setUp();
 
         Mail::fake();
+
+        // This suite tests the classic pipeline (validation, tokens, limits,
+        // mailables) with repeated payloads; the trust gate has its own
+        // suite (TrustGateTest) and is neutralised here.
+        $this->disableTrustGate();
     }
 
     private function validPayload(array $overrides = []): array

@@ -27,6 +27,10 @@
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
+        <!-- Sprint 21: customer confirmations are OFF by default in production; the
+             legacy form suites assert both mails, so the test env turns them on.
+             Tests that need the production default set the config to false. -->
+        <env name="CUSTOMER_CONFIRMATION_MAIL_ENABLED" value="true"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>

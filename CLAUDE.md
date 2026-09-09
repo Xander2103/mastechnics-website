@@ -185,6 +185,25 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   transport-calls per afgewezen laag via `SpyMailTransport`. Zie
   `docs/anti-spam.md`. Committed lokaal, **niet gepusht**.
 
+- **Sprint 21 (trust gate + noodrem + beveiligingslog) ✅** — Bot met
+  opgeloste Turnstile + roterende IP/e-mail kwam op 09/09/2026 door alle
+  lagen (root cause: elke captcha-pass = mens = 2 mails; limieten lieten
+  ~240 spammails/dag toe). Nu: deterministische `TrustEvaluator`
+  (`app/Services/Spam/Trust/`, 7 signaalgroepen) → trusted / needs_review /
+  blocked; alleen trusted mailt (`FormMailer` eist `TrustDecision`);
+  needs_review wordt opgeslagen (`trust_verdict` op `customer_requests` en
+  `contact_submissions`) zonder mail en is in de admin vrij te geven of
+  als spam te markeren. Turnstile-audit: hostname + action + challenge_ts
+  server-side (`CaptchaVerdict`). Gezamenlijke externe-mailnoodrem
+  (`FORM_EXTERNAL_MAIL_DAILY_LIMIT=20`, `FORM_EXTERNAL_MAIL_LIMIT_PER_10_MINUTES=4`,
+  onder `Cache::lock`). Klantbevestiging standaard **uit**
+  (`CUSTOMER_CONFIRMATION_MAIL_ENABLED=false`). Beveiligingslog
+  `form_security_events` (`SecurityEventRecorder`, fail-safe, geen
+  PII/tokens), retention `forms:prune-security-log` (90 d, dagelijks),
+  admin-tegel "Formulierbeveiliging", `/admin/security-log`,
+  `/admin/contact-submissions`. Rapport: `docs/anti-spam-report-2026-09-09.md`.
+  Committed lokaal, **niet gepusht**.
+
 ## Anti-spam Architecture
 
 - Beide publieke formulieren lopen door `PublicFormGuard` (screening) en
@@ -196,6 +215,17 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   `form_opened_at` nodig; in tests via `Tests\Support\InteractsWithFormProtection`.
 - Limieten en switches staan in `config/form-protection.php` (niet meer in
   `config/site.php`).
+- `PublicFormGuard::screen()` geeft een `TrustDecision`; alleen
+  `trusted()` mag mailen. Voeg nooit een pad toe dat een needs_review-rij
+  automatisch mailt — vrijgeven is een adminactie.
+- Nieuwe trust-signalen horen in `app/Services/Spam/Trust/Signals/`
+  (implementeer `SignalProvider`, registreer in `AppServiceProvider`); geen
+  enkel signaal mag op zichzelf trusted opleveren. Codes krijgen een label in
+  `FormSecurityEvent::REASON_LABELS`.
+- `SecurityEventRecorder` mag nooit throwen; sla er geen tokens, headers,
+  namen, berichten, volledige IP's of e-mailadressen in op.
+- Tests van de harde lagen gebruiken `disableTrustGate()`; tests van de gate
+  zelf staan in `TrustGateTest` (altijd via `SpyMailTransport`).
 
 ## HVAC Architecture
 

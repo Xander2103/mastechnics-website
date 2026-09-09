@@ -46,6 +46,12 @@ class FormProtectionLog
 
     public const MAIL_BUDGET_BURST = 'mail_budget_burst';
 
+    public const MAIL_CIRCUIT_DAILY = 'mail_circuit_daily';
+
+    public const MAIL_CIRCUIT_BURST = 'mail_circuit_burst';
+
+    public const MAIL_NOT_TRUSTED = 'mail_not_trusted';
+
     /** Every counter key, in the order the dashboard lists them. */
     public const REASONS = [
         self::REASON_CAPTCHA,
@@ -64,6 +70,9 @@ class FormProtectionLog
         self::MAIL_BUDGET_CUSTOMER,
         self::MAIL_BUDGET_ADMIN,
         self::MAIL_BUDGET_BURST,
+        self::MAIL_CIRCUIT_DAILY,
+        self::MAIL_CIRCUIT_BURST,
+        self::MAIL_NOT_TRUSTED,
     ];
 
     public const LABELS = [
@@ -83,6 +92,9 @@ class FormProtectionLog
         self::MAIL_BUDGET_CUSTOMER => 'Klantmailbudget bereikt',
         self::MAIL_BUDGET_ADMIN => 'Adminmailbudget bereikt',
         self::MAIL_BUDGET_BURST => 'Mail-burstlimiet bereikt',
+        self::MAIL_CIRCUIT_DAILY => 'Noodrem: daglimiet externe mails',
+        self::MAIL_CIRCUIT_BURST => 'Noodrem: burstlimiet externe mails',
+        self::MAIL_NOT_TRUSTED => 'Mail overgeslagen: niet vertrouwd',
     ];
 
     private const COUNTER_TTL_DAYS = 8;

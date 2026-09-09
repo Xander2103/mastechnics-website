@@ -43,10 +43,15 @@ class RejectingCaptchaVerifier implements CaptchaVerifier
 
     public function verify(?string $token, ?string $ip): bool
     {
+        return $this->verifyDetailed($token, $ip, null)->passed();
+    }
+
+    public function verifyDetailed(?string $token, ?string $ip, ?string $expectedAction = null): CaptchaVerdict
+    {
         Log::error('Captcha is required but the site/secret key of the active provider is not configured; public form submission refused.', [
             'provider' => $this->provider,
         ]);
 
-        return false;
+        return CaptchaVerdict::failed(['not_configured']);
     }
 }

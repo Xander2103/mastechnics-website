@@ -36,6 +36,9 @@
                     }
                     var options = { sitekey: el.dataset.sitekey };
                     if (provider === 'turnstile') {
+                        // Echoed by siteverify as "action"; the server refuses a
+                        // token issued for another form.
+                        options.action = el.dataset.action;
                         options.language = el.dataset.language || 'auto';
                         options.theme = 'light';
                         options.size = 'flexible';
@@ -61,6 +64,7 @@
              id="captcha-{{ $form }}"
              data-provider="{{ $captcha->provider() }}"
              data-sitekey="{{ $captcha->siteKey() }}"
+             data-action="{{ $form }}"
              data-language="{{ $locale ?? app()->getLocale() }}"
              data-render="{{ $render }}"></div>
         @error('captcha')

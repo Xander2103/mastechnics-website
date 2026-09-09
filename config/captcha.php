@@ -28,6 +28,21 @@ return [
     'enabled' => env('CAPTCHA_ENABLED'),
     'timeout_seconds' => 5,
 
+    /*
+    | A token is only accepted when the provider reports it was issued for
+    | one of our hostnames (host of APP_URL, with and without "www.", plus
+    | this comma-separated list) and — Turnstile only — for the widget
+    | action of the form it is posted to ("contact" / "request"). A solved
+    | token from another site or form is refused. The two switches exist
+    | for emergencies only; leave them on.
+    */
+    'expected_hostnames' => env('CAPTCHA_EXPECTED_HOSTNAMES'),
+    'verify_hostname' => filter_var(env('CAPTCHA_VERIFY_HOSTNAME', true), FILTER_VALIDATE_BOOL),
+    'verify_action' => filter_var(env('CAPTCHA_VERIFY_ACTION', true), FILTER_VALIDATE_BOOL),
+    // Age of the solved challenge (challenge_ts) above which the trust
+    // evaluator adds risk; the provider itself expires tokens after ~5 min.
+    'max_token_age_seconds' => 300,
+
     'providers' => [
         'turnstile' => [
             'site_key' => env('TURNSTILE_SITE_KEY'),

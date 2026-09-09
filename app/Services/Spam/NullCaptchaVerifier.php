@@ -34,4 +34,9 @@ class NullCaptchaVerifier implements CaptchaVerifier
     {
         return true;
     }
+
+    public function verifyDetailed(?string $token, ?string $ip, ?string $expectedAction = null): CaptchaVerdict
+    {
+        return CaptchaVerdict::disabled();
+    }
 }

@@ -18,8 +18,11 @@ class CaptchaVerifierFactory
 {
     public const DEVELOPMENT_ENVIRONMENTS = ['local', 'testing', 'development', 'dev'];
 
-    /** @param array<string, mixed> $config */
-    public static function make(array $config, string $environment): CaptchaVerifier
+    /**
+     * @param  array<string, mixed>  $config  config('captcha')
+     * @param  string  $appUrl  config('app.url'): its host (± "www.") is always an expected captcha hostname
+     */
+    public static function make(array $config, string $environment, string $appUrl = ''): CaptchaVerifier
     {
         $provider = strtolower(trim((string) ($config['provider'] ?? 'turnstile')));
         $providers = $config['providers'] ?? [];
@@ -67,6 +70,10 @@ class CaptchaVerifierFactory
             (string) $settings['script_url'],
             (string) $settings['response_field'],
             (int) ($config['timeout_seconds'] ?? 5),
+            self::expectedHostnames($config, $appUrl),
+            filter_var($config['verify_hostname'] ?? true, FILTER_VALIDATE_BOOL),
+            filter_var($config['verify_action'] ?? true, FILTER_VALIDATE_BOOL),
+            (int) ($config['max_token_age_seconds'] ?? 300),
         ];
 
         return match ($provider) {
@@ -74,5 +81,38 @@ class CaptchaVerifierFactory
             'recaptcha' => new GoogleRecaptchaVerifier(...$args),
             default => new RejectingCaptchaVerifier($provider),
         };
+    }
+
+    /**
+     * Hostnames a captcha token may have been issued for: the host of
+     * APP_URL with and without "www.", plus CAPTCHA_EXPECTED_HOSTNAMES
+     * (comma-separated). Lowercase, trimmed, deduplicated.
+     *
+     * @param  array<string, mixed>  $config
+     * @return array<int, string>
+     */
+    public static function expectedHostnames(array $config, string $appUrl = ''): array
+    {
+        $hostnames = [];
+
+        $host = strtolower(trim((string) (parse_url(trim($appUrl), PHP_URL_HOST) ?: '')));
+
+        if ($host !== '') {
+            $hostnames[] = $host;
+            $hostnames[] = str_starts_with($host, 'www.') ? substr($host, 4) : 'www.' . $host;
+        }
+
+        $extra = $config['expected_hostnames'] ?? null;
+        $extra = is_array($extra) ? $extra : explode(',', (string) $extra);
+
+        foreach ($extra as $hostname) {
+            $hostname = strtolower(trim((string) $hostname));
+
+            if ($hostname !== '') {
+                $hostnames[] = $hostname;
+            }
+        }
+
+        return array_values(array_unique($hostnames));
     }
 }

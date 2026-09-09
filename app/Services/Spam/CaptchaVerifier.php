@@ -29,6 +29,13 @@ interface CaptchaVerifier
     /** URL of the provider's widget script ('' when disabled). */
     public function scriptUrl(): string;
 
-    /** True only when the provider confirms the token for this visitor. */
+    /** True only when the provider confirms the token for this visitor (and our hostname). */
     public function verify(?string $token, ?string $ip): bool;
+
+    /**
+     * Full verdict: success plus hostname check and, when the provider
+     * supports it and $expectedAction is given, the widget action check.
+     * The trust evaluator reasons about this; verify() is its boolean view.
+     */
+    public function verifyDetailed(?string $token, ?string $ip, ?string $expectedAction = null): CaptchaVerdict;
 }

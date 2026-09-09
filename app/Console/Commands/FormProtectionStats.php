@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\FormSecurityEvent;
 use App\Services\Spam\FormProtectionLog;
 use App\Services\Spam\MailBudget;
 use Illuminate\Console\Command;

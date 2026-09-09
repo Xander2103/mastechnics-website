@@ -11,6 +11,9 @@ use App\Models\Quote;
 use App\Services\ActivityService;
 use App\Services\MailDispatcher;
 use App\Services\ReminderService;
+use App\Services\Spam\SecurityDashboard;
+use App\Services\Spam\Trust\TrustDecision;
+use App\Services\TrustReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -83,6 +86,8 @@ class RequestController extends Controller
             'spamStats'        => $spamStats,
             'mailBudgetRemaining' => $mailBudget->remaining(),
             'mailBudgetEnabled' => $mailBudget->enabled(),
+            'security'         => app(SecurityDashboard::class)->summary(),
+            'trustFilters'     => self::TRUST_FILTERS,
             'customerRequests' => $customerRequests,
             'statuses' => $statuses,
             'services' => $services,
@@ -101,6 +106,7 @@ class RequestController extends Controller
                 'date_from'        => $request->string('date_from')->toString(),
                 'date_to'          => $request->string('date_to')->toString(),
                 'has_quote'        => $request->string('has_quote')->toString(),
+                'trust'            => $request->string('trust')->toString(),
             ],
         ], $this->buildDashboardData()));
     }
@@ -662,7 +668,55 @@ class RequestController extends Controller
                     ? $query->has('quote')
                     : $query->doesntHave('quote');
             })
+            ->when($request->filled('trust'), function ($query) use ($request): void {
+                $trust = $request->string('trust')->toString();
+
+                if (array_key_exists($trust, self::TRUST_FILTERS)) {
+                    $query->where('trust_verdict', $trust);
+                }
+            })
             ->latest();
+    }
+
+    /** Trust-gate verdicts offered as list filter (sprint 21). */
+    public const TRUST_FILTERS = [
+        TrustDecision::NEEDS_REVIEW => 'Te controleren',
+        TrustDecision::TRUSTED => 'Vertrouwd',
+        TrustReviewService::VERDICT_SPAM => 'Spam',
+    ];
+
+    /**
+     * Manual decision on a request the trust gate stored as needs_review:
+     * release (sends the notification + confirmation now, still under the
+     * mail circuit breaker) or mark as spam (no mail, row kept).
+     */
+    public function updateTrust(Request $request, CustomerRequest $customerRequest, TrustReviewService $review): RedirectResponse
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:release,spam'],
+        ]);
+
+        if (! $customerRequest->needsReview()) {
+            return redirect()
+                ->route('admin.requests.show', $customerRequest)
+                ->with('success', 'trust_not_reviewable');
+        }
+
+        $adminEmail = (string) session('admin_user_email');
+
+        if ($validated['action'] === 'release') {
+            $outcome = $review->release($customerRequest, $adminEmail, $request);
+
+            return redirect()
+                ->route('admin.requests.show', $customerRequest)
+                ->with('success', ($outcome['sent'] ?? 0) > 0 ? 'trust_released' : 'trust_released_no_mail');
+        }
+
+        $review->markSpam($customerRequest, $adminEmail, $request);
+
+        return redirect()
+            ->route('admin.requests.show', $customerRequest)
+            ->with('success', 'trust_marked_spam');
     }
 
     private function sanitizeCsvCell(mixed $value): string

@@ -326,23 +326,12 @@
                     <span class="admin-stat-number">{{ $stats['quote_sent'] }}</span>
                     <span class="admin-stat-label">Offerte verstuurd</span>
                 </a>
-                @isset($spamStats)
-                    @php
-                        $spamBreakdown = collect($spamStats['period'])
-                            ->filter()
-                            ->map(fn ($count, $reason) => (\App\Services\Spam\FormProtectionLog::LABELS[$reason] ?? $reason) . ': ' . $count)
-                            ->implode(' · ');
-                        $budgetTitle = isset($mailBudgetRemaining)
-                            ? 'Resterend mailbudget vandaag: ' . $mailBudgetRemaining['customer'] . ' klantbevestigingen, ' . $mailBudgetRemaining['admin'] . ' adminmeldingen'
-                              . (empty($mailBudgetEnabled) ? ' (budget uitgeschakeld)' : '')
-                            : '';
-                    @endphp
-                    <div class="admin-stat-card" title="{{ trim($budgetTitle . ($spamBreakdown !== '' ? ' — ' . $spamBreakdown : '')) }}">
-                        <span class="admin-stat-number">{{ $spamStats['today_total'] }}</span>
-                        <span class="admin-stat-label">Spam tegengehouden vandaag ({{ $spamStats['period_total'] }} in {{ $spamStats['days'] }} d)</span>
-                    </div>
-                @endisset
             </div>
+
+            {{-- Formulierbeveiliging (sprint 21): trust decisions, prevented mails, circuit breaker --}}
+            @isset($security)
+                @include('admin.requests.partials.security-tile', ['security' => $security])
+            @endisset
 
             {{-- Dashboard widgets --}}
             <div class="admin-dashboard-grid">
@@ -578,6 +567,16 @@
                         </label>
 
                         <label>
+                            <span>Beveiliging</span>
+                            <select name="trust">
+                                <option value="">Alle</option>
+                                @foreach (($trustFilters ?? []) as $trustValue => $trustLabel)
+                                    <option value="{{ $trustValue }}" {{ ($filters['trust'] ?? '') === $trustValue ? 'selected' : '' }}>{{ $trustLabel }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+
+                        <label>
                             <span>Offerte</span>
                             <select name="has_quote">
                                 <option value="">Alle</option>
@@ -677,6 +676,11 @@
                                             <span class="admin-status admin-status-{{ $request->status }}">
                                                 {{ $statuses[$request->status] ?? $request->status }}
                                             </span>
+                                            @if ($request->trust_verdict === \App\Services\Spam\Trust\TrustDecision::NEEDS_REVIEW)
+                                                <span class="admin-trust-badge admin-trust-badge-needs_review">Te controleren</span>
+                                            @elseif ($request->trust_verdict === \App\Services\TrustReviewService::VERDICT_SPAM)
+                                                <span class="admin-trust-badge admin-trust-badge-spam">Spam</span>
+                                            @endif
                                         </td>
                                         <td data-label="">
                                             <div class="admin-row-actions">

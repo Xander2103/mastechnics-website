@@ -1650,3 +1650,257 @@ body.admin-modal-open {
         transition: none;
     }
 }
+/* ================================
+   Formulierbeveiliging (sprint 21)
+================================ */
+
+.admin-security-tile {
+    border: 1px solid var(--color-border);
+    border-radius: 28px;
+    background: var(--color-white);
+    box-shadow: var(--shadow-soft);
+    padding: 24px 28px;
+    width: min(1280px, calc(100vw - 48px));
+    margin: 0 auto 28px;
+    display: grid;
+    gap: 18px;
+}
+
+.admin-security-tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.admin-security-tile-header h2 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+}
+
+.admin-security-tile-header p {
+    margin: 0;
+    color: #6b7c8f;
+    font-size: 0.9rem;
+}
+
+.admin-security-tile-button {
+    white-space: nowrap;
+}
+
+.admin-security-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-security-stat {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: #f5f8fb;
+    color: var(--color-primary-dark);
+    text-decoration: none;
+    min-width: 0;
+}
+
+.admin-security-stat-blocked { background: rgba(229, 71, 63, 0.10); color: #B52A24; }
+.admin-security-stat-review { background: #fef3c7; color: #92400e; }
+.admin-security-stat-trusted { background: #dcfce7; color: #166534; }
+
+a.admin-security-stat:hover { box-shadow: 0 0 0 3px rgba(15, 102, 194, 0.18); }
+
+.admin-security-number {
+    font-size: 1.7rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.admin-security-number small {
+    font-size: 0.95rem;
+    font-weight: 800;
+    opacity: 0.7;
+}
+
+.admin-security-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.admin-security-sub {
+    font-size: 0.78rem;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.admin-security-circuit {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.admin-security-circuit-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+}
+
+.admin-security-circuit.is-closed { background: #dcfce7; color: #166534; }
+.admin-security-circuit.is-open { background: rgba(229, 71, 63, 0.12); color: #B52A24; }
+.admin-security-circuit.is-off { background: #f1f5f9; color: #475569; }
+
+.admin-security-circuit-detail {
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.admin-security-attack {
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: #B52A24;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Trust badges (list, detail, security log) */
+.admin-trust-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin-top: 4px;
+}
+
+.admin-trust-badge-needs_review { background: #fef3c7; color: #92400e; }
+.admin-trust-badge-trusted { background: #dcfce7; color: #166534; }
+.admin-trust-badge-blocked,
+.admin-trust-badge-spam { background: rgba(229, 71, 63, 0.12); color: #B52A24; }
+.admin-trust-badge-attack { background: #B52A24; color: #fff; }
+
+/* Review banner on a detail page */
+.admin-trust-banner {
+    width: min(1280px, calc(100vw - 48px));
+    margin: 0 auto 24px;
+    padding: 18px 22px;
+    border-radius: 18px;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    font-size: 0.95rem;
+}
+
+.admin-trust-banner-review { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.admin-trust-banner-spam { background: rgba(229, 71, 63, 0.10); color: #B52A24; }
+.admin-trust-banner-released { background: #dcfce7; color: #166534; }
+
+.admin-trust-banner-text { flex: 1 1 320px; }
+
+.admin-trust-score {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(146, 64, 14, 0.12);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.admin-trust-reasons {
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.admin-trust-reasons li {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(146, 64, 14, 0.12);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.admin-trust-banner-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Security log table */
+.admin-security-log-panel { margin-top: 0; }
+
+.admin-security-table td { vertical-align: top; font-size: 0.86rem; }
+
+.admin-security-muted { color: #6b7c8f; font-size: 0.8rem; }
+
+.admin-security-hash {
+    font-size: 0.78rem;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.admin-security-tag {
+    display: inline-block;
+    margin: 0 4px 4px 0;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #e0f2fe;
+    color: #075985;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.admin-security-row-blocked td:first-child { box-shadow: inset 4px 0 0 #B52A24; }
+.admin-security-row-needs_review td:first-child { box-shadow: inset 4px 0 0 #f59e0b; }
+.admin-security-row-trusted td:first-child { box-shadow: inset 4px 0 0 #16a34a; }
+
+.admin-security-pagination { margin-top: 1rem; }
+
+.admin-contact-meta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 18px;
+    margin: 18px 0;
+}
+
+.admin-contact-meta dt { font-weight: 800; color: var(--color-primary-dark); }
+.admin-contact-meta dd { margin: 0; }
+
+.admin-contact-message {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    padding: 16px;
+    border-radius: 14px;
+    background: #f5f8fb;
+}
+
+.admin-filter-form-inline { padding-top: 22px; }
+
+@media (max-width: 900px) {
+    .admin-security-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-security-tile { padding: 20px; }
+    .admin-security-row-blocked td:first-child,
+    .admin-security-row-needs_review td:first-child,
+    .admin-security-row-trusted td:first-child { box-shadow: none; }
+}

@@ -37,6 +37,16 @@
             >Aanvragen</a>
 
             <a
+                href="{{ route('admin.contact-submissions.index') }}"
+                @if (request()->routeIs('admin.contact-submissions.*')) class="is-active" aria-current="page" @endif
+            >Contactberichten</a>
+
+            <a
+                href="{{ route('admin.security.index') }}"
+                @if (request()->routeIs('admin.security.*')) class="is-active" aria-current="page" @endif
+            >Beveiligingslog</a>
+
+            <a
                 href="{{ route('admin.hvac.products.index') }}"
                 @if (request()->routeIs('admin.hvac.*')) class="is-active" aria-current="page" @endif
             >HVAC-producten</a>

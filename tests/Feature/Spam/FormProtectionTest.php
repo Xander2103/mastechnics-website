@@ -675,9 +675,14 @@ class FormProtectionTest extends TestCase
         $this->assertSame(1, $summary['today']['honeypot']);
         $this->assertSame(2, $summary['today_total']);
 
+        // Sprint 21: the dashboard shows the security tile; both rejections
+        // are security events with decision "blocked".
+        $this->assertSame(2, \App\Models\FormSecurityEvent::where('decision', 'blocked')->count());
+
         $this->withSession($this->adminSession())
             ->get(route('admin.requests.index'))
             ->assertOk()
-            ->assertSee('Spam tegengehouden vandaag');
+            ->assertSee('Formulierbeveiliging')
+            ->assertSee('Geblokkeerd vandaag');
     }
 }

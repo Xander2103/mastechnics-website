@@ -321,6 +321,22 @@
                 <div class="form-error-list">Deze aanvraag kan niet verwijderd worden zolang er een offerte aan gekoppeld is. Verwijder eerst de offerte.</div>
             @endif
 
+            @if (session('success') === 'trust_released')
+                <div class="form-success">Aanvraag vrijgegeven. De melding werd verstuurd.</div>
+            @elseif (session('success') === 'trust_released_no_mail')
+                <div class="form-error-list">Aanvraag vrijgegeven, maar er kon geen mail verstuurd worden (mailbudget of noodrem). Neem zelf contact op.</div>
+            @elseif (session('success') === 'trust_marked_spam')
+                <div class="form-success">Aanvraag als spam gemarkeerd. Er werd geen mail verstuurd.</div>
+            @elseif (session('success') === 'trust_not_reviewable')
+                <div class="form-error-list">Deze aanvraag staat niet (meer) op "te controleren".</div>
+            @endif
+
+            @include('admin.requests.partials.trust-review-banner', [
+                'subject' => $customerRequest,
+                'action' => route('admin.requests.trust', $customerRequest),
+                'noun' => 'aanvraag',
+            ])
+
             <div class="admin-detail-layout">
 
                 {{-- ===================== LEFT SIDEBAR ===================== --}}

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BlockedEmailController as AdminBlockedEmailController;
+use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
 use App\Http\Controllers\Admin\HvacBrandController;
 use App\Http\Controllers\Admin\HvacCalculationController;
 use App\Http\Controllers\Admin\HvacCatalogController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Admin\HvacRuleController;
 use App\Http\Controllers\Admin\HvacSupplierController;
 use App\Http\Controllers\Admin\QuoteController as AdminQuoteController;
 use App\Http\Controllers\Admin\RequestController as AdminRequestController;
+use App\Http\Controllers\Admin\SecurityLogController as AdminSecurityLogController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CustomerRequestController;
 use App\Http\Controllers\PageController;
@@ -76,6 +78,22 @@ Route::middleware('admin')
 
         Route::delete('/requests/{customerRequest}', [AdminRequestController::class, 'destroy'])
             ->name('requests.destroy');
+
+        // Sprint 21: trust review (release / spam), security log, contact submissions.
+        Route::post('/requests/{customerRequest}/trust', [AdminRequestController::class, 'updateTrust'])
+            ->name('requests.trust');
+
+        Route::get('/security-log', [AdminSecurityLogController::class, 'index'])
+            ->name('security.index');
+
+        Route::get('/contact-submissions', [AdminContactSubmissionController::class, 'index'])
+            ->name('contact-submissions.index');
+
+        Route::get('/contact-submissions/{contactSubmission}', [AdminContactSubmissionController::class, 'show'])
+            ->name('contact-submissions.show');
+
+        Route::post('/contact-submissions/{contactSubmission}/trust', [AdminContactSubmissionController::class, 'updateTrust'])
+            ->name('contact-submissions.trust');
 
         Route::patch('/requests/{customerRequest}/internal-notes', [AdminRequestController::class, 'updateInternalNotes'])
             ->name('requests.internal-notes.update');

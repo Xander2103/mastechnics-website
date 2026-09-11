@@ -115,7 +115,7 @@
         <div class="service-grid">
             @foreach ($services as $service)
                 <a
-                    class="service-card service-card-link reveal reveal-stagger {{ $service['key'] === 'heating' ? 'service-card--heat' : '' }} {{ in_array($service['key'], ['airco', 'cold-rooms']) ? 'service-card--cool' : '' }}"
+                    class="service-card service-card-link reveal reveal-stagger {{ in_array($service['key'], ['heating', 'chimney-sweeping']) ? 'service-card--heat' : '' }} {{ in_array($service['key'], ['airco', 'cold-rooms']) ? 'service-card--cool' : '' }}"
                     href="{{ route('pages.show', ['locale' => $locale, 'slug' => $service['slug']]) }}"
                 >
                     <h3>{{ $service['title'] }}</h3>

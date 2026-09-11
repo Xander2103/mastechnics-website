@@ -227,6 +227,16 @@
         url('/assets/images/service-koelcellen.webp') center / cover no-repeat;
 }
 
+/* Chimney sweeping reuses the service-page hero photo as its tile: a dedicated
+   service-*.webp crop was deliberately not generated for this service. */
+.hero-hex--soot {
+    --hex-accent-rgb: 140, 74, 43;
+    animation-delay: -3.3s;
+    background:
+        linear-gradient(145deg, rgba(58, 30, 18, 0.92) 0%, rgba(140, 74, 43, 0.74) 100%),
+        url('/assets/images/schoorsteenveger.webp') 72% center / cover no-repeat;
+}
+
 /* ---- Hex hover: pause animation, stronger glow ---- */
 
 .hero-hex:hover {

@@ -410,23 +410,17 @@
 
                 <div class="hero-hex-pyramid">
 
-                    {{-- Row 1: Sanitair --}}
+                    {{-- Seven services form a 2-3-2 honeycomb (was a 1-2-3
+                         pyramid with six). Heating sits in the centre with
+                         chimney sweeping beside it. --}}
+
+                    {{-- Row 1: Sanitair + Airco --}}
                     <div class="hxp-row">
                         <a class="hero-hex hero-hex--water"
                            href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['plumbing']['slug']]) }}"
                            aria-label="{{ $hexServices['plumbing']['title'] }}">
                             <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
                             <span class="hero-hex-label">{{ $hexServices['plumbing']['title'] }}</span>
-                        </a>
-                    </div>
-
-                    {{-- Row 2: Verwarming + Airco --}}
-                    <div class="hxp-row">
-                        <a class="hero-hex hero-hex--heat"
-                           href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['heating']['slug']]) }}"
-                           aria-label="{{ $hexServices['heating']['title'] }}">
-                            <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
-                            <span class="hero-hex-label">{{ $hexServices['heating']['title'] }}</span>
                         </a>
                         <a class="hero-hex hero-hex--cool"
                            href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['airco']['slug']]) }}"
@@ -436,14 +430,30 @@
                         </a>
                     </div>
 
-                    {{-- Row 3: Ventilatie + Waterverzachters + Koelcellen --}}
+                    {{-- Row 2: Schoorsteenvegen + Verwarming + Ventilatie --}}
                     <div class="hxp-row">
+                        <a class="hero-hex hero-hex--soot"
+                           href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['chimney-sweeping']['slug']]) }}"
+                           aria-label="{{ $hexServices['chimney-sweeping']['title'] }}">
+                            <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M3 11 12 3l9 8"/><path d="M5 9.4V21h14V9.4"/><path d="M15 6.3V3h3v5.8"/><path d="M9 21v-5a3 3 0 0 1 6 0v5"/></svg></span>
+                            <span class="hero-hex-label">{{ $hexServices['chimney-sweeping']['title'] }}</span>
+                        </a>
+                        <a class="hero-hex hero-hex--heat"
+                           href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['heating']['slug']]) }}"
+                           aria-label="{{ $hexServices['heating']['title'] }}">
+                            <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
+                            <span class="hero-hex-label">{{ $hexServices['heating']['title'] }}</span>
+                        </a>
                         <a class="hero-hex hero-hex--vent"
                            href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['ventilation']['slug']]) }}"
                            aria-label="{{ $hexServices['ventilation']['title'] }}">
                             <span class="hero-hex-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M21 2v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/></svg></span>
                             <span class="hero-hex-label">{{ $hexServices['ventilation']['title'] }}</span>
                         </a>
+                    </div>
+
+                    {{-- Row 3: Waterverzachters + Koelcellen --}}
+                    <div class="hxp-row">
                         <a class="hero-hex hero-hex--soft"
                            href="{{ route('pages.show', ['locale' => $locale, 'slug' => $hexServices['water-softeners']['slug']]) }}"
                            aria-label="{{ $hexServices['water-softeners']['title'] }}">
@@ -479,7 +489,7 @@
         <div class="service-grid">
             @foreach ($services as $service)
                 <a
-                    class="service-card service-card-link reveal reveal-stagger {{ $service['key'] === 'heating' ? 'service-card--heat' : '' }} {{ in_array($service['key'], ['airco', 'cold-rooms']) ? 'service-card--cool' : '' }}"
+                    class="service-card service-card-link reveal reveal-stagger {{ in_array($service['key'], ['heating', 'chimney-sweeping']) ? 'service-card--heat' : '' }} {{ in_array($service['key'], ['airco', 'cold-rooms']) ? 'service-card--cool' : '' }}"
                     href="{{ route('pages.show', [
                         'locale' => $locale,
                         'slug' => $service['slug'],

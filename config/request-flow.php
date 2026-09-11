@@ -151,6 +151,19 @@ return [
                     ],
                 ],
                 [
+                    'value'       => 'schoorsteenvegen',
+                    'labels'      => [
+                        'nl' => 'Ik wil mijn schoorsteen laten vegen',
+                        'fr' => 'Je veux faire ramoner ma cheminée',
+                        'en' => 'I want my chimney swept',
+                    ],
+                    'description' => [
+                        'nl' => 'Voor het vegen van schoorsteen of rookkanaal van houtkachel, haard of cassette.',
+                        'fr' => 'Pour le ramonage de la cheminée ou du conduit d\'un poêle, d\'un foyer ou d\'une cassette.',
+                        'en' => 'For sweeping the chimney or flue of a wood stove, fireplace or cassette.',
+                    ],
+                ],
+                [
                     'value'       => 'andere',
                     'labels'      => [
                         'nl' => 'Ik weet het niet goed',
@@ -740,6 +753,142 @@ return [
                     'nl' => 'Een waterverzachter wordt bij voorkeur zo dicht mogelijk na de waterteller geplaatst. Voeg indien mogelijk foto\'s toe van de waterteller, de beschikbare ruimte, de afvoer en het stopcontact.',
                     'fr' => 'Un adoucisseur d\'eau s\'installe de préférence juste après le compteur d\'eau. Ajoutez si possible des photos du compteur d\'eau, de l\'espace disponible, de l\'évacuation et de la prise électrique.',
                     'en' => 'A water softener is preferably installed as close as possible after the water meter. If possible, add photos of the water meter, the available space, the drain and the power socket.',
+                ],
+            ],
+        ],
+
+        // ── Schoorsteenvegen (conditional, 2 steps) ──────────────────────────
+        // Asks only what a sweep needs: the appliance type, a photo of the
+        // appliance, a photo of the side view / flue connection and optional
+        // remarks. Photos go through the shared attachments[] upload box.
+        // The remarks field is named `description` on purpose: it lands in
+        // customer_requests.description like every other flow's description,
+        // so admin, mail and the standard reply need no special casing.
+        [
+            'code'      => 'schoorsteen_installatie',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['schoorsteenvegen'],
+            ],
+            'labels' => [
+                'nl' => 'Uw haard of kachel',
+                'fr' => 'Votre foyer ou poêle',
+                'en' => 'Your fireplace or stove',
+            ],
+            'fields' => [
+                [
+                    'name'     => 'chimney_appliance_type',
+                    'type'     => 'select',
+                    'required' => true,
+                    'labels'   => [
+                        'nl' => 'Type haard of installatie',
+                        'fr' => 'Type de foyer ou d\'installation',
+                        'en' => 'Type of fireplace or appliance',
+                    ],
+                    'options' => [
+                        [
+                            'value'  => 'freestanding_wood_stove',
+                            'labels' => ['nl' => 'Vrijstaande houtkachel', 'fr' => 'Poêle à bois indépendant', 'en' => 'Freestanding wood stove'],
+                        ],
+                        [
+                            'value'  => 'insert_cassette',
+                            'labels' => ['nl' => 'Inzethaard / cassette', 'fr' => 'Insert / cassette', 'en' => 'Insert / cassette'],
+                        ],
+                        [
+                            'value'  => 'built_in_fireplace',
+                            'labels' => ['nl' => 'Inbouwhaard', 'fr' => 'Foyer encastré', 'en' => 'Built-in fireplace'],
+                        ],
+                        [
+                            'value'  => 'suspended_fireplace',
+                            'labels' => ['nl' => 'Hangende haard', 'fr' => 'Foyer suspendu', 'en' => 'Suspended fireplace'],
+                        ],
+                        [
+                            'value'  => 'soapstone_stove',
+                            'labels' => ['nl' => 'Speksteenkachel', 'fr' => 'Poêle en stéatite', 'en' => 'Soapstone stove'],
+                        ],
+                        [
+                            'value'  => 'central_heating_stove',
+                            'labels' => ['nl' => 'CV-haard', 'fr' => 'Poêle-chaudière (chauffage central)', 'en' => 'Boiler stove (central heating)'],
+                        ],
+                        [
+                            'value'  => 'open_fireplace',
+                            'labels' => ['nl' => 'Open haard', 'fr' => 'Foyer ouvert', 'en' => 'Open fireplace'],
+                        ],
+                        [
+                            'value'  => 'other',
+                            'labels' => ['nl' => 'Andere', 'fr' => 'Autre', 'en' => 'Other'],
+                        ],
+                    ],
+                ],
+                [
+                    'name'         => 'chimney_appliance_type_other',
+                    'type'         => 'text',
+                    'required'     => false,
+                    'visible_when' => ['field' => 'chimney_appliance_type', 'value' => 'other'],
+                    'labels'       => [
+                        'nl' => 'Welk type installatie is het?',
+                        'fr' => 'De quel type d\'installation s\'agit-il ?',
+                        'en' => 'What type of appliance is it?',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijv. pelletkachel, buitenhaard, houtfornuis...',
+                        'fr' => 'P.ex. poêle à pellets, foyer extérieur, cuisinière à bois...',
+                        'en' => 'E.g. pellet stove, outdoor fireplace, wood-burning range...',
+                    ],
+                ],
+            ],
+            'helper_box' => [
+                'title' => [
+                    'nl' => 'Foto van de haard of installatie',
+                    'fr' => 'Photo du foyer ou de l\'installation',
+                    'en' => 'Photo of the fireplace or stove',
+                ],
+                'text'  => [
+                    'nl' => 'Voeg een foto toe van de haard of kachel zoals die in de ruimte staat. Zo zien we meteen om welk type installatie het gaat.',
+                    'fr' => 'Ajoutez une photo du foyer ou du poêle tel qu\'il se trouve dans la pièce. Nous voyons ainsi directement de quel type d\'installation il s\'agit.',
+                    'en' => 'Add a photo of the fireplace or stove as it stands in the room, so we can see straight away what type of appliance it is.',
+                ],
+            ],
+        ],
+        [
+            'code'      => 'schoorsteen_aansluiting',
+            'type'      => 'fields',
+            'condition' => [
+                'service_categories' => ['schoorsteenvegen'],
+            ],
+            'labels' => [
+                'nl' => 'Aansluiting en opmerkingen',
+                'fr' => 'Raccordement et remarques',
+                'en' => 'Flue connection and remarks',
+            ],
+            'helper_box' => [
+                'position' => 'before_fields',
+                'title' => [
+                    'nl' => 'Foto van het zijaanzicht of de aansluiting',
+                    'fr' => 'Photo de la vue latérale ou du raccordement',
+                    'en' => 'Photo of the side view or the flue connection',
+                ],
+                'text'  => [
+                    'nl' => 'Een foto van de zijkant van het toestel en van de aansluiting op het rookkanaal (kachelpijp, muurdoorvoer of schouw) helpt ons om het juiste materiaal mee te nemen.',
+                    'fr' => 'Une photo du côté de l\'appareil et du raccordement au conduit de fumée (tuyau de poêle, traversée de mur ou cheminée) nous aide à emporter le bon matériel.',
+                    'en' => 'A photo of the side of the appliance and of its connection to the flue (stove pipe, wall passage or chimney breast) helps us bring the right equipment.',
+                ],
+            ],
+            'fields' => [
+                [
+                    'name'        => 'description',
+                    'type'        => 'textarea',
+                    'required'    => false,
+                    'labels'      => [
+                        'nl' => 'Eventuele opmerkingen',
+                        'fr' => 'Remarques éventuelles',
+                        'en' => 'Any remarks',
+                    ],
+                    'placeholder' => [
+                        'nl' => 'Bijv. wanneer de laatste veegbeurt was, of u een reinigingsattest nodig hebt, bijzonderheden over de toegang tot het dak...',
+                        'fr' => 'P.ex. la date du dernier ramonage, si vous avez besoin d\'une attestation, particularités d\'accès au toit...',
+                        'en' => 'E.g. when the chimney was last swept, whether you need a cleaning certificate, roof access details...',
+                    ],
                 ],
             ],
         ],
@@ -1658,6 +1807,16 @@ return [
                 'nl' => 'Koeling of koelcel',
                 'fr' => 'Réfrigération ou chambre froide',
                 'en' => 'Cooling or cold room',
+            ],
+        ],
+        [
+            'value'        => 'schoorsteenvegen',
+            'service_key'  => 'chimney-sweeping',
+            'request_type' => 'maintenance',
+            'labels'       => [
+                'nl' => 'Schoorsteen laten vegen',
+                'fr' => 'Ramonage de cheminée',
+                'en' => 'Chimney sweeping',
             ],
         ],
         [

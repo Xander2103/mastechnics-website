@@ -138,8 +138,13 @@ class CustomerRequest extends Model
         // or a problem description — don't flag those as missing there.
         $isNewInstallationQuote = in_array($this->service_category, ['airco_offerte', 'waterverzachter'], true);
 
-        // 5. No description (not asked in new-installation quote flows)
-        if (! $isNewInstallationQuote && empty($this->description) && empty($this->customer_message)) {
+        // Chimney sweeping asks the appliance type plus optional remarks; brand,
+        // model and a problem description are never part of that flow.
+        $isChimneySweeping = $this->service_category === 'schoorsteenvegen';
+        $asksDeviceAndDescription = ! $isNewInstallationQuote && ! $isChimneySweeping;
+
+        // 5. No description (not asked in new-installation quote / chimney flows)
+        if ($asksDeviceAndDescription && empty($this->description) && empty($this->customer_message)) {
             $missing[] = 'Geen duidelijke beschrijving ingevuld.';
         }
 
@@ -148,12 +153,17 @@ class CustomerRequest extends Model
             $missing[] = 'Geen gewenst moment ingevuld.';
         }
 
-        // 7. Brand/model missing (and not unknown; not asked in new-installation quote flows)
-        if (! $isNewInstallationQuote
+        // 7. Brand/model missing (and not unknown; not asked in new-installation quote / chimney flows)
+        if ($asksDeviceAndDescription
             && (empty($this->brand) || empty($this->device_model))
             && ! $this->unknown_device_details
         ) {
             $missing[] = 'Merk/model ontbreekt.';
+        }
+
+        // 7b. Chimney sweeping — appliance type is the one thing a sweep needs to know
+        if ($isChimneySweeping && empty($answers['chimney_appliance_type'])) {
+            $missing[] = 'Type haard/installatie ontbreekt.';
         }
 
         // 8. Airco offerte — no rooms

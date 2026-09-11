@@ -120,6 +120,8 @@
             'summary_household'       => 'Personen',
             'summary_softener_type'   => 'Type',
             'summary_drain'           => 'Afvoer',
+            'summary_chimney'         => 'Schoorsteenvegen',
+            'summary_appliance_type'  => 'Type haard',
             'summary_unknown_value'   => 'Onbekend',
             'summary_customer'        => 'Klant en urgentie',
             'summary_problem'         => 'Situatie / probleem',
@@ -191,6 +193,8 @@
             'summary_household'       => 'Personnes',
             'summary_softener_type'   => 'Type',
             'summary_drain'           => 'Évacuation',
+            'summary_chimney'         => 'Ramonage',
+            'summary_appliance_type'  => 'Type de foyer',
             'summary_unknown_value'   => 'Inconnu',
             'summary_customer'        => 'Client et urgence',
             'summary_problem'         => 'Situation / problème',
@@ -262,6 +266,8 @@
             'summary_household'       => 'People',
             'summary_softener_type'   => 'Type',
             'summary_drain'           => 'Drain',
+            'summary_chimney'         => 'Chimney sweeping',
+            'summary_appliance_type'  => 'Appliance type',
             'summary_unknown_value'   => 'Unknown',
             'summary_customer'        => 'Customer and urgency',
             'summary_problem'         => 'Situation / problem',
@@ -669,10 +675,22 @@
                                         @endif
 
                                     @elseif (($step['type'] ?? '') === 'fields')
+                                        @php
+                                            // A step may ask for photos before its fields
+                                            // (helper_box.position = before_fields); the
+                                            // default keeps the box under the fields.
+                                            $helperBoxFirst = isset($step['helper_box'])
+                                                && ($step['helper_box']['position'] ?? 'after_fields') === 'before_fields';
+                                        @endphp
+
                                         @if (isset($step['urgent_warning']))
                                             <div class="urgent-warning-box">
                                                 {{ $step['urgent_warning'][$locale] ?? $step['urgent_warning']['nl'] }}
                                             </div>
+                                        @endif
+
+                                        @if ($helperBoxFirst)
+                                            @include('pages.partials.request-upload-box', ['box' => $step['helper_box'], 'boxStyle' => 'margin-bottom: 20px;'])
                                         @endif
 
                                         <div class="form-grid">
@@ -830,43 +848,8 @@
                                             </div>
                                         @endif
 
-                                        @if (isset($step['helper_box']))
-                                            <div class="upload-box {{ $errors->has('attachments') || $errors->has('attachments.*') ? 'field-has-error' : '' }}">
-                                                <strong>
-                                                    {{ $step['helper_box']['title'][$locale] ?? $step['helper_box']['title']['nl'] }}
-                                                </strong>
-
-                                                <p>
-                                                    {{ $step['helper_box']['text'][$locale] ?? $step['helper_box']['text']['nl'] }}
-                                                </p>
-
-                                                @if ($step['helper_box']['render_upload'] ?? true)
-                                                    <label class="upload-file-control">
-                                                        <span>
-                                                            {{ $text['choose_files'] }}
-                                                        </span>
-
-                                                        <input
-                                                            type="file"
-                                                            name="attachments[]"
-                                                            multiple
-                                                            accept=".jpg,.jpeg,.png,.webp,.pdf"
-                                                            class="js-attachment-input"
-                                                        >
-                                                    </label>
-
-                                                    <div class="selected-attachments js-attachment-list"
-                                                         data-remove-label="{{ $locale === 'fr' ? 'Supprimer' : ($locale === 'en' ? 'Remove' : 'Verwijder') }}"></div>
-
-                                                    @error('attachments')
-                                                        <p class="field-error-text">{{ $message }}</p>
-                                                    @enderror
-
-                                                    @error('attachments.*')
-                                                        <p class="field-error-text">{{ $message }}</p>
-                                                    @enderror
-                                                @endif
-                                            </div>
+                                        @if (isset($step['helper_box']) && ! $helperBoxFirst)
+                                            @include('pages.partials.request-upload-box', ['box' => $step['helper_box'], 'boxStyle' => ''])
                                         @endif
                                     @elseif (($step['type'] ?? '') === 'summary')
                                         <h2>{{ $text['summary_title'] }}</h2>
@@ -1524,6 +1507,8 @@
             'household'     => $text['summary_household'],
             'softenerType'  => $text['summary_softener_type'],
             'drain'         => $text['summary_drain'],
+            'chimney'       => $text['summary_chimney'],
+            'applianceType' => $text['summary_appliance_type'],
             'unknownValue'  => $text['summary_unknown_value'],
             'customer'      => $text['summary_customer'],
             'problem'       => $text['summary_problem'],
@@ -1675,6 +1660,14 @@
                 { label: summaryLabels.softenerType, value: qSelectText('softener_type_preference') },
                 { value: qVal('softener_type_other') },
                 { label: summaryLabels.drain, value: qSelectText('drain_distance') },
+            ]);
+        }
+
+        // 2c. Chimney sweeping flow (remarks are the shared `description`)
+        if (category === 'schoorsteenvegen') {
+            addSection(summaryLabels.chimney, [
+                { label: summaryLabels.applianceType, value: qSelectText('chimney_appliance_type') },
+                { value: qVal('chimney_appliance_type_other') },
             ]);
         }
 

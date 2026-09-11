@@ -17,7 +17,7 @@
             'secondary_cta'  => 'Bekijk diensten',
             'hero_badge'     => 'Technische service in de Druivenstreek — particulieren & bedrijven',
             'hero_headline'  => 'Technische oplossingen voor comfort en zekerheid.',
-            'hero_intro'     => 'Uw partner voor sanitair, verwarming, airco, ventilatie, waterverzachters en koelcellen in Tervuren, Overijse, Hoeilaart en omgeving. Duurzame technologie, perfecte afwerking en service op maat.',
+            'hero_intro'     => 'Uw partner voor sanitair, verwarming, airco, ventilatie, waterverzachters, koelcellen en schoorsteenvegen in Tervuren, Overijse, Hoeilaart en omgeving. Duurzame technologie, perfecte afwerking en service op maat.',
 
             'services_label' => 'Diensten',
             'services_title' => 'Waarvoor zoekt u hulp?',
@@ -28,7 +28,7 @@
 
             'why_label'   => 'Waarom Mastechnics',
             'why_title'   => 'Snelle, duidelijke en vakkundige service.',
-            'why_intro'   => 'Mastechnics helpt particulieren en bedrijven met technische installaties en interventies voor sanitair, verwarming, airco, ventilatie, waterverzachters en koelcellen. We werken gestructureerd: eerst de situatie helder krijgen, daarna een correcte inschatting en een nette uitvoering.',
+            'why_intro'   => 'Mastechnics helpt particulieren en bedrijven met technische installaties en interventies voor sanitair, verwarming, airco, ventilatie, waterverzachters, koelcellen en schoorsteenvegen. We werken gestructureerd: eerst de situatie helder krijgen, daarna een correcte inschatting en een nette uitvoering.',
             'why_support' => 'Zo weet u snel waar u aan toe bent — zonder onnodige ingrepen of vaag advies.',
             'why_items'   => [
                 [
@@ -112,7 +112,7 @@
             'secondary_cta'  => 'Voir nos services',
             'hero_badge'     => 'Service technique dans le Druivenstreek — particuliers et entreprises',
             'hero_headline'  => 'Des solutions techniques qui créent le confort.',
-            'hero_intro'     => 'Votre partenaire pour la plomberie, le chauffage, la climatisation, la ventilation, les adoucisseurs d\'eau et les chambres froides à Tervuren, Overijse, Hoeilaart et environs. Technologie durable, finition parfaite et service sur mesure.',
+            'hero_intro'     => 'Votre partenaire pour la plomberie, le chauffage, la climatisation, la ventilation, les adoucisseurs d\'eau, les chambres froides et le ramonage à Tervuren, Overijse, Hoeilaart et environs. Technologie durable, finition parfaite et service sur mesure.',
 
             'services_label' => 'Services',
             'services_title' => 'Tous les services techniques sous un même toit',
@@ -123,7 +123,7 @@
 
             'why_label'   => 'Pourquoi Mastechnics',
             'why_title'   => 'Un service rapide, clair et professionnel.',
-            'why_intro'   => "Mastechnics aide les particuliers et les entreprises avec des installations techniques et des interventions en plomberie, chauffage, climatisation, ventilation, adoucisseurs d'eau et chambres froides. Nous travaillons de manière structurée : d'abord clarifier la situation, puis une estimation correcte et une exécution soignée.",
+            'why_intro'   => "Mastechnics aide les particuliers et les entreprises avec des installations techniques et des interventions en plomberie, chauffage, climatisation, ventilation, adoucisseurs d'eau, chambres froides et ramonage. Nous travaillons de manière structurée : d'abord clarifier la situation, puis une estimation correcte et une exécution soignée.",
             'why_support' => "Vous saurez rapidement à quoi vous en tenir — sans interventions inutiles ni conseils vagues.",
             'why_items'   => [
                 [
@@ -207,7 +207,7 @@
             'secondary_cta'  => 'View our services',
             'hero_badge'     => 'Technical service in the Druivenstreek — homes and businesses',
             'hero_headline'  => 'Technical solutions that create comfort.',
-            'hero_intro'     => 'Your partner for plumbing, heating, air conditioning, ventilation, water softeners and cold rooms in Tervuren, Overijse, Hoeilaart and the surrounding area. Durable technology, perfect finish and tailored service.',
+            'hero_intro'     => 'Your partner for plumbing, heating, air conditioning, ventilation, water softeners, cold rooms and chimney sweeping in Tervuren, Overijse, Hoeilaart and the surrounding area. Durable technology, perfect finish and tailored service.',
 
             'services_label' => 'Services',
             'services_title' => 'All technical services under one roof',
@@ -218,7 +218,7 @@
 
             'why_label'   => 'Why Mastechnics',
             'why_title'   => 'Fast, clear and professional service.',
-            'why_intro'   => 'Mastechnics helps homeowners and businesses with technical installations and call-outs for plumbing, heating, air conditioning, ventilation, water softeners and cold rooms. We work in a structured way: first we clarify the situation, then we give an accurate estimate and carry out the work cleanly.',
+            'why_intro'   => 'Mastechnics helps homeowners and businesses with technical installations and call-outs for plumbing, heating, air conditioning, ventilation, water softeners, cold rooms and chimney sweeping. We work in a structured way: first we clarify the situation, then we give an accurate estimate and carry out the work cleanly.',
             'why_support' => 'So you know quickly where you stand — without unnecessary work or vague advice.',
             'why_items'   => [
                 [

@@ -8,9 +8,9 @@ return [
     // Short, reusable one-liner. Used as the meta-description fallback when a
     // page translation has none, and as the schema.org "description".
     'tagline' => [
-        'nl' => 'Erkende technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koelcellen in de Druivenstreek en Vlaams-Brabant.',
-        'fr' => 'Service technique agréé pour le chauffage, la climatisation, la plomberie, la ventilation, les adoucisseurs d\'eau et les chambres froides dans le Druivenstreek et le Brabant flamand.',
-        'en' => 'Certified technical service for heating, air conditioning, plumbing, ventilation, water softeners and cold rooms in the Druivenstreek region and Flemish Brabant.',
+        'nl' => 'Erkende technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters, koelcellen en schoorsteenvegen in de Druivenstreek en Vlaams-Brabant.',
+        'fr' => 'Service technique agréé pour le chauffage, la climatisation, la plomberie, la ventilation, les adoucisseurs d\'eau, les chambres froides et le ramonage dans le Druivenstreek et le Brabant flamand.',
+        'en' => 'Certified technical service for heating, air conditioning, plumbing, ventilation, water softeners, cold rooms and chimney sweeping in the Druivenstreek region and Flemish Brabant.',
     ],
 
     'contact' => [

@@ -11,7 +11,7 @@
             'request' => 'Start aanvraag',
             'reviews' => 'Reviews',
             'footer_services_text' =>
-                'Technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters en koeling.',
+                'Technische service voor verwarming, airco, sanitair, ventilatie, waterverzachters, koeling en schoorsteenvegen.',
             'footer_request_title' => 'Aanvraag',
             'footer_request_text' => 'Start een slimme aanvraag en vul meteen de juiste technische informatie in.',
             'designed_by' => 'Designed by VanMalderStudio',
@@ -24,7 +24,7 @@
             'request' => 'Démarrer ma demande',
             'reviews' => 'Avis',
             'footer_services_text' =>
-                'Service technique pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d\'eau et réfrigération.',
+                'Service technique pour chauffage, climatisation, plomberie, ventilation, adoucisseurs d\'eau, réfrigération et ramonage.',
             'footer_request_title' => 'Demande',
             'footer_request_text' =>
                 'Démarrez une demande intelligente et ajoutez directement les bonnes informations techniques.',
@@ -38,7 +38,7 @@
             'request' => 'Start request',
             'reviews' => 'Reviews',
             'footer_services_text' =>
-                'Technical service for heating, air conditioning, plumbing, ventilation, water softeners and refrigeration.',
+                'Technical service for heating, air conditioning, plumbing, ventilation, water softeners, refrigeration and chimney sweeping.',
             'footer_request_title' => 'Request',
             'footer_request_text' => 'Start a smart request and add the right technical information immediately.',
             'designed_by' => 'Designed by VanMalderStudio',

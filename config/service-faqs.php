@@ -122,4 +122,22 @@ return [
             ['question' => 'Do you also work for catering and food businesses?', 'answer' => 'Yes. From a small cold room in a restaurant kitchen to larger cold storage at food and retail businesses. For commercial clients where downtime means immediate loss, maintenance is best scheduled periodically rather than only after a failure.'],
         ],
     ],
+
+    'chimney-sweeping' => [
+        'nl' => [
+            ['question' => 'Hoe vaak moet ik mijn schoorsteen laten vegen?', 'answer' => 'Dat hangt af van hoe vaak u stookt en waarmee. Voor een houtkachel of open haard die regelmatig gebruikt wordt, is een jaarlijkse veegbeurt de gangbare vuistregel, en veel brandverzekeringen vragen een periodieke reiniging. Stookt u intensief of merkt u slechte trek, rookterugslag of roetgeur, dan is een extra reiniging aangewezen.'],
+            ['question' => 'Krijg ik een reinigingsattest voor mijn verzekering?', 'answer' => 'Ja. Na het vegen kunt u een reinigingsattest ontvangen met de datum en de gereinigde installatie. Dat attest kunt u desgevraagd aan uw verzekeringsmaatschappij voorleggen. Vermeld bij uw aanvraag dat u het attest nodig hebt, dan brengen wij het meteen in orde.'],
+            ['question' => 'Welke installaties kunnen jullie vegen en maakt dat veel vuil?', 'answer' => 'Wij reinigen het rookkanaal van open haarden, houtkachels, inzethaarden of cassettes, hangende haarden, speksteenkachels en andere geschikte houtgestookte installaties. Bij een mechanische reiniging komt roet vrij, maar we dekken de omgeving van de haard af en werken zorgvuldig zodat vervuiling in de woning beperkt blijft. Het helpt als de haard koud en leeg is en de ruimte errond vrij is.'],
+        ],
+        'fr' => [
+            ['question' => 'À quelle fréquence faire ramoner ma cheminée ?', 'answer' => 'Cela dépend de la fréquence d\'utilisation et du combustible. Pour un poêle à bois ou un foyer ouvert utilisé régulièrement, un ramonage annuel est la règle courante, et de nombreuses assurances incendie exigent un nettoyage périodique. Si vous chauffez intensivement ou constatez un mauvais tirage, des refoulements de fumée ou une odeur de suie, un ramonage supplémentaire s\'impose.'],
+            ['question' => 'Recevrai-je une attestation de ramonage pour mon assurance ?', 'answer' => 'Oui. Après le ramonage, vous pouvez recevoir une attestation mentionnant la date et l\'installation nettoyée. Vous pouvez la présenter sur demande à votre compagnie d\'assurance. Indiquez dans votre demande que vous avez besoin de l\'attestation, nous la préparons directement.'],
+            ['question' => 'Quelles installations ramonez-vous et cela salit-il beaucoup ?', 'answer' => 'Nous nettoyons le conduit de fumée des foyers ouverts, poêles à bois, inserts ou cassettes, foyers suspendus, poêles en stéatite et autres installations au bois adaptées. Un ramonage mécanique libère de la suie, mais nous protégeons les abords du foyer et travaillons avec soin afin de limiter les salissures dans l\'habitation. Il est utile que le foyer soit froid et vide et que l\'espace autour soit dégagé.'],
+        ],
+        'en' => [
+            ['question' => 'How often should I have my chimney swept?', 'answer' => 'That depends on how often you burn and what you burn. For a wood stove or open fireplace in regular use, an annual sweep is the usual rule of thumb, and many fire insurers require periodic cleaning. If you burn intensively or notice poor draught, smoke blowing back or a smell of soot, an extra sweep is advisable.'],
+            ['question' => 'Will I receive a cleaning certificate for my insurer?', 'answer' => 'Yes. After the sweep you can receive a cleaning certificate stating the date and the appliance cleaned. You can present it to your insurance company on request. Mention in your request that you need the certificate and we will prepare it straight away.'],
+            ['question' => 'Which appliances do you sweep, and does it make a mess?', 'answer' => 'We clean the flue of open fireplaces, wood stoves, inserts or cassettes, suspended fireplaces, soapstone stoves and other suitable wood-burning appliances. Mechanical sweeping releases soot, but we cover the area around the fireplace and work carefully to keep dirt in your home to a minimum. It helps if the fireplace is cold and empty and the space around it is clear.'],
+        ],
+    ],
 ];

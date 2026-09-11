@@ -170,12 +170,19 @@ class PageSeeder extends Seeder
             foreach ($service['translations'] as $locale => $translation) {
                 $meta = $this->serviceMeta()[$serviceCode][$locale];
 
+                // Services added after the generic launch content have their
+                // real body copy here; the older six keep the generic intake
+                // sentence (their live copy came from later content updates).
+                $content = $serviceCode === 'chimney-sweeping'
+                    ? self::chimneySweepingContent()[$locale]
+                    : $this->getServiceContent($locale, $translation['title']);
+
                 $translations[] = [
                     'locale' => $locale,
                     'slug' => $translation['slug'],
                     'title' => $translation['title'],
                     'intro' => $translation['description'],
-                    'content' => $this->getServiceContent($locale, $translation['title']),
+                    'content' => $content,
                     'meta_title' => $meta['meta_title'],
                     'meta_description' => $meta['meta_description'],
                 ];
@@ -229,6 +236,37 @@ class PageSeeder extends Seeder
                 'fr' => ['meta_title' => 'Chambres froides : pose & entretien | Mastechnics', 'meta_description' => 'Chambres froides et installations frigorifiques pour horeca, alimentation et industrie en Brabant flamand. Pose, entretien et contrôle F-gaz.'],
                 'en' => ['meta_title' => 'Cold rooms: installation & service | Mastechnics', 'meta_description' => 'Cold rooms and refrigeration for catering, food and industry in Flemish Brabant. Installation, maintenance, F-gas leak checks and repair.'],
             ],
+            'chimney-sweeping' => self::chimneySweepingMeta(),
+        ];
+    }
+
+    /**
+     * Meta of the chimney-sweeping page. Shared with the migration that adds
+     * the page to existing installs so both paths seed identical strings.
+     *
+     * @return array<string, array{meta_title: string, meta_description: string}>
+     */
+    public static function chimneySweepingMeta(): array
+    {
+        return [
+            'nl' => ['meta_title' => 'Schoorsteenvegen Vlaams-Brabant | Mastechnics', 'meta_description' => 'Schoorsteen laten vegen in Tervuren, Overijse en Vlaams-Brabant. Mechanische reiniging van schoorsteen en rookkanaal, met reinigingsattest voor uw verzekering.'],
+            'fr' => ['meta_title' => 'Ramonage de cheminée Brabant flamand | Mastechnics', 'meta_description' => 'Ramonage mécanique de cheminées et conduits de fumée à Tervuren, Overijse et en Brabant flamand. Attestation de ramonage pour votre assurance sur demande.'],
+            'en' => ['meta_title' => 'Chimney sweeping Flemish Brabant | Mastechnics', 'meta_description' => 'Mechanical chimney and flue cleaning in Tervuren, Overijse and Flemish Brabant. Cleaning certificate for your insurer available on request.'],
+        ];
+    }
+
+    /**
+     * Body copy ("Wat kunnen we voor u doen?") of the chimney-sweeping page.
+     * Shared with the migration for the same reason as the meta above.
+     *
+     * @return array<string, string>
+     */
+    public static function chimneySweepingContent(): array
+    {
+        return [
+            'nl' => 'Mastechnics reinigt schoorstenen en rookkanalen mechanisch met aangepast materiaal. De roetaanslag wordt met borstels en aangepast gereedschap uit het rookkanaal verwijderd, voor open haarden, houtkachels, inzethaarden of cassettes, hangende haarden, speksteenkachels en andere geschikte houtgestookte installaties. Tijdens de werkzaamheden dekken we af en werken we zorgvuldig, zodat vervuiling in de woning beperkt blijft. Na de reiniging kunt u een reinigingsattest ontvangen dat u desgevraagd aan uw verzekeringsmaatschappij kunt voorleggen.',
+            'fr' => 'Mastechnics ramone mécaniquement les cheminées et conduits de fumée avec du matériel adapté. Les dépôts de suie sont retirés du conduit à l\'aide de brosses et d\'outils appropriés, pour les foyers ouverts, poêles à bois, inserts ou cassettes, foyers suspendus, poêles en stéatite et autres installations au bois adaptées. Pendant l\'intervention, nous protégeons les lieux et travaillons avec soin afin de limiter les salissures dans l\'habitation. Après le ramonage, vous pouvez recevoir une attestation de ramonage à présenter sur demande à votre compagnie d\'assurance.',
+            'en' => 'Mastechnics cleans chimneys and flues mechanically with purpose-made equipment. Soot deposits are removed from the flue with brushes and suitable tools, for open fireplaces, wood stoves, inserts or cassettes, suspended fireplaces, soapstone stoves and other suitable wood-burning appliances. During the work we cover up and work carefully to keep dirt in your home to a minimum. After cleaning you can receive a cleaning certificate, which you can present to your insurance company on request.',
         ];
     }
 

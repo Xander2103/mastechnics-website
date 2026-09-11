@@ -132,4 +132,26 @@ return [
             ],
         ],
     ],
+
+    'chimney-sweeping' => [
+        'is_active' => true,
+        'hero_image' => 'assets/images/schoorsteenveger.webp',
+        'translations' => [
+            'nl' => [
+                'title' => 'Schoorsteenvegen',
+                'slug' => 'schoorsteenvegen',
+                'description' => 'Mechanisch vegen van schoorsteen en rookkanaal voor open haard, houtkachel, inzethaard of cassette en andere houtgestookte installaties. Reinigingsattest op vraag.',
+            ],
+            'fr' => [
+                'title' => 'Ramonage',
+                'slug' => 'ramonage',
+                'description' => 'Ramonage mécanique de cheminée et de conduit de fumée pour foyer ouvert, poêle à bois, insert ou cassette et autres installations au bois. Attestation de ramonage sur demande.',
+            ],
+            'en' => [
+                'title' => 'Chimney sweeping',
+                'slug' => 'chimney-sweeping',
+                'description' => 'Mechanical sweeping of chimneys and flues for open fireplaces, wood stoves, inserts or cassettes and other wood-burning appliances. Cleaning certificate on request.',
+            ],
+        ],
+    ],
 ];

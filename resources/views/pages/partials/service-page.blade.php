@@ -19,6 +19,7 @@
         'ventilation' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 2v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/></svg>',
         'water-softeners' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>',
         'cold-rooms' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>',
+        'chimney-sweeping' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8"/><path d="M5 9.4V21h14V9.4"/><path d="M15 6.3V3h3v5.8"/><path d="M9 21v-5a3 3 0 0 1 6 0v5"/></svg>',
     ];
 
     // Hero artwork lives in config/services.php so the sitemap's image entries
@@ -363,6 +364,51 @@
                     ['title' => 'Certified F-gas installer', 'description' => 'All work on refrigeration installations with refrigerants is carried out by certified F-gas technicians.'],
                     ['title' => 'Catering, food and industry', 'description' => 'From small cold rooms in a restaurant to large industrial refrigeration: we work with commercial clients across all sectors.'],
                     ['title' => 'Fast response to problems', 'description' => 'Temperature problems in a cold room can quickly cause serious damage. We aim for fast response times for commercial clients.'],
+                ],
+            ],
+        ],
+
+        'chimney-sweeping' => [
+            'nl' => [
+                'situations' => [
+                    'Jaarlijkse veegbeurt van de schoorsteen of het rookkanaal van uw houtkachel of open haard',
+                    'Schoorsteen laten vegen met een reinigingsattest voor de brandverzekering',
+                    'Rookkanaal reinigen van inzethaard, cassette, hangende haard of speksteenkachel',
+                    'Slechte trek, rookterugslag of roetgeur in de woning',
+                    'Controle en reiniging van het rookkanaal na aankoop van een woning of plaatsing van een nieuwe kachel',
+                ],
+                'highlights' => [
+                    ['title' => 'Mechanische reiniging', 'description' => 'Roetaanslag wordt met borstels en aangepast materiaal mechanisch uit schoorsteen en rookkanaal verwijderd, van de aansluiting van het toestel tot de schoorsteenmond.'],
+                    ['title' => 'Zorgvuldig werk in uw woning', 'description' => 'We dekken de omgeving van de haard af en werken zorgvuldig, zodat vervuiling in de woning beperkt blijft.'],
+                    ['title' => 'Reinigingsattest op vraag', 'description' => 'Na de reiniging kunt u een reinigingsattest ontvangen dat u desgevraagd aan uw verzekeringsmaatschappij kunt voorleggen.'],
+                ],
+            ],
+            'fr' => [
+                'situations' => [
+                    'Ramonage annuel de la cheminée ou du conduit de fumée de votre poêle à bois ou foyer ouvert',
+                    'Faire ramoner la cheminée avec une attestation de ramonage pour l\'assurance incendie',
+                    'Nettoyage du conduit de fumée d\'un insert, d\'une cassette, d\'un foyer suspendu ou d\'un poêle en stéatite',
+                    'Mauvais tirage, refoulement de fumée ou odeur de suie dans l\'habitation',
+                    'Contrôle et nettoyage du conduit après l\'achat d\'une habitation ou l\'installation d\'un nouveau poêle',
+                ],
+                'highlights' => [
+                    ['title' => 'Ramonage mécanique', 'description' => 'Les dépôts de suie sont retirés mécaniquement de la cheminée et du conduit de fumée à l\'aide de brosses et de matériel adapté, du raccordement de l\'appareil jusqu\'à la sortie de cheminée.'],
+                    ['title' => 'Un travail soigné chez vous', 'description' => 'Nous protégeons les abords du foyer et travaillons avec soin afin de limiter les salissures dans l\'habitation.'],
+                    ['title' => 'Attestation de ramonage sur demande', 'description' => 'Après le nettoyage, vous pouvez recevoir une attestation de ramonage à présenter sur demande à votre compagnie d\'assurance.'],
+                ],
+            ],
+            'en' => [
+                'situations' => [
+                    'Annual sweep of the chimney or flue of your wood stove or open fireplace',
+                    'Chimney sweeping with a cleaning certificate for your fire insurance',
+                    'Flue cleaning for an insert, cassette, suspended fireplace or soapstone stove',
+                    'Poor draught, smoke blowing back or a smell of soot in the home',
+                    'Inspection and cleaning of the flue after buying a home or installing a new stove',
+                ],
+                'highlights' => [
+                    ['title' => 'Mechanical cleaning', 'description' => 'Soot deposits are removed mechanically from the chimney and flue with brushes and purpose-made equipment, from the appliance connection up to the chimney top.'],
+                    ['title' => 'Careful work in your home', 'description' => 'We cover the area around the fireplace and work carefully, so dirt in your home stays to a minimum.'],
+                    ['title' => 'Cleaning certificate on request', 'description' => 'After cleaning you can receive a cleaning certificate, which you can present to your insurance company on request.'],
                 ],
             ],
         ],

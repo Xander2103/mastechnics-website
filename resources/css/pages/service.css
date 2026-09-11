@@ -114,6 +114,11 @@
     --service-accent-rgb: 46, 143, 168;
 }
 
+.service-page--chimney-sweeping {
+    --service-accent: #8C4A2B;
+    --service-accent-rgb: 140, 74, 43;
+}
+
 /* ================================
    Service hero — shared image system
 ================================ */

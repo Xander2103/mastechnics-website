@@ -64,9 +64,9 @@ class ServicePageTest extends TestCase
             ->assertSee('aria-current="page"', false);
     }
 
-    public function test_all_six_core_service_pages_render_nl(): void
+    public function test_all_seven_core_service_pages_render_nl(): void
     {
-        $slugs = ['verwarming', 'airco', 'sanitair', 'ventilatie', 'waterverzachters', 'koelcellen'];
+        $slugs = ['verwarming', 'airco', 'sanitair', 'ventilatie', 'waterverzachters', 'koelcellen', 'schoorsteenvegen'];
 
         foreach ($slugs as $slug) {
             $this->get(route('pages.show', ['locale' => 'nl', 'slug' => $slug]))

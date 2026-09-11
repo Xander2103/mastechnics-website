@@ -146,6 +146,16 @@
             'none'         => 'Geen afvoer aanwezig',
             'unknown'      => 'Onbekend',
         ];
+        $chimneyApplianceLabels = [
+            'freestanding_wood_stove' => 'Vrijstaande houtkachel',
+            'insert_cassette'         => 'Inzethaard / cassette',
+            'built_in_fireplace'      => 'Inbouwhaard',
+            'suspended_fireplace'     => 'Hangende haard',
+            'soapstone_stove'         => 'Speksteenkachel',
+            'central_heating_stove'   => 'CV-haard',
+            'open_fireplace'          => 'Open haard',
+            'other'                   => 'Andere',
+        ];
         $roofTypeLabels = [
             'flat_roof'              => 'Plat dak',
             'attic_no_roof_window'   => 'Zolderkamer zonder dakraam',
@@ -917,6 +927,30 @@
                                         <dd>{{ $yesNoLabel($answers['free_space_available']) }}</dd>
                                     </div>
                                 @endif
+                            </dl>
+                        </div>
+                    @endif
+
+                    {{-- Schoorsteenvegen — haardtype; foto's staan bij de bijlagen,
+                         opmerkingen bij Omschrijving --}}
+                    @php
+                        $isChimneySweeping = $customerRequest->service_category === 'schoorsteenvegen';
+                        $chimneyApplianceType = $answers['chimney_appliance_type'] ?? null;
+                    @endphp
+                    @if ($isChimneySweeping && ! empty($chimneyApplianceType))
+                        <div class="admin-detail-card">
+                            <h2>Schoorsteenvegen</h2>
+
+                            <dl class="admin-detail-list">
+                                <div>
+                                    <dt>Type haard of installatie</dt>
+                                    <dd>
+                                        {{ $chimneyApplianceLabels[$chimneyApplianceType] ?? $chimneyApplianceType }}
+                                        @if ($chimneyApplianceType === 'other' && ! empty($answers['chimney_appliance_type_other']))
+                                            — {{ $answers['chimney_appliance_type_other'] }}
+                                        @endif
+                                    </dd>
+                                </div>
                             </dl>
                         </div>
                     @endif

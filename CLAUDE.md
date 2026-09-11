@@ -204,6 +204,21 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   `/admin/contact-submissions`. Rapport: `docs/anti-spam-report-2026-09-09.md`.
   Committed lokaal, **niet gepusht**.
 
+- **Sprint 22 (Schoorsteenvegen) ✅** — Zevende publieke dienst
+  `chimney-sweeping` (slugs `schoorsteenvegen` / `ramonage` /
+  `chimney-sweeping`, hero `assets/images/schoorsteenveger.webp`). Alles wat
+  `config/services.php` leest (nav, hub, OfferCatalog, sitemap, locatiepagina's,
+  404, admin-filter) volgt automatisch; per-dienst-maps (icoon, content,
+  accent-CSS, FAQ, seeder-meta, home-hexagonen nu 2-3-2) kregen één entry.
+  Migratie `2026_09_11_000001` voegt de pagina toe op bestaande installs en
+  herschrijft "zes disciplines" → "zeven" op de dienstenhub. Wizard-categorie
+  `schoorsteenvegen` (request_type `maintenance`) met twee stappen:
+  `chimney_appliance_type` (+ other) en foto-boxen via het gedeelde
+  `attachments[]`; opmerkingen = gedeeld veld `description`. Helper-box van een
+  fields-stap staat nu in partial `request-upload-box` en kan met
+  `helper_box.position = before_fields` vóór de velden. Geen prijzen op de
+  site. `ChimneySweepingTest`. Committed lokaal, **niet gepusht**.
+
 ## Anti-spam Architecture
 
 - Beide publieke formulieren lopen door `PublicFormGuard` (screening) en

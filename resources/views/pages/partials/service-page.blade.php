@@ -40,10 +40,6 @@
             'cta_title'  => 'Klaar om een aanvraag in te dienen?',
             'cta_text'   => 'Beschrijf uw probleem of project via de slimme aanvraagflow en wij nemen zo snel mogelijk contact op.',
             'cta_button' => 'Start aanvraag',
-            'related_heading' => 'Onze andere diensten',
-            'areas_heading' => 'Waar we deze dienst uitvoeren',
-            'areas_intro' => 'Mastechnics werkt in de Druivenstreek en het oosten van Vlaams-Brabant. Bekijk de pagina van uw gemeente voor wat er lokaal anders is.',
-            'areas_all' => 'Volledig werkgebied',
             'faq_heading' => 'Veelgestelde vragen',
         ],
         'fr' => [
@@ -56,10 +52,6 @@
             'cta_title'  => 'Prêt à soumettre une demande ?',
             'cta_text'   => 'Décrivez votre problème ou projet via le flux de demande intelligent et nous vous contacterons dès que possible.',
             'cta_button' => 'Démarrer ma demande',
-            'related_heading' => 'Nos autres services',
-            'areas_heading' => 'Où nous réalisons ce service',
-            'areas_intro' => 'Mastechnics intervient dans le Druivenstreek et l\'est du Brabant flamand. Consultez la page de votre commune pour les particularités locales.',
-            'areas_all' => 'Toute la zone d\'intervention',
             'faq_heading' => 'Questions fréquentes',
         ],
         'en' => [
@@ -72,10 +64,6 @@
             'cta_title'  => 'Ready to submit a request?',
             'cta_text'   => 'Describe your issue or project via the smart request flow and we will get back to you as soon as possible.',
             'cta_button' => 'Start request',
-            'related_heading' => 'Our other services',
-            'areas_heading' => 'Where we deliver this service',
-            'areas_intro' => 'Mastechnics works throughout the Druivenstreek and the east of Flemish Brabant. Check your municipality page for what is different locally.',
-            'areas_all' => 'Full service area',
             'faq_heading' => 'Frequently asked questions',
         ],
     ];
@@ -88,13 +76,6 @@
             ?? config("service-faqs.{$currentServiceKey}.nl")
             ?? [])
         : [];
-
-    // Municipalities with a landing page — a service page is where "airco
-    // Tervuren" intent lands, so it should route on to the local page instead
-    // of dead-ending.
-    $serviceAreas = collect(config('site.service_areas', []))
-        ->filter(fn ($area) => $area['page'] ?? false)
-        ->values();
 
     // ── Service-specific content ───────────────────────────────────────────────
     $serviceContent = [
@@ -417,15 +398,6 @@
     $currentContent = $serviceContent[$currentServiceKey][$locale]
         ?? ($currentServiceKey ? ($serviceContent[$currentServiceKey]['nl'] ?? null) : null);
 
-    // ── Related services (internal links) ──────────────────────────────────────
-    $otherServices = collect(config('services', []))
-        ->filter(fn($service, $key) => ($service['is_active'] ?? false) && $key !== $currentServiceKey)
-        ->map(function ($service) use ($locale) {
-            $trans = $service['translations'][$locale] ?? $service['translations']['nl'];
-            return ['title' => $trans['title'], 'slug' => $trans['slug']];
-        })
-        ->values();
-
     // Service node scoped to this discipline, plus FAQPage mirroring the block
     // rendered further down. Both join the shared @graph in the layout head.
     $seoService->addNode($seoService->serviceNode(
@@ -562,50 +534,11 @@
     @include('partials.faq', ['faqs' => $faqs, 'faqTitle' => $text['faq_heading']])
 @endif
 
-{{-- ═══════════════════════════════════════════════════════════
-     Service area (internal links into the location cluster)
-═══════════════════════════════════════════════════════════ --}}
-@if ($serviceAreas->isNotEmpty())
-    <section class="service-areas-section">
-        <div class="container">
-            <h2 class="service-related-heading">{{ $text['areas_heading'] }}</h2>
-            <p class="service-areas-intro">{{ $text['areas_intro'] }}</p>
-
-            <div class="service-related-links">
-                @foreach ($serviceAreas as $area)
-                    <a class="service-related-link"
-                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => \Illuminate\Support\Str::slug($area['name'])]) }}">
-                        {{ $translation->title }} {{ $area['name'] }}
-                    </a>
-                @endforeach
-
-                <a class="service-related-link"
-                   href="{{ $seoService->pageUrl('service_area', $locale) }}">
-                    {{ $text['areas_all'] }}
-                </a>
-            </div>
-        </div>
-    </section>
-@endif
-
-{{-- ═══════════════════════════════════════════════════════════
-     Related services (internal links)
-═══════════════════════════════════════════════════════════ --}}
-@if ($otherServices->isNotEmpty())
-    <section class="service-related-section">
-        <div class="container">
-            <h2 class="service-related-heading">{{ $text['related_heading'] }}</h2>
-            <div class="service-related-links">
-                @foreach ($otherServices as $related)
-                    <a class="service-related-link"
-                       href="{{ route('pages.show', ['locale' => $locale, 'slug' => $related['slug']]) }}">
-                        {{ $related['title'] }}
-                    </a>
-                @endforeach
-            </div>
-        </div>
-    </section>
-@endif
+{{-- The "where we deliver this service" municipality pills and the "our
+     other services" pills were removed from every service page on
+     2026-09-12 (Martin's request). The location cluster and the services
+     hub are still reachable through the header dropdown, breadcrumbs,
+     the hub page and the footer, so the SEO graph is unchanged. --}}
 
 {{-- ═══════════════════════════════════════════════════════════
      CTA

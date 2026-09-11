@@ -370,21 +370,11 @@
 }
 
 /* ================================
-   Related services (internal links)
+   Link pills (services hub, location pages, 404)
+   The "related services" / "service area" sections of the service page
+   that introduced these were removed on 2026-09-12; the pill styles stay
+   because the hub, location and error pages still use them.
 ================================ */
-
-.service-related-section {
-    padding: 8px 0 40px;
-    background: var(--color-white);
-}
-
-.service-related-heading {
-    margin-bottom: 14px;
-    color: var(--color-primary-dark);
-    font-size: 1.05rem;
-    font-weight: 900;
-    line-height: 1.2;
-}
 
 .service-related-links {
     display: flex;
@@ -409,22 +399,6 @@
     border-color: rgba(15, 102, 194, 0.4);
     background: #eef6ff;
     transform: translateY(-1px);
-}
-
-/* ================================
-   Service area links (into the municipality landing pages)
-================================ */
-
-.service-areas-section {
-    padding: 40px 0 8px;
-    background: var(--color-white);
-}
-
-.service-areas-intro {
-    max-width: 68ch;
-    margin: 0 0 18px;
-    color: var(--color-muted);
-    font-size: 0.95rem;
 }
 
 /* ================================

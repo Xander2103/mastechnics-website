@@ -127,10 +127,11 @@ class ChimneySweepingTest extends TestCase
         $home->assertSee('hero-hex--soot', false);
         $this->assertStringContainsString('"name":"Schoorsteenvegen"', $home->getContent());
 
-        // Other service pages link to it as a related service
+        // Other service pages still reach it through the header dropdown (the
+        // "other services" pills were removed from service pages on 2026-09-12)
         $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'verwarming']))
             ->assertOk()
-            ->assertSee('href="' . $chimneyUrl . '"', false);
+            ->assertSee('href="' . $chimneyUrl . '" role="menuitem"', false);
 
         // Local SEO: municipality page lists every service, including this one
         $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'tervuren']))

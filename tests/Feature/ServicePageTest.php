@@ -26,13 +26,43 @@ class ServicePageTest extends TestCase
             ->assertSee('Onderhoud, herstelling en installatie', false);
     }
 
-    public function test_service_page_links_to_other_services(): void
+    /**
+     * The "where we deliver this service" municipality pills and the "our
+     * other services" pills were removed from every service page in every
+     * locale (2026-09-12). The header dropdown still lists the services and
+     * the location pages stay reachable through the hub and the footer.
+     */
+    public function test_service_pages_no_longer_render_area_or_related_service_sections(): void
     {
-        $this->get(route('pages.show', ['locale' => 'nl', 'slug' => 'verwarming']))
-            ->assertOk()
-            ->assertSee('class="service-related-link"', false)
-            ->assertSee('Airco')
-            ->assertSee('Sanitair');
+        $headings = [
+            'nl' => ['Waar we deze dienst uitvoeren', 'Onze andere diensten', 'Volledig werkgebied'],
+            'fr' => ['Où nous réalisons ce service', 'Nos autres services', 'Toute la zone d\'intervention'],
+            'en' => ['Where we deliver this service', 'Our other services', 'Full service area'],
+        ];
+
+        // config('services') also carries the framework's third-party keys
+        // (postmark, ses, …); only entries with translations are services.
+        $services = array_filter(config('services'), fn ($service) => isset($service['translations']));
+        $this->assertCount(7, $services);
+
+        foreach ($services as $service) {
+            foreach ($headings as $locale => $texts) {
+                $response = $this->get(route('pages.show', ['locale' => $locale, 'slug' => $service['translations'][$locale]['slug']]))
+                    ->assertOk()
+                    ->assertDontSee('service-areas-section', false)
+                    ->assertDontSee('service-related-section', false)
+                    ->assertDontSee('class="service-related-link"', false);
+
+                foreach ($texts as $text) {
+                    $response->assertDontSee($text);
+                }
+
+                // Still on the page: dropdown navigation, breadcrumb parent and CTA.
+                $response->assertSee('role="menuitem"', false);
+                $response->assertSee('class="breadcrumbs"', false);
+                $response->assertSee('class="service-cta-section"', false);
+            }
+        }
     }
 
     public function test_service_page_includes_breadcrumb_structured_data(): void

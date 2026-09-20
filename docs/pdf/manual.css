@@ -1,0 +1,248 @@
+/* Print stylesheet for Martin's HVAC manuals (docs/pdf/build.php). */
+
+:root {
+    --blue: #0f66c2;
+    --navy: #09243f;
+    --muted: #5b6b7a;
+    --border: #d9e1ea;
+    --soft: #f5f8fc;
+}
+
+@page {
+    size: A4;
+    margin: 22mm 18mm 20mm;
+
+    @bottom-left {
+        content: "Mastechnics";
+        color: #5b6b7a;
+        font: 8.5pt Arial, Helvetica, sans-serif;
+    }
+
+    @bottom-right {
+        content: "Pagina " counter(page) " van " counter(pages);
+        color: #5b6b7a;
+        font: 8.5pt Arial, Helvetica, sans-serif;
+    }
+}
+
+@page sheet {
+    margin: 11mm 13mm 12mm;
+
+    @bottom-left { content: ""; }
+    @bottom-right { content: ""; }
+}
+
+@page :first {
+    @bottom-left { content: ""; }
+    @bottom-right { content: ""; }
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    color: var(--navy);
+    font: 11pt/1.55 Arial, Helvetica, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* ── Cover ─────────────────────────────────────────────────────── */
+
+.cover {
+    display: flex;
+    flex-direction: column;
+    height: 250mm;
+    padding: 6mm 4mm 0;
+    break-after: page;
+    border-left: 6mm solid var(--blue);
+    padding-left: 12mm;
+}
+
+.cover .logo { width: 62mm; height: auto; }
+
+.cover__body { margin-top: auto; margin-bottom: auto; }
+
+.cover__kicker {
+    margin: 0 0 5mm;
+    color: var(--blue);
+    font-size: 12pt;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.cover h1 {
+    margin: 0 0 8mm;
+    font-size: 34pt;
+    line-height: 1.1;
+}
+
+.cover__audience { margin: 0; color: var(--muted); font-size: 13pt; }
+
+.cover__foot { margin: 0; color: var(--muted); font-size: 10pt; }
+
+/* ── Table of contents ─────────────────────────────────────────── */
+
+.toc { break-after: page; }
+
+.toc__title { margin-top: 0; }
+
+.toc ol { margin: 0; padding: 0; list-style: none; }
+
+.toc li {
+    padding: 3.2mm 0;
+    border-bottom: 0.3mm solid var(--border);
+    font-size: 12pt;
+}
+
+.toc a { color: var(--navy); text-decoration: none; }
+
+/* ── Text ──────────────────────────────────────────────────────── */
+
+h1, h2, h3, h4 { color: var(--navy); break-after: avoid; }
+
+h2 {
+    margin: 0 0 5mm;
+    padding-bottom: 3mm;
+    border-bottom: 1mm solid var(--blue);
+    font-size: 19pt;
+    line-height: 1.2;
+}
+
+.manual main h2 { break-before: page; }
+.manual main h2:first-of-type { break-before: auto; }
+
+h3 { margin: 7mm 0 2.5mm; font-size: 13.5pt; }
+
+h4 { margin: 5mm 0 2mm; font-size: 11.5pt; }
+
+p { margin: 0 0 3.2mm; orphans: 3; widows: 3; }
+
+ul, ol { margin: 0 0 3.5mm; padding-left: 6mm; }
+
+li { margin-bottom: 1.2mm; }
+
+hr { display: none; }
+
+strong { color: var(--navy); }
+
+a { color: var(--blue); }
+
+code {
+    padding: 0.2mm 1.2mm;
+    border-radius: 1mm;
+    background: #eef2f7;
+    font: 9.5pt Consolas, "Courier New", monospace;
+    overflow-wrap: anywhere;
+}
+
+pre {
+    margin: 0 0 4mm;
+    padding: 3.5mm 4mm;
+    border: 0.3mm solid var(--border);
+    border-left: 1.2mm solid var(--navy);
+    border-radius: 1.5mm;
+    background: var(--soft);
+    break-inside: avoid;
+    white-space: pre-wrap;
+}
+
+pre code {
+    padding: 0;
+    background: none;
+    font-size: 9.5pt;
+    line-height: 1.5;
+}
+
+/* ── Tables: never split across pages ──────────────────────────── */
+
+table {
+    width: 100%;
+    margin: 0 0 5mm;
+    border-collapse: collapse;
+    font-size: 10pt;
+    line-height: 1.4;
+    break-inside: avoid;
+}
+
+th, td {
+    padding: 2.2mm 2.5mm;
+    border: 0.3mm solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background: var(--navy);
+    color: #fff;
+    font-size: 9.5pt;
+}
+
+tr:nth-child(even) td { background: var(--soft); }
+
+tr { break-inside: avoid; }
+
+/* ── Callouts ──────────────────────────────────────────────────── */
+
+blockquote {
+    margin: 0 0 5mm;
+    padding: 3.5mm 4.5mm;
+    border-left: 1.5mm solid var(--blue);
+    border-radius: 1.5mm;
+    background: #edf5ff;
+    break-inside: avoid;
+}
+
+blockquote p:last-child, blockquote ul:last-child { margin-bottom: 0; }
+
+/* A long boxed list may continue on the next page instead of leaving a gap. */
+blockquote:has(ul) { break-inside: auto; }
+blockquote li { break-inside: avoid; }
+
+.callout--warn    { border-left-color: #d97706; background: #fffbeb; }
+.callout--never   { border-left-color: #b91c1c; background: #fef2f2; }
+.callout--example { border-left-color: #16a34a; background: #f0fdf4; }
+.callout--tip     { border-left-color: #7c3aed; background: #f5f3ff; }
+
+.callout--warn strong:first-child    { color: #92400e; }
+.callout--never strong:first-child   { color: #991b1b; }
+.callout--example strong:first-child { color: #166534; }
+
+/* ── One-page quick start ──────────────────────────────────────── */
+
+.sheet { page: sheet; font-size: 9.6pt; line-height: 1.4; }
+
+.sheet-head {
+    display: flex;
+    align-items: center;
+    gap: 8mm;
+    margin-bottom: 4mm;
+    padding-bottom: 3mm;
+    border-bottom: 1mm solid var(--blue);
+}
+
+.sheet-head .logo { width: 38mm; height: auto; }
+
+.sheet-head h1 { margin: 0; font-size: 17pt; }
+
+.sheet-head p { margin: 0; color: var(--muted); }
+
+.sheet main > p:first-child { display: none; }
+
+.sheet h2 {
+    margin: 4mm 0 2mm;
+    padding-bottom: 1mm;
+    border-bottom-width: 0.5mm;
+    font-size: 12pt;
+}
+
+.sheet table { margin-bottom: 2.5mm; font-size: 8.8pt; }
+
+.sheet th, .sheet td { padding: 1.3mm 1.8mm; }
+
+.sheet ul, .sheet ol { margin-bottom: 2mm; }
+
+.sheet li { margin-bottom: 0.5mm; }
+
+.sheet p { margin-bottom: 2mm; }

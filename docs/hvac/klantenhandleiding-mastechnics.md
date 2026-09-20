@@ -5,6 +5,13 @@
 **Doelgroep:** Martin (zaakvoerder/installateur Mastechnics) en medewerkers met beheerderstoegang
 **Systeem:** Mastechnics-website, beheeromgeving (admin)
 
+> **Nieuwere handleiding beschikbaar (september 2026).** Voor dagelijks gebruik
+> en voor alles rond **Offerte-instellingen**, de **snelle inschatting** en de
+> weg van aanvraag tot offerte geldt *Mastechnics — Van aanvraag tot offerte*
+> (`docs/martin-hvac-praktijkhandleiding.md`), met de technische bijlage
+> (`docs/martin-hvac-technische-bijlage.md`). Dit document blijft bestaan als
+> uitgebreid naslagwerk; bij tegenstrijdigheid geldt de nieuwere handleiding.
+
 > **Belangrijk — lees dit eerst**
 >
 > Deze module ondersteunt de voorcalculatie en offertevoorbereiding. Ze
@@ -123,7 +130,7 @@ opnieuw of anders.
 | **HVAC-producten → Merken** | Merkenlijst. | Alleen aanmaken/deactiveren. |
 | **HVAC-producten → Leveranciers** | Leveranciersgegevens. | Producten worden herkend op leverancier + SKU. |
 | **HVAC-producten → Import** | CSV-import voor producten én compatibiliteit. | Altijd eerst het voorbeeld controleren vóór u bevestigt. |
-| **HVAC-producten → Berekeningsregels** | Alle rekenregels met status; hier valideert u regels. | Wijzig geen regel zonder de impact te begrijpen (hoofdstuk 6 en 24). |
+| **HVAC-producten → Offerte-instellingen** | Alle instellingen in vijf onderdelen, met status; hier bevestigt u instellingen en wijzigt u waarden via een concept. | Wijzig geen regel zonder de impact te begrijpen (hoofdstuk 6 en 24). |
 | **HVAC-producten → Checklist** | De 18-stappen acceptatiechecklist. | Doorloop ze bij elke nieuwe catalogus. |
 | **Account** | Uw e-mailadres en wachtwoord. | Deel uw login nooit. |
 | **Geblokkeerde e-mails** | Afzenders blokkeren voor het contactformulier. | Ongewijzigd t.o.v. vroeger. |
@@ -207,11 +214,13 @@ van de regelset waarmee ze gemaakt is. Daardoor geldt:
   aanpast.
 - Onder elke berekening ziet u welke versie gebruikt werd ("Regelset …
   versie …" in het auditblok).
-- Een **conceptversie** is een kopie waarin de ontwikkelaar nieuwe waarden
-  kan zetten; ze doet niets zolang u ze niet activeert.
-- **Activeren** doet u op de pagina Berekeningsregels, met een expliciet
-  bevestigingsvinkje. Alleen **nieuwe** berekeningen gebruiken daarna de
-  nieuwe versie.
+- Een **concept** is een kopie waarin u gewone waarden (tarieven, uren,
+  percentages) zelf aanpast; tabellen wijzigt de ontwikkelaar. Een concept
+  doet niets zolang u het niet activeert.
+- **Concept activeren** doet u op de pagina **Offerte-instellingen**
+  (vroeger "Berekeningsregels"), na de samenvatting van de wijzigingen en
+  met een expliciet bevestigingsvinkje. Alleen **nieuwe** berekeningen
+  gebruiken daarna de nieuwe versie.
 
 > **Waarschuwing:** wijzig geen berekeningsregel zonder de technische impact
 > te begrijpen. Overleg bij twijfel met de ontwikkelaar.
@@ -468,7 +477,7 @@ een tweede technieker vanaf drie binnenunits. Alles maal het uurtarief, plus
 het verplaatsingsforfait.
 
 > Het uurtarief (€ 65) en het forfait (€ 35) zijn **startwaarden** die u in
-> de Berekeningsregels moet valideren vóór echte offertes.
+> de Offerte-instellingen moet bevestigen vóór echte offertes.
 
 Uren aanpassen: bij de arbeidsregel → "Waarde aanpassen" → nieuw aantal
 uren + **reden** (verplicht). De oorspronkelijke schatting blijft bewaard in
@@ -701,7 +710,7 @@ de nieuwe prijzen.
 | "Er loopt al een berekening" | Dubbelklik | Even wachten, opnieuw proberen |
 | Geen aanbevelingen | Catalogus leeg of dekt de klasse niet | Producten/compatibiliteit importeren, herberekenen |
 | Optie blijft "Handmatige controle" | Onbewezen compatibiliteit, onbekende limieten of prijs ontbreekt | Blokkerende punten staan bij de optie; data aanvullen of bevestigen met reden |
-| Goedkeuren geblokkeerd: regels | Kritieke regels niet gevalideerd | Berekeningsregels → valideren (hoofdstuk 24) |
+| Goedkeuren geblokkeerd: instellingen | Belangrijke instellingen niet bevestigd | Offerte-instellingen → bevestigen (hoofdstuk 24) |
 | Product na import onvindbaar | Rijfout (zie rapport), of filter actief | Foutenrapport lezen; filters wissen |
 | CSV geweigerd | Kopregel gewijzigd, verkeerde codering, formulecellen | Sjabloon opnieuw downloaden, UTF-8 bewaren |
 | "Dubbele rij" bij import | Zelfde leverancier+SKU dubbel in het bestand | Eén rij verwijderen |
@@ -720,22 +729,30 @@ nooit zelf databank- of servercommando's uit.
 
 ## 24. Regels die u vóór productie moet valideren
 
-Open **HVAC-producten → Berekeningsregels**. Elke regel toont waarde,
-eenheid, uitleg en status:
+> **Bijgewerkt in september 2026.** De pagina heet nu
+> **Offerte-instellingen**. De stap-voor-stap uitleg staat in
+> `docs/martin-hvac-praktijkhandleiding.md` (hoofdstuk 2).
 
-- **Placeholder** — startwaarde van de ontwikkelaar, nog door niemand
-  bevestigd;
-- **Te valideren** — bedrijfsregel die u moet bevestigen;
-- **Fabrikantspecifiek** — de echte waarde komt uit productdata zodra die
-  geïmporteerd is;
-- **Gevalideerd** — door u bevestigd (met naam, datum en notitie).
+Open **HVAC-producten → Offerte-instellingen**. De instellingen staan in
+vijf onderdelen (Koelvermogen, Toestellen, Installatie, Werkuren,
+Verkoopprijzen). Elke instelling toont haar waarde, uitleg, een
+praktijkvoorbeeld, het gevolg van een fout en een status:
 
-Regels met de rode markering **KRITIEK** (isolatiewaarden,
-capaciteitsklassen, gelijktijdigheid, uurtarief, verplaatsing, marges, btw,
-elektrische tabel) blokkeren de goedkeuring van echte aanbevelingen zolang
-ze niet gevalideerd zijn. Valideren: klap "Valideren" open, zet eventueel
-een notitie ("bevestigd met leverancier X op …") en klik. Intrekken kan
-altijd.
+- **Nog instellen** — startwaarde van de software, nog door niemand
+  gekozen (technisch: "Startwaarde");
+- **Controleren** — waarde die u moet bevestigen, of die gewijzigd is
+  sinds uw bevestiging;
+- **Goedgekeurd** — door u bevestigd (met naam, tijdstip, waarde, versie
+  en notitie);
+- **Niet beschikbaar** — het onderdeel kan nu niet gebruikt worden.
+
+Instellingen met het label **Belangrijk** (isolatiewaarden,
+capaciteitsklassen, gelijktijdigheid, uurtarief, verplaatsing, opslagen,
+btw, elektrische tabel) blokkeren de goedkeuring van echte aanbevelingen
+zolang ze niet bevestigd zijn. Bevestigen: vink de bevestigingszin aan,
+zet eventueel een notitie ("bevestigd met leverancier X op …") en klik
+**Bevestigen**. Intrekken kan altijd. De volledige technische tabel staat
+onder **Geavanceerde instellingen**.
 
 Waarom belangrijk? Een foute basislast geeft te kleine of te grote
 toestellen; een fout uurtarief of foute marge kost u rechtstreeks geld; een
@@ -783,7 +800,7 @@ zelf geen bestanden op de server aan.
 ☐ Compatibiliteit geïmporteerd of ingevoerd
 ☐ Prijzen steekproefsgewijs gecontroleerd
 ☐ Voorraad en levertijden kloppen
-☐ Alle KRITIEKE regels gevalideerd
+☐ Alle belangrijke instellingen bevestigd (Offerte-instellingen)
 ☐ Uurtarief en verplaatsingsforfait bevestigd
 ☐ Marges en btw-beleid bevestigd
 ☐ Eén single-split-test volledig doorlopen

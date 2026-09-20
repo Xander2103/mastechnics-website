@@ -10,6 +10,23 @@ hieronder expliciet gevalideerd of aangepast is.** Alle waarden staan in
 validatie wordt een nieuwe regelsetversie aangemaakt zodat historische
 berekeningen ongewijzigd blijven.
 
+> **Sinds Sprint 23 (september 2026)** bevestigt Martin deze waarden zelf in
+> **HVAC-producten → Offerte-instellingen**, en wijzigt hij gewone getallen
+> daar via een concept. De actuele status per regel staat op dat scherm, niet
+> in dit document. Uitleg per regel: `docs/martin-hvac-technische-bijlage.md`.
+
+## Snelle inschatting (vuistregels per m³, aangeleverd door Martin)
+
+Uitsluitend indicatief; los van de koellastberekening hieronder. Niet
+"belangrijk": blokkeert geen goedkeuring. Geen ontwerpnorm.
+
+| Situatie | Waarde | Status |
+|---|---|---|
+| Goed geïsoleerd | 30 W/m³ | ☐ [V] bevestigen in Offerte-instellingen → Koelvermogen |
+| Zuidgericht | 35 W/m³ | ☐ [V] |
+| Veel zon en slecht geïsoleerd | 40 W/m³ | ☐ [V] |
+| Veel zon, slechte isolatie en onder dak | 45 W/m³ | ☐ [V] |
+
 ## Koellastberekening
 
 | Regel | Huidige standaardwaarde | Status |
@@ -32,7 +49,7 @@ berekeningen ongewijzigd blijven.
 ## Koellastberekening v2 — "Belgische residentiële koellast" (concept)
 
 Regelset v2 (aan te maken met `php artisan hvac:seed-v2-rule-set`, daarna
-activeren via Admin → HVAC → Berekeningsregels) rekent met het engineering-model
+activeren via Admin → HVAC-producten → Offerte-instellingen) rekent met het engineering-model
 uit het referentiewerkboek (`docs/hvac/excel-calculator-audit.md`). De waarden
 hieronder zijn werkboekconstanten — vuistregels zonder bronvermelding — plus
 enkele afleidingsaannames van ons; **v2 mag pas geactiveerd worden nadat deze

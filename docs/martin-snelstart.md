@@ -2,6 +2,10 @@
 
 *Print dit blad en leg het naast de computer. Details: martin-handleiding.md.*
 
+> **Voor HVAC-offertes bestaat een nieuwere snelstart (september 2026):**
+> `docs/martin-hvac-snelstart.md`, met de snelle inschatting en de
+> Offerte-instellingen. Dit blad blijft geldig voor de algemene werkwijze.
+
 ---
 
 ## Van aanvraag tot offerte

@@ -8,7 +8,7 @@ nieuwe leverancierscatalogus. Dezelfde checklist staat in het beheer onder
 2. ☐ Controleer het importresultaat en de lijst onder HVAC-producten → Productlijsten; open producten met de markering "controleren" (afgeleid vermogen of onbekende prijssoort) en bevestig of corrigeer ze.
 2b. ☐ Bewaar de leveranciersinstellingen ("Ja, onthouden") zodat het volgende bestand automatisch herkend wordt.
 3. ☐ Importeer of registreer de fabrikantcompatibiliteit (compatibiliteits-CSV of per product).
-4. ☐ Valideer de HVAC-berekeningsregels (Admin → HVAC-producten → Berekeningsregels) — alle regels met de markering KRITIEK moeten gevalideerd zijn.
+4. ☐ Doorloop de Offerte-instellingen (Admin → HVAC-producten → Offerte-instellingen) — alle instellingen met het label Belangrijk moeten door u bevestigd zijn.
 5. ☐ Open een test-airco-aanvraag (Admin → Aanvragen).
 6. ☐ Voer de voorcalculatie uit ("Voorcalculatie uitvoeren").
 7. ☐ Controleer elke kamer: afmetingen, isolatie, ligging, aannames.
@@ -38,7 +38,7 @@ die vóór echte offertes.
 ☐ Compatibiliteit geïmporteerd of ingevoerd
 ☐ Prijzen steekproefsgewijs geverifieerd
 ☐ Voorraad en levertijden geverifieerd
-☐ Alle KRITIEKE berekeningsregels gevalideerd
+☐ Alle belangrijke instellingen bevestigd (Offerte-instellingen)
 ☐ Uurtarief bevestigd · ☐ Verplaatsingsforfait bevestigd
 ☐ Marges bevestigd · ☐ Btw-beleid bevestigd
 ☐ Eén single-split-test volledig doorlopen

@@ -4,6 +4,12 @@ Deze handleiding legt uit hoe u de website en het beheer van Mastechnics
 gebruikt. U hebt geen technische kennis nodig. Alle knopnamen in deze
 handleiding staan exact zoals ze op het scherm staan.
 
+> **Voor HVAC-offertes:** de weg van airco-aanvraag tot offerte, de
+> **Offerte-instellingen** en de **snelle inschatting** staan sinds september
+> 2026 uitgewerkt in *Mastechnics — Van aanvraag tot offerte*
+> (`docs/martin-hvac-praktijkhandleiding.md`). Bij tegenstrijdigheid over die
+> onderwerpen geldt dat document.
+
 Eén regel vooraf, de belangrijkste van het hele document:
 
 > **Het systeem helpt u. Het vervangt uw vakkennis niet.**
@@ -402,34 +408,41 @@ hier blijft de historiek intact.
 
 ---
 
-## 14. Berekeningsregels
+## 14. Offerte-instellingen (vroeger: Berekeningsregels)
 
-Ga naar **HVAC-producten** → **Berekeningsregels**.
+> **Bijgewerkt in september 2026.** De pagina "Berekeningsregels" heet nu
+> **Offerte-instellingen** en is volledig herwerkt. De uitgebreide uitleg
+> staat in *Mastechnics — Van aanvraag tot offerte*
+> (`docs/martin-hvac-praktijkhandleiding.md`, hoofdstuk 2 en 9). Dit
+> hoofdstuk is een korte samenvatting.
 
-Hier staan alle rekenwaarden waarmee het systeem werkt: hoeveel vermogen
-per m² bij welke isolatie, toeslagen voor ligging en ramen, werkuren per
-installatie, verplaatsing, marges, toebehorenregels, enzovoort.
+Ga naar **HVAC-producten** → **Offerte-instellingen**.
 
-Bovenaan ziet u: **"x van y kritieke regels gevalideerd."**
+Bovenaan ziet u hoeveel **belangrijke instellingen goedgekeurd** zijn
+(bv. "0 van 12"), de **Volgende stap**, en vijf onderdelen:
+**Koelvermogen**, **Toestellen**, **Installatie**, **Werkuren** en
+**Verkoopprijzen**. De volledige technische lijst staat onder
+**Geavanceerde instellingen**.
 
-**Dit is een bewuste rem.** Zolang niet alle kritieke regels gevalideerd
-zijn, kan een aanbeveling met echte producten **niet goedgekeurd**
-worden. Alleen met TEST-producten (oefenmodus) kan dat wel.
+**Dit is een bewuste rem.** Zolang niet alle belangrijke instellingen
+bevestigd zijn, kan een aanbeveling met echte producten **niet
+goedgekeurd** worden. Alleen met TEST-producten (oefenmodus) kan dat wel.
 
-Zo valideert u een regel:
+Zo bevestigt u een instelling:
 
-1. Lees de regel, de **Waarde**, de **Eenheid** en de **Uitleg**.
-2. **Vergelijk de waarde met hoe Mastechnics écht rekent.** Klopt het
-   uurtarief? Klopt de marge? Klopt het vermogen per m² met uw ervaring?
-3. Klopt de waarde: open **Valideren**, zet eventueel een notitie bij
-   **Interne notitie (optioneel)** en klik **Markeer als gevalideerd**.
-4. Klopt de waarde niet: valideer ze **niet**. De waarden zelf aanpassen
-   gebeurt in overleg met de ontwikkelaar (via een nieuwe conceptversie
-   die u daarna met **Activeren** in gebruik neemt).
+1. Open het onderdeel en lees de **Huidige waarde**, de uitleg, het
+   **Praktijkvoorbeeld** en het **Gevolg van een verkeerde instelling**.
+2. **Vergelijk de waarde met hoe Mastechnics écht rekent.**
+3. Klopt de waarde: vink de bevestigingszin aan en klik **Bevestigen**.
+4. Klopt de waarde niet: klik **Waarde wijzigen? Maak een concept**, vul
+   de nieuwe waarde in, klik **Waarde opslaan in concept**, bevestig ze
+   en activeer het concept via **Concept activeren**. Tabellen
+   (capaciteitsklassen, gelijktijdigheid, zekering/kabel) wijzigt de
+   ontwikkelaar.
 
-Per vergissing gevalideerd? Klik **Validatie intrekken**.
+Per vergissing bevestigd? Klik **Bevestiging intrekken**.
 
-**Valideer nooit blind om "het systeem aan de praat te krijgen".** De rem
+**Bevestig nooit blind om "het systeem aan de praat te krijgen".** De rem
 staat er om te vermijden dat er offertes vertrekken op basis van
 rekenwaarden die niemand gecontroleerd heeft. Oude berekeningen behouden
 altijd hun eigen momentopname — een latere regelwijziging verandert nooit
@@ -497,9 +510,9 @@ vóór u goedkeurt.
 **Compatibiliteit onbekend** — het systeem behandelt "onbekend" als
 "niet toegestaan". Geef de fabrikantcombinaties in; gok ze nooit.
 
-**Berekeningsregel niet gevalideerd** — u ziet "Niet alle kritieke
-berekeningsregels zijn gevalideerd". Ga naar **Berekeningsregels** en
-doorloop hoofdstuk 14. Niet blind valideren.
+**Instelling niet bevestigd** — u ziet "Niet alle belangrijke
+instellingen zijn door u bevestigd". Ga naar **Offerte-instellingen** en
+doorloop hoofdstuk 14. Niet blind bevestigen.
 
 **Geen aanbeveling beschikbaar** — het systeem vond helemaal niets
 geldigs (lege catalogus, alles gearchiveerd, of geen compatibiliteit).
@@ -581,7 +594,7 @@ Ongedaan maken: open het tabblad **Gearchiveerd** en klik **Activeren**.
 3. Controleer na elke import de prijzen — vooral wat de prijs in het
    bronbestand betekende (bruto ≠ aankoop ≠ verkoop).
 4. Werk producten met **Controleren** weg vóór u er offertes mee maakt.
-5. Valideer berekeningsregels pas nadat u ze vergeleken hebt met hoe
+5. Bevestig offerte-instellingen pas nadat u ze vergeleken hebt met hoe
    Mastechnics echt rekent — nooit blind.
 6. Bekijk altijd de PDF vóór u een offerte verstuurt.
 7. Archiveer oude lijsten in plaats van iets te (laten) verwijderen —

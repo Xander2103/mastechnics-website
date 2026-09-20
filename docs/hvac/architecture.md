@@ -154,5 +154,9 @@ Rollback: `php artisan migrate:rollback --step=4` removes all HVAC tables
   later form sprint).
 - Roof/attic correction factor is deliberately neutral (1.00) until Martin
   provides a validated value.
-- Rule editing happens in `config/hvac.php` → new rule-set version; an admin
-  rule editor is a phase-2 candidate.
+- Rule editing (updated Sprint 23): simple numeric rules are edited by the
+  admin inside a DRAFT rule set on the "Offerte-instellingen" screen
+  (audited in `hvac_rule_changes`, bounds in `HvacSettingsGuide::editSpec`);
+  tables and text choices are still changed by the developer in the draft's
+  `configuration`. `config/hvac.php` only seeds an empty table. See
+  `docs/martin-hvac-technische-bijlage.md`, chapters 11 and 13.

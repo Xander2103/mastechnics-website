@@ -25,8 +25,8 @@ punten hieronder in orde zijn.
   welke buitenunits mogen, volgens de fabrikantdocumentatie. Zonder dit
   doet het systeem géén voorstellen. (Import → Compatibiliteit
   binnen- en buitenunits, of per product.)
-- [ ] **Alle kritieke berekeningsregels valideren** onder
-  HVAC-producten → Berekeningsregels — pas nadat u elke waarde vergeleken
+- [ ] **Alle belangrijke instellingen bevestigen** onder
+  HVAC-producten → Offerte-instellingen — pas nadat u elke waarde vergeleken
   hebt met hoe Mastechnics echt rekent:
   - [ ] vermogen per m² per isolatieniveau (koellast)
   - [ ] uurtarief en werkuren per installatietype (arbeid)

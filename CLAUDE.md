@@ -219,6 +219,24 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   `helper_box.position = before_fields` vóór de velden. Geen prijzen op de
   site. `ChimneySweepingTest`. Committed lokaal, **niet gepusht**.
 
+- **Sprint 23 (Offerte-instellingen + praktijkhandleiding) ✅** — De technische
+  pagina "Berekeningsregels" is herwerkt tot **Offerte-instellingen**
+  (routenamen `admin.hvac.rules.*` behouden): dashboard met voortgang,
+  vijf onderdelen (Koelvermogen, Toestellen, Installatie, Werkuren,
+  Verkoopprijzen), begeleide checklist per instelling (betekenis, gebruik,
+  praktijkvoorbeeld, gevolg, expliciete bevestiging met wie/wanneer/waarde/
+  versie), waarden wijzigen **alleen in een concept** (audit in
+  `hvac_rule_changes`, grenzen in `HvacSettingsGuide::editSpec`),
+  activeringssamenvatting, "Bekijk voorbeeld" (fictieve data, schrijft niets)
+  en "Geavanceerde instellingen" (volledige regeltabel). Nieuwe **snelle
+  inschatting** W/m³ (30/35/40/45, door Martin aangeleverd, in de regelset
+  onder `quick_estimate`, niet-kritiek): `QuickCoolingEstimator` is een pure
+  GET-tool zonder pad naar product, goedkeuring, offerte of mail; de
+  gedetailleerde motor is ongewijzigd. Documenten:
+  `docs/martin-hvac-praktijkhandleiding.md`, `-technische-bijlage.md`,
+  `-snelstart.md` + PDF's via `php docs/pdf/build.php` (headless Chrome).
+  Committed lokaal, **niet gepusht**.
+
 ## Anti-spam Architecture
 
 - Beide publieke formulieren lopen door `PublicFormGuard` (screening) en
@@ -254,3 +272,15 @@ If CRO, pricing, or UX thinking is needed, apply it as plain reasoning — do no
   factories/tests use fictional TestBrand data only.
 - Rule values are placeholders until validated — see
   `docs/hvac/rules-to-validate.md` before touching them.
+- Rule VALUES change only inside a draft rule set (`HvacRuleController::
+  updateValue`), never on the active set; a rule counts as approved only
+  through an explicit admin confirmation (`confirm` accepted) — never add
+  automatic or bulk validation.
+- Admin wording on "Offerte-instellingen" avoids unexplained jargon
+  (placeholder, rule key, snapshot, KRITIEK); new rules get a plain-language
+  entry in `HvacSettingsGuide` (every critical rule needs meaning, example and
+  consequence — `HvacQuoteSettingsTest` enforces it).
+- The quick estimate (`QuickCoolingEstimator`) stays a read-only side tool:
+  no persistence, no product selection, no link to approval/conversion/mail,
+  and its rules stay non-critical. "Opslag" is a markup on purchase, never
+  present it as gross margin.

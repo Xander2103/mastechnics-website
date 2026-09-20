@@ -64,13 +64,18 @@ items/{item}/(override|change-product)}`.
 
 ## Regelwijziging (procedure)
 
-1. Nieuwe conceptversie laten aanmaken (admin, "Nieuwe conceptversie") of
-   `HvacRuleSet` dupliceren.
-2. Waarden aanpassen in de `configuration`-JSON van de **draft** (nooit de
-   actieve rij muteren — snapshots beschermen de historiek sowieso, maar
-   houd de audit zuiver).
-3. Martin laat valideren (`hvac_rule_validations`), daarna activeren met
-   bevestiging. Alleen nieuwe berekeningen volgen de nieuwe versie.
+Bijgewerkt Sprint 23 — het scherm heet nu **Offerte-instellingen**.
+
+1. Concept aanmaken in de admin (**Waarde wijzigen? Maak een concept**); er
+   bestaat één concept per regelsetnaam.
+2. Gewone getallen past Martin zelf aan in het concept (gelogd in
+   `hvac_rule_changes`). Tabellen en tekstkeuzes (capaciteitsklassen,
+   gelijktijdigheid, elektrische tabel, aangenomen zonwering) past de
+   ontwikkelaar aan in de `configuration`-JSON van de **draft** — nooit de
+   actieve rij muteren.
+3. Martin bevestigt de gewijzigde instellingen (`hvac_rule_validations`, kan
+   in het concept) en klikt **Concept activeren**. Alleen nieuwe
+   berekeningen volgen de nieuwe versie.
 
 ## Diagnose
 

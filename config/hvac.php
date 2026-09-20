@@ -108,6 +108,29 @@ $v1Configuration = [
                 'andere'      => [],
             ],
 
+            // ── Quick estimate ("Snelle inschatting") ───────────────────────
+            // Rules of thumb per m³ SUPPLIED BY MARTIN (Sprint 23) — indicative
+            // only, not a validated design standard. Each situation is one
+            // explicit choice; the values are never multiplied or added up.
+            // The quick estimate is a separate tool: it never feeds product
+            // selection, approval or a quote, and the detailed load methods
+            // below/above ignore this key entirely.
+            'quick_estimate' => [
+                'w_per_m3' => [
+                    'well_insulated'                   => 30,
+                    'south_facing'                     => 35,
+                    'sunny_poor_insulation'            => 40,
+                    'sunny_poor_insulation_under_roof' => 45,
+                ],
+                // Technical sanity bounds for the input form (not business
+                // rules): anything outside is refused as a typing error.
+                'limits' => [
+                    'min_dimension_m' => 0.5,
+                    'max_length_m'    => 50,
+                    'max_height_m'    => 10,
+                ],
+            ],
+
             // ── Capacity class ──────────────────────────────────────────────
             'capacity_classes' => [
                 ['max_load_kw' => 2.2, 'class_kw' => 2.5],

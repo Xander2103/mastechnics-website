@@ -65,6 +65,14 @@ class HvacRuleCatalog
             ['key' => 'ventilation_latent_w_per_m3_ach', 'category' => 'Koellast v2', 'label' => 'Ventilatiecoëfficiënt latent', 'unit' => 'W per m³·ACH', 'explanation' => 'Werkboekconstante 1,3 (impliciet vochtverschil binnen/buiten).', 'default_status' => 'te_valideren', 'critical' => false],
             ['key' => 'safety_factor', 'category' => 'Koellast v2', 'label' => 'Veiligheidsfactor', 'unit' => '×', 'explanation' => 'Toegepast op de som van voelbare en latente last (werkboek: 1,1).', 'default_status' => 'te_valideren', 'critical' => true],
 
+            // ── Snelle inschatting (vuistregels per m³, aangeleverd door Martin) ─
+            // Not critical: the quick estimate never leads to an approval, so
+            // these values must not block the detailed-calculation gate.
+            ['key' => 'quick_estimate.w_per_m3.well_insulated', 'category' => 'Snelle inschatting', 'label' => 'Vuistregel: goed geïsoleerd', 'unit' => 'W/m³', 'explanation' => 'Indicatief vermogen per m³ ruimte bij een goed geïsoleerde ruimte. Door Martin aangeleverde vuistregel — geen ontwerpnorm.', 'default_status' => 'te_valideren', 'critical' => false],
+            ['key' => 'quick_estimate.w_per_m3.south_facing', 'category' => 'Snelle inschatting', 'label' => 'Vuistregel: zuidgericht', 'unit' => 'W/m³', 'explanation' => 'Indicatief vermogen per m³ bij een zuidgerichte ruimte. Door Martin aangeleverde vuistregel — geen ontwerpnorm.', 'default_status' => 'te_valideren', 'critical' => false],
+            ['key' => 'quick_estimate.w_per_m3.sunny_poor_insulation', 'category' => 'Snelle inschatting', 'label' => 'Vuistregel: veel zon en slecht geïsoleerd', 'unit' => 'W/m³', 'explanation' => 'Indicatief vermogen per m³ bij veel zon en slechte isolatie. Door Martin aangeleverde vuistregel — geen ontwerpnorm.', 'default_status' => 'te_valideren', 'critical' => false],
+            ['key' => 'quick_estimate.w_per_m3.sunny_poor_insulation_under_roof', 'category' => 'Snelle inschatting', 'label' => 'Vuistregel: veel zon, slechte isolatie en onder dak', 'unit' => 'W/m³', 'explanation' => 'Indicatief vermogen per m³ bij veel zon, slechte isolatie en een ruimte onder het dak. Door Martin aangeleverde vuistregel — geen ontwerpnorm.', 'default_status' => 'te_valideren', 'critical' => false],
+
             // ── Capaciteit & multi-split ─────────────────────────────────────
             ['key' => 'capacity_classes', 'category' => 'Capaciteit', 'label' => 'Capaciteitsklassen', 'unit' => 'kW', 'explanation' => 'Vertaling van berekende koellast naar doelklasse (zoekdoel, geen productkeuze).', 'default_status' => 'te_valideren', 'critical' => true],
             ['key' => 'max_class_kw', 'category' => 'Capaciteit', 'label' => 'Hoogste klasse', 'unit' => 'kW', 'explanation' => 'Boven deze klasse is handmatige beoordeling vereist.', 'default_status' => 'te_valideren', 'critical' => false],

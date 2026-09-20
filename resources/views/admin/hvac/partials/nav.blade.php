@@ -18,7 +18,7 @@
     <a href="{{ route('admin.hvac.brands.index') }}" @if (request()->routeIs('admin.hvac.brands.*')) class="is-active" aria-current="page" @endif>Merken</a>
     <a href="{{ route('admin.hvac.suppliers.index') }}" @if (request()->routeIs('admin.hvac.suppliers.*')) class="is-active" aria-current="page" @endif>Leveranciers</a>
     <a href="{{ route('admin.hvac.import.index') }}" @if (request()->routeIs('admin.hvac.import.*')) class="is-active" aria-current="page" @endif>Import</a>
-    <a href="{{ route('admin.hvac.rules.index') }}" @if (request()->routeIs('admin.hvac.rules.*')) class="is-active" aria-current="page" @endif>Berekeningsregels</a>
+    <a href="{{ route('admin.hvac.rules.index') }}" @if (request()->routeIs('admin.hvac.rules.*')) class="is-active" aria-current="page" @endif>Offerte-instellingen</a>
     <a href="{{ route('admin.hvac.checklist') }}" @if (request()->routeIs('admin.hvac.checklist')) class="is-active" aria-current="page" @endif>Checklist</a>
 </nav>
 

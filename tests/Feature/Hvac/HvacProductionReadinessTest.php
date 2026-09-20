@@ -171,15 +171,28 @@ class HvacProductionReadinessTest extends TestCase
             ->get(route('admin.hvac.rules.index'));
 
         $response->assertOk();
-        $response->assertSee('HVAC-berekeningsregels');
-        $response->assertSee('Basislast isolatie: goed');
-        $response->assertSee('KRITIEK');
-        $response->assertSee('Placeholder');
+        $response->assertSee('Offerte-instellingen');
+
+        // The complete technical rule table lives under "Geavanceerde instellingen".
+        $advanced = $this->withSession($this->adminSession())
+            ->get(route('admin.hvac.rules.advanced'));
+        $advanced->assertOk();
+        $advanced->assertSee('Geavanceerde instellingen');
+        $advanced->assertSee('Basislast isolatie: goed');
+        $advanced->assertSee('Belangrijk');
+        $advanced->assertSee('Startwaarde');
+
+        // A confirmation without the explicit tick is refused.
+        $this->withSession($this->adminSession())
+            ->post(route('admin.hvac.rules.validate'), ['rule_key' => 'insulation_w_per_m2.good'])
+            ->assertSessionHasErrors('confirm');
+        $this->assertDatabaseCount('hvac_rule_validations', 0);
 
         $this->withSession($this->adminSession())
             ->post(route('admin.hvac.rules.validate'), [
                 'rule_key' => 'insulation_w_per_m2.good',
                 'note'     => 'Bevestigd met installateur',
+                'confirm'  => '1',
             ])->assertSessionHas('success', 'hvac_rule_validated');
 
         $this->assertDatabaseHas('hvac_rule_validations', [

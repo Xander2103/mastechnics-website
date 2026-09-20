@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\HvacCompatibilityController;
 use App\Http\Controllers\Admin\HvacGuidedImportController;
 use App\Http\Controllers\Admin\HvacImportController;
 use App\Http\Controllers\Admin\HvacProductController;
+use App\Http\Controllers\Admin\HvacQuickEstimateController;
 use App\Http\Controllers\Admin\HvacRuleController;
 use App\Http\Controllers\Admin\HvacSupplierController;
 use App\Http\Controllers\Admin\QuoteController as AdminQuoteController;
@@ -191,6 +192,19 @@ Route::middleware('admin')
             ->name('hvac.rules.draft');
         Route::post('/hvac/rules/{ruleSet}/activate', [HvacRuleController::class, 'activate'])
             ->name('hvac.rules.activate');
+        // "Offerte-instellingen": guided layer over the same rule sets.
+        Route::get('/hvac/rules/section/{section}', [HvacRuleController::class, 'section'])
+            ->name('hvac.rules.section');
+        Route::get('/hvac/rules/advanced', [HvacRuleController::class, 'advanced'])
+            ->name('hvac.rules.advanced');
+        Route::get('/hvac/rules/example', [HvacRuleController::class, 'example'])
+            ->name('hvac.rules.example');
+        Route::get('/hvac/rules/quick-estimate', [HvacQuickEstimateController::class, 'show'])
+            ->name('hvac.rules.quick-estimate');
+        Route::patch('/hvac/rules/{ruleSet}/value', [HvacRuleController::class, 'updateValue'])
+            ->name('hvac.rules.value');
+        Route::post('/hvac/rules/{ruleSet}/discard', [HvacRuleController::class, 'discard'])
+            ->name('hvac.rules.discard');
 
         Route::view('/hvac/checklist', 'admin.hvac.checklist')
             ->name('hvac.checklist');

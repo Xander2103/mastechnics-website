@@ -33,7 +33,7 @@ class HvacRuleSetResolver
         if ($existing !== null) {
             throw new \RuntimeException(
                 'Geen actieve regelset: de standaardregelset "' . $default['name'] . '" v' . $default['version']
-                . ' heeft status "' . $existing->status . '". Activeer een regelset via Berekeningsregels.'
+                . ' heeft status "' . $existing->status . '". Activeer een regelset via HVAC-producten → Offerte-instellingen.'
             );
         }
 

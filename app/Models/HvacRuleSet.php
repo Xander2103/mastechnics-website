@@ -26,4 +26,9 @@ class HvacRuleSet extends Model
     {
         return $this->hasMany(HvacRuleValidation::class);
     }
+
+    public function changes(): HasMany
+    {
+        return $this->hasMany(HvacRuleChange::class);
+    }
 }

@@ -46,7 +46,7 @@ class SeedHvacV2RuleSet extends Command
         ]);
 
         $this->info(sprintf(
-            'Conceptregelset "%s" v%d aangemaakt. Activeren kan uitsluitend via Admin → HVAC → Berekeningsregels, na validatie van de waarden.',
+            'Conceptregelset "%s" v%d aangemaakt. Activeren kan uitsluitend via Admin → HVAC-producten → Offerte-instellingen, na validatie van de waarden.',
             $ruleSet->name,
             $ruleSet->version
         ));

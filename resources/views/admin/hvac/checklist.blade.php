@@ -20,7 +20,7 @@
                     <li>Importeer de leverancierscatalogus via <a class="admin-link" href="{{ route('admin.hvac.import.index') }}">Import</a> (producten eerst, daarna compatibiliteit).</li>
                     <li>Controleer het importrapport en los rijfouten op.</li>
                     <li>Voeg ontbrekende compatibiliteit toe (productpagina of compatibiliteits-CSV).</li>
-                    <li>Valideer de <a class="admin-link" href="{{ route('admin.hvac.rules.index') }}">berekeningsregels</a> — alle kritieke regels moeten gevalideerd zijn.</li>
+                    <li>Doorloop de <a class="admin-link" href="{{ route('admin.hvac.rules.index') }}">Offerte-instellingen</a> — alle belangrijke instellingen moeten door u bevestigd zijn.</li>
                     <li>Open een (test)airco-aanvraag in <a class="admin-link" href="{{ route('admin.requests.index') }}">Aanvragen</a>.</li>
                     <li>Voer de voorcalculatie uit.</li>
                     <li>Controleer elke kamer (afmetingen, isolatie, ligging, aannames).</li>
@@ -38,8 +38,9 @@
                 </ol>
 
                 <p class="hvac-muted" style="margin-top:1rem;">
-                    De volledige handleiding staat in <code>docs/hvac/klantenhandleiding-mastechnics.md</code>;
-                    deze checklist ook in <code>docs/hvac/acceptatiechecklist-martin.md</code>.
+                    De praktijkhandleiding "Mastechnics — Van aanvraag tot offerte" staat in
+                    <code>docs/martin-hvac-praktijkhandleiding.md</code>; deze checklist ook in
+                    <code>docs/hvac/acceptatiechecklist-martin.md</code>.
                 </p>
             </div>
         </div>

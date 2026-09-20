@@ -115,7 +115,7 @@ class HvacEngineHardeningTest extends TestCase
             if (HvacRuleCatalog::value($active->configuration, $key) === null) {
                 continue;
             }
-            $this->withSession($this->adminSession())->post(route('admin.hvac.rules.validate'), ['rule_key' => $key]);
+            $this->withSession($this->adminSession())->post(route('admin.hvac.rules.validate'), ['rule_key' => $key, 'confirm' => '1']);
         }
     }
 
@@ -417,7 +417,7 @@ class HvacEngineHardeningTest extends TestCase
         $this->assertStringContainsString('999', $html);
 
         // Re-validating the changed rule restores readiness (value re-stored).
-        $this->withSession($this->adminSession())->post(route('admin.hvac.rules.validate'), ['rule_key' => 'labor.hourly_rate_excl_vat']);
+        $this->withSession($this->adminSession())->post(route('admin.hvac.rules.validate'), ['rule_key' => 'labor.hourly_rate_excl_vat', 'confirm' => '1']);
         $this->assertTrue(app(HvacRecommendationReadiness::class)->criticalRulesValidated($draft->id));
     }
 

@@ -52,7 +52,7 @@ class HvacRecommendationReadiness
 
         $rulesOk = $this->criticalRulesValidated((int) $recommendation->calculation->hvac_rule_set_id);
         if (! $rulesOk && ! $demo) {
-            $blockers[] = 'Niet alle kritieke berekeningsregels zijn gevalideerd (zie Berekeningsregels).';
+            $blockers[] = 'Niet alle belangrijke instellingen zijn door u bevestigd (zie HVAC-producten → Offerte-instellingen).';
         }
 
         $ready = $technicalOk && $priceOk && ($rulesOk || $demo);
@@ -110,7 +110,7 @@ class HvacRecommendationReadiness
             $status === 'converted'     => 'Omgezet naar offerte' . $suffix,
             $status === 'manual_review' => 'Handmatige controle vereist',
             $ready                      => 'Klaar voor offerte' . $suffix,
-            $technicalOk && $priceOk    => 'Prijs gevalideerd — regels nog niet gevalideerd',
+            $technicalOk && $priceOk    => 'Prijs in orde — instellingen nog niet bevestigd',
             $technicalOk                => 'Technisch gevalideerd — prijs onvolledig',
             default                     => 'Concept — handmatige controle vereist',
         };
